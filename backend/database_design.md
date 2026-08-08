@@ -1,7 +1,7 @@
 # Tài Liệu Đặc Tả Thiết Kế Cơ Sở Dữ Liệu
 ## Dự án: Website Bán Dịch vụ Cloud (CloudService)
 
-Tài liệu này đặc tả chi tiết cấu trúc các bảng dữ liệu trong CSDL SQL Server của dự án `CloudService`. Hệ thống áp dụng quy tắc đặt tên khóa chính kiểu số nguyên tự tăng (`int`), cơ chế xóa mềm (`Soft Delete`) và được cấu hình bằng Fluent API.
+Tài liệu này đặc tả chi tiết cấu trúc các bảng dữ liệu trong CSDL SQL Server của dự án `CloudService`. Hệ thống áp dụng quy tắc đặt tên khóa chính kiểu định danh duy nhất (`Guid` / `uniqueidentifier`), cơ chế xóa mềm (`Soft Delete`) và được cấu hình bằng Fluent API.
 
 ---
 
@@ -32,7 +32,7 @@ Tất cả các bảng bên dưới (ngoại trừ bảng trung gian hoặc bả
 
 | Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **`Id`** | `int` | Primary Key, Identity(1,1) | Khóa chính tự tăng. |
+| **`Id`** | `Guid` | Primary Key, Default `NEWID()` | Khóa chính dạng định danh duy nhất. |
 | **`IsActive`** | `bit` | Default `1` (True) | Trạng thái hoạt động (Dùng cho Xóa mềm - Soft Delete). |
 | **`CreatedAt`** | `datetime2` | Not Null | Thời điểm tạo bản ghi. |
 | **`LastModifiedAt`** | `datetime2` | Nullable | Thời điểm cập nhật bản ghi gần nhất. |
@@ -58,7 +58,7 @@ Tất cả các bảng bên dưới (ngoại trừ bảng trung gian hoặc bả
 | **`PasswordHash`**| `varchar(255)`| Not Null | Mật khẩu băm (BCrypt). |
 | **`FullName`** | `nvarchar(100)`| Not Null | Họ và tên đầy đủ. |
 | **`Email`** | `varchar(100)`| Not Null, Unique | Địa chỉ email của người dùng. |
-| **`RoleId`** | `int` | Foreign Key -> `Roles(Id)` | Liên kết vai trò của người dùng. |
+| **`RoleId`** | `Guid` | Foreign Key -> `Roles(Id)` | Liên kết vai trò của người dùng. |
 | **`RefreshToken`**| `varchar(255)`| Nullable | Token làm mới phiên đăng nhập JWT. |
 | **`RefreshTokenExpiryTime`** | `datetime2` | Nullable | Thời gian hết hạn của Refresh Token. |
 
@@ -80,7 +80,7 @@ Tất cả các bảng bên dưới (ngoại trừ bảng trung gian hoặc bả
 
 | Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **`CategoryId`** | `int` | Foreign Key -> `ServiceCategories(Id)` | Thuộc về danh mục nào. |
+| **`CategoryId`** | `Guid` | Foreign Key -> `ServiceCategories(Id)` | Thuộc về danh mục nào. |
 | **`Name`** | `nvarchar(100)`| Not Null | Tên gói dịch vụ (Ví dụ: `"VPS PRO 1"`). |
 | **`Description`** | `nvarchar(max)`| Nullable | Mô tả chi tiết gói. |
 | **`Cpu`** | `nvarchar(50)` | Nullable | Thông số CPU (Ví dụ: `"2 Cores"`). |
@@ -104,10 +104,10 @@ Tất cả các bảng bên dưới (ngoại trừ bảng trung gian hoặc bả
 
 | Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **`PlanId`** | `int` | FK -> `ServicePlans(Id)`, Delete Cascade | Thuộc về gói dịch vụ nào. |
+| **`PlanId`** | `Guid` | FK -> `ServicePlans(Id)`, Delete Cascade | Thuộc về gói dịch vụ nào. |
 | **`BillingCycle`**| `nvarchar(50)` | Not Null | Chu kỳ thanh toán (Ví dụ: `"Monthly"`, `"Annually"`). |
 | **`Price`** | `decimal(18,2)`| Not Null | Giá gốc của gói theo chu kỳ tương ứng. |
-| **`PromotionId`** | `int` | FK -> `Promotions(Id)`, Nullable | Mã khuyến mãi đang áp dụng (nếu có). |
+| **`PromotionId`** | `Guid` | FK -> `Promotions(Id)`, Nullable | Mã khuyến mãi đang áp dụng (nếu có). |
 
 ---
 
@@ -118,7 +118,7 @@ Tất cả các bảng bên dưới (ngoại trừ bảng trung gian hoặc bả
 
 | Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **`PlanPriceId`** | `int` | Foreign Key -> `PlanPrices(Id)` | Khách hàng đặt mua gói dịch vụ + chu kỳ nào. |
+| **`PlanPriceId`** | `Guid` | Foreign Key -> `PlanPrices(Id)` | Khách hàng đặt mua gói dịch vụ + chu kỳ nào. |
 | **`CustomerName`**| `nvarchar(100)`| Not Null | Tên khách hàng. |
 | **`CustomerEmail`**| `varchar(100)` | Not Null | Email khách hàng. |
 | **`CustomerPhone`**| `varchar(20)`  | Not Null | Số điện thoại khách hàng. |
@@ -143,7 +143,7 @@ Tất cả các bảng bên dưới (ngoại trừ bảng trung gian hoặc bả
 
 | Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **`UserId`** | `int` | FK -> `AppUsers(Id)`, Nullable | ID của Admin/Editor thực hiện hành động. |
+| **`UserId`** | `Guid` | FK -> `AppUsers(Id)`, Nullable | ID của Admin/Editor thực hiện hành động. |
 | **`Username`** | `varchar(50)` | Not Null | Tên tài khoản thực hiện (lưu để xem nhanh). |
 | **`Action`** | `nvarchar(100)`| Not Null | Hành động thực hiện (Ví dụ: `"Thay đổi giá gói VPS"`). |
 | **`Payload`** | `nvarchar(max)`| Nullable | Dữ liệu cũ và mới dạng JSON để so sánh. |
