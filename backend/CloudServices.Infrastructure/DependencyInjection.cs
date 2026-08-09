@@ -1,5 +1,8 @@
 using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Infrastructure.Data;
+using CloudServices.Infrastructure.Repositories;
+using CloudServices.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +25,16 @@ public static class DependencyInjection
 
         // 3. Đăng ký ApplicationDbContextInitialiser để chạy Migration & Seeding khi khởi tạo
         services.AddScoped<ApplicationDbContextInitialiser>();
+
+        // Đăng ký các Repositories và UnitOfWork
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
+
+        // Đăng ký Bcrypt để hash password
+        services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
         return services;
     }

@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>57004e40-15f2-4926-bd7b-b6d986b21f69</UserSecretsId>
+    <UserSecretsId>d9239d42-4b88-4df4-95b0-dc264ba00e45</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Folder Include="Extensions\" />
+    <Folder Include="Middleware\" />
   </ItemGroup>
 
 </Project>
