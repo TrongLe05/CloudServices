@@ -42,6 +42,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
         // 3. Phát sinh Access Token và Refresh Token mới
         var accessToken = _jwtTokenGenerator.GenerateToken(user);
         var refreshToken = _jwtTokenGenerator.GenerateRefreshToken();
+        var username = user.Username;
 
         // 4. Lưu lại Refresh Token vào cơ sở dữ liệu
         user.RefreshToken = refreshToken;
@@ -50,6 +51,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
         // Lưu thay đổi qua UnitOfWork
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new LoginResponse(accessToken, refreshToken);
+        return new LoginResponse(accessToken, refreshToken, username);
     }
 }

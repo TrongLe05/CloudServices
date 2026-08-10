@@ -20,7 +20,21 @@ public class AuthController : ApiControllerBase
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
         var response = await Mediator.Send(command);
-        return Ok(response);
+
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,             // 🔴 Quan trọng nhất: Chặn Javascript truy cập (chống XSS)
+            Secure = true,               // 🔒 Bắt buộc dùng HTTPS (trình duyệt chỉ gửi cookie qua kênh bảo mật)
+            SameSite = SameSiteMode.None, // 🌐 Cho phép gửi cookie chéo domain (nếu Frontend và API khác domain/port)
+            Expires = DateTime.UtcNow.AddDays(7) // 🕒 Hết hạn trùng với thời gian sống của Refresh Token (7 ngày)
+        };
+
+        Response.Cookies.Append("refreshToken", response.RefreshToken, cookieOptions);
+        return Ok(new
+        {
+            AccessToken = response.AccessToken,
+            Username = response.Username
+        });
     }
 
     [HttpPost("logout")]

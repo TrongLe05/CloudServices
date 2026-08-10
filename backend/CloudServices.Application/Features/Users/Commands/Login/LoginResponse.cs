@@ -1,3 +1,3 @@
 ﻿namespace CloudServices.Application.Features.Users.Commands.Login;
 
-public record LoginResponse(string AccessToken, string RefreshToken);
+public record LoginResponse(string AccessToken, string RefreshToken, string Username);
