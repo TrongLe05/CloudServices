@@ -1,20 +1,27 @@
 ﻿using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Application.Features.Users.Commands.CreateUserl;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace CloudServices.Application.Features.Users.Commands.CreateUser;
 
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
 {
-    private readonly IApplicationDbContext _context;
-    public CreateUserCommandHandler(IApplicationDbContext context)
+    private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    public CreateUserCommandHandler(
+        IUserRepository userRepository, 
+        IRoleRepository roleRepository, 
+        IUnitOfWork unitOfWork)
     {
-        _context = context;
+        _userRepository = userRepository;
+        _roleRepository = roleRepository;
+        _unitOfWork = unitOfWork;
     }
     public async Task<Guid> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        var defaultRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "User", cancellationToken);
+        var defaultRole = await _roleRepository.GetByNameAsync("User", cancellationToken);
 
         if (defaultRole == null)
         {
@@ -31,8 +38,9 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
             RoleId = defaultRole.Id
         };
 
-        _context.AppUsers.Add(newUser);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _userRepository.AddAsync(newUser, cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return newUser.Id;
     }

@@ -1,17 +1,17 @@
 ﻿using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Application.Features.Users.Commands.CreateUserl;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace CloudServices.Application.Features.Users.Commands.CreateUser;
 
 public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 {
-    private readonly IApplicationDbContext _context;
-    public CreateUserCommandValidator(IApplicationDbContext context)
+    private readonly IUserRepository _userRepository;
+    public CreateUserCommandValidator(IUserRepository userRepository)
     {
-        _context = context;
+        _userRepository = userRepository;
 
         RuleFor(v => v.Username)
                 .NotEmpty().WithMessage("Username không được để trống.")
@@ -33,12 +33,12 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
     }
     private async Task<bool> BeUniqueUsername(string username, CancellationToken cancellationToken)
     {
-        return !await _context.AppUsers.AnyAsync(x => x.Username == username, cancellationToken);
+        return !await _userRepository.AnyAsync(username, cancellationToken);
     }
 
     private async Task<bool> BeUniqueEmail(string email, CancellationToken cancellationToken)
     {
-        return !await _context.AppUsers.AnyAsync(x => x.Email == email, cancellationToken);
+        return !await _userRepository.AnyAsync(email, cancellationToken);
     }
 
 }

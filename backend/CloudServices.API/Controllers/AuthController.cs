@@ -1,4 +1,6 @@
-﻿using CloudServices.Application.Features.Users.Commands.Login;
+﻿using Azure.Core;
+using CloudServices.Application.Features.Users.Commands.ChangePassword;
+using CloudServices.Application.Features.Users.Commands.Login;
 using CloudServices.Application.Features.Users.Commands.Logout;
 using CloudServices.Application.Features.Users.Commands.RefreshToken;
 using CloudServices.Application.Features.Users.Commands.RegisterUser;
@@ -21,7 +23,6 @@ public class AuthController : ApiControllerBase
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
         var response = await Mediator.Send(command);
-
      
         var cookieOptions = new CookieOptions
         {
@@ -89,5 +90,27 @@ public class AuthController : ApiControllerBase
             AccessToken = response.AccessToken,
             Username = response.Username
         });
+    }
+
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request, CancellationToken cancellationToken)
+    {
+        // 1. Trích xuất User ID từ Claims của JWT Token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized();
+        }
+
+        var userId = Guid.Parse(userIdClaim);
+
+        // 2. Tạo Command và gửi sang Mediator
+        var command = new ChangePasswordCommand(userId, request.OldPassword, request.NewPassword);
+        await Mediator.Send(command, cancellationToken);
+
+        return Ok(new { Message = "Thay đổi mật khẩu thành công. Vui lòng đăng nhập lại." });
     }
 }
