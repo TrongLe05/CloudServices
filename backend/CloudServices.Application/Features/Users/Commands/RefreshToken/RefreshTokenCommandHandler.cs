@@ -2,7 +2,6 @@
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using MediatR;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 namespace CloudServices.Application.Features.Users.Commands.RefreshToken;
 
@@ -37,7 +36,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         // 2. Lấy UserId từ Claims (Sub claim)
         var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                          ?? principal.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+                          ?? principal.FindFirst("sub")?.Value;
 
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
         {

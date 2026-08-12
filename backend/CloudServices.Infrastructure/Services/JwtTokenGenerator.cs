@@ -22,7 +22,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
                 ?? throw new InvalidOperationException("Chưa cấu hình JWT Secret.");
         var issuer = _configuration["JwtSettings:Issuer"];
         var audience = _configuration["JwtSettings:Audience"];
-        var expiryMinutes = double.Parse(_configuration["JwtSettings:ExpiryMinutes"] ?? "60");
+        var expiryMinutes = double.Parse(_configuration["JwtSettings:ExpiryMinutes"] ?? "15");
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
