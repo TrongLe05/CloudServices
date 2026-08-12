@@ -1,5 +1,6 @@
 ﻿using CloudServices.Application.Features.Users.Commands.Login;
 using CloudServices.Application.Features.Users.Commands.Logout;
+using CloudServices.Application.Features.Users.Commands.RefreshToken;
 using CloudServices.Application.Features.Users.Commands.RegisterUser;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +22,7 @@ public class AuthController : ApiControllerBase
     {
         var response = await Mediator.Send(command);
 
+     
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,             // 🔴 Quan trọng nhất: Chặn Javascript truy cập (chống XSS)
@@ -56,5 +58,36 @@ public class AuthController : ApiControllerBase
         await Mediator.Send(new LogoutCommand(userId), cancellationToken);
 
         return NoContent(); // Trả về HTTP 204 No Content báo thành công
+    }
+
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshRequestDto request)
+    {
+        // Kiểm tra refresh token từ Cookie 
+        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken) || string.IsNullOrEmpty(refreshToken))
+        {
+            return BadRequest(new { Message = "Refresh token không tồn tại." });
+        }
+
+        // Gửi Command sang MediatR
+        var command = new RefreshTokenCommand(request.ExpiredAccessToken, refreshToken);
+        var response = await Mediator.Send(command);
+
+        //  Cấu hình cookie lưu RefreshToken 
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(7)
+        };
+        Response.Cookies.Append("refreshToken", response.RefreshToken, cookieOptions);
+
+        // Trả AccessToken mới cho client 
+        return Ok(new
+        {
+            AccessToken = response.AccessToken,
+            Username = response.Username
+        });
     }
 }
