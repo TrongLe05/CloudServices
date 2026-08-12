@@ -54,4 +54,31 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         rng.GetBytes(randomNumber);
         return Convert.ToBase64String(randomNumber);
     }
+
+    public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+    {
+        var secretKey = _configuration["JwtSettings:Secret"]
+                ?? throw new InvalidOperationException("Chưa cấu hình JWT Secret.");
+
+        var tokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateAudience = false, // Có thể bỏ qua kiểm tra Audience ở bước này
+            ValidateIssuer = false,   // Có thể bỏ qua kiểm tra Issuer
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+            ValidateLifetime = false // 🔴 Bắt buộc là FALSE để giải mã được token khi nó đã hết hạn
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+
+        // Kiểm tra thuật toán mã hóa của token để tránh lỗ hổng bảo mật dùng thuật toán yếu hoặc không mã hóa
+        if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+        {
+            throw new SecurityTokenException("Token không hợp lệ.");
+        }
+
+        return principal;
+    }
 }
