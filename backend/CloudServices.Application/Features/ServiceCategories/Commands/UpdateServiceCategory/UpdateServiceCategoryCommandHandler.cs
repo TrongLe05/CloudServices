@@ -1,23 +1,21 @@
 using CloudServices.Application.Common.Exceptions;
-using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace CloudServices.Application.Features.ServiceCategories.Commands.UpdateServiceCategory;
 
 public class UpdateServiceCategoryCommandHandler : IRequestHandler<UpdateServiceCategoryCommand>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly IServiceCategoryRepository _repository;
 
-    public UpdateServiceCategoryCommandHandler(IApplicationDbContext context)
+    public UpdateServiceCategoryCommandHandler(IServiceCategoryRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public async Task<Unit> Handle(UpdateServiceCategoryCommand request, CancellationToken cancellationToken)
     {
-        var category = await _context.ServiceCategories
-            .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
+        var category = await _repository.GetByIdAsync(request.Id, cancellationToken);
 
         if (category == null)
         {
@@ -28,7 +26,7 @@ public class UpdateServiceCategoryCommandHandler : IRequestHandler<UpdateService
         category.Slug = request.Slug;
         category.Description = request.Description;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await _repository.UpdateAsync(category, cancellationToken);
 
         return Unit.Value;
     }

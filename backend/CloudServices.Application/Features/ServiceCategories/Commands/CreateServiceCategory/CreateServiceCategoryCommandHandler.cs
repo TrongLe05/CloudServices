@@ -1,4 +1,4 @@
-using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Domain.Entities;
 using MediatR;
 
@@ -6,11 +6,11 @@ namespace CloudServices.Application.Features.ServiceCategories.Commands.CreateSe
 
 public class CreateServiceCategoryCommandHandler : IRequestHandler<CreateServiceCategoryCommand, Guid>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly IServiceCategoryRepository _repository;
 
-    public CreateServiceCategoryCommandHandler(IApplicationDbContext context)
+    public CreateServiceCategoryCommandHandler(IServiceCategoryRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public async Task<Guid> Handle(CreateServiceCategoryCommand request, CancellationToken cancellationToken)
@@ -22,8 +22,7 @@ public class CreateServiceCategoryCommandHandler : IRequestHandler<CreateService
             Description = request.Description
         };
 
-        _context.ServiceCategories.Add(category);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _repository.AddAsync(category, cancellationToken);
 
         return category.Id;
     }

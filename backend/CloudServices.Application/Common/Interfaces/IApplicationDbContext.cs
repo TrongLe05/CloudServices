@@ -7,7 +7,6 @@ public interface IApplicationDbContext
 {
     DbSet<Role> Roles { get; }
     DbSet<AppUser> AppUsers { get; }
-    DbSet<ServiceCategory> ServiceCategories { get; }
     DbSet<ServicePlan> ServicePlans { get; }
     DbSet<Promotion> Promotions { get; }
     DbSet<PlanPrice> PlanPrices { get; }

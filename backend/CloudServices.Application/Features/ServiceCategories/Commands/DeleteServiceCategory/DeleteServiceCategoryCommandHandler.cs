@@ -1,31 +1,28 @@
 using CloudServices.Application.Common.Exceptions;
-using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace CloudServices.Application.Features.ServiceCategories.Commands.DeleteServiceCategory;
 
 public class DeleteServiceCategoryCommandHandler : IRequestHandler<DeleteServiceCategoryCommand>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly IServiceCategoryRepository _repository;
 
-    public DeleteServiceCategoryCommandHandler(IApplicationDbContext context)
+    public DeleteServiceCategoryCommandHandler(IServiceCategoryRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public async Task<Unit> Handle(DeleteServiceCategoryCommand request, CancellationToken cancellationToken)
     {
-        var category = await _context.ServiceCategories
-            .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
+        var category = await _repository.GetByIdAsync(request.Id, cancellationToken);
 
         if (category == null)
         {
             throw new NotFoundException("ServiceCategory not found.");
         }
 
-        _context.ServiceCategories.Remove(category);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _repository.DeleteAsync(request.Id, cancellationToken);
 
         return Unit.Value;
     }
