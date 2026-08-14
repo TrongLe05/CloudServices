@@ -20,7 +20,7 @@ public static class DependencyInjection
                 builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
         // 2. Đăng ký Interface IApplicationDbContext trỏ tới ApplicationDbContext
-        services.AddScoped<IApplicationDbContext>(provider => 
+        services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
 
         // 3. Đăng ký ApplicationDbContextInitialiser để chạy Migration & Seeding khi khởi tạo
@@ -30,11 +30,16 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
 
         // Đăng ký Bcrypt để hash password
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
+        // Đăng ký JWT Token Generator
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+        // Đăng ký QR Code Generator
+        services.AddSingleton<IQrCodeGenerator, QrCodeGenerator>();
 
         return services;
     }
