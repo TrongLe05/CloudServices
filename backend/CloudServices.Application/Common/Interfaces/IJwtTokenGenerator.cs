@@ -1,4 +1,5 @@
 ﻿using CloudServices.Domain.Entities;
+using System.Security.Claims;
 
 namespace CloudServices.Application.Common.Interfaces;
 
@@ -9,4 +10,5 @@ public interface IJwtTokenGenerator
 
     // Tạo chuỗi ngẫu nhiên làm Refresh Token
     string GenerateRefreshToken();
+    ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
 }
