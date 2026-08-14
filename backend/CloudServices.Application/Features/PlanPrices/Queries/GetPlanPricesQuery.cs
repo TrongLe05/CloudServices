@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Common.Interfaces.Repositories;
+﻿using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Features.PlanPrices.DTOs;
 using MediatR;
 

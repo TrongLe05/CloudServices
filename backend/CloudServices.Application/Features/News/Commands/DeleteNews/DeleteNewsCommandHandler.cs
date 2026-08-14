@@ -1,9 +1,10 @@
+using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using MediatR;
 
 namespace CloudServices.Application.Features.News.Commands.DeleteNews;
 
-public class DeleteNewsCommandHandler : IRequestHandler<DeleteNewsCommand>
+public class DeleteNewsCommandHandler : IRequestHandler<DeleteNewsCommand, Unit>
 {
     private readonly INewsRepository _newsRepository;
     private readonly IUnitOfWork _unitOfWork;
