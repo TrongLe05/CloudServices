@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using CloudServices.Application.Common.Interfaces.Repositories;
+﻿using CloudServices.Application.Common.Interfaces.Repositories;
+using Microsoft.EntityFrameworkCore;
 using CloudServices.Domain.Entities;
 using CloudServices.Infrastructure.Data;
 

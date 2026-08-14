@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using CloudServices.Application.Features.QrCodes.Commands;
+﻿using CloudServices.Application.Features.QrCodes.Commands;
 using CloudServices.Application.Features.QrCodes.DTOs;
+using CloudServices.Application.Features.QrCodes.Queries;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CloudServices.API.Controllers;
 

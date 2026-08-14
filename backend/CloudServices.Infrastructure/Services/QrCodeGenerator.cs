@@ -1,5 +1,7 @@
-﻿using QRCoder;
-using CloudServices.Application.Common.Interfaces;
+﻿using CloudServices.Application.Common.Interfaces;
+using QRCoder;
+
+
 
 namespace CloudServices.Infrastructure.Services;
 
