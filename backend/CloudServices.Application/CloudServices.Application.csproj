@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\Queries\GetServicePlanQrCodeQueryHandler.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CloudServices.Domain\CloudServices.Domain.csproj" />
   </ItemGroup>
 
@@ -15,6 +19,10 @@
     <Folder Include="Common\Mappings\" />
     <Folder Include="Common\Models\" />
     <Folder Include="Features\Users\Queries\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Features\Queries\GetServicePlanQrCodeQueryHandler.cs" />
   </ItemGroup>
 
   <ItemGroup>

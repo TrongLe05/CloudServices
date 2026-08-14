@@ -30,12 +30,16 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
-        services.AddScoped<IPlanPriceRepository, PlanPriceRepository>(); // <-- Thêm dòng này
+        services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
 
         // Đăng ký Bcrypt để hash password
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
+        // Đăng ký JWT Token Generator
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+        // Đăng ký QR Code Generator
+        services.AddSingleton<IQrCodeGenerator, QrCodeGenerator>();
 
         return services;
     }
