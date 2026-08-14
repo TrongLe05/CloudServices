@@ -1,6 +1,5 @@
 ﻿using MediatR;
-using CloudServices.Application.Common.Interfaces; // Cho IUnitOfWork
-using CloudServices.Application.Common.Interfaces.Repositories; // Cho IPlanPriceRepository
+using CloudServices.Application.Common.Interfaces;
 using CloudServices.Domain.Entities;
 
 namespace CloudServices.Application.Features.PlanPrices.Commands;

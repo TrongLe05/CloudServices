@@ -5,7 +5,7 @@ using MediatR;
 
 namespace CloudServices.Application.Features.News.Commands.UpdateNews;
 
-public class UpdateNewsCommandHandler : IRequestHandler<UpdateNewsCommand>
+public class UpdateNewsCommandHandler : IRequestHandler<UpdateNewsCommand, Unit>
 {
     private readonly INewsRepository _newsRepository;
     private readonly IUnitOfWork _unitOfWork;

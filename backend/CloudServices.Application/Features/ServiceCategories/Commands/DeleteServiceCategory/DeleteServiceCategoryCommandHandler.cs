@@ -4,7 +4,7 @@ using MediatR;
 
 namespace CloudServices.Application.Features.ServiceCategories.Commands.DeleteServiceCategory;
 
-public class DeleteServiceCategoryCommandHandler : IRequestHandler<DeleteServiceCategoryCommand>
+public class DeleteServiceCategoryCommandHandler : IRequestHandler<DeleteServiceCategoryCommand, Unit>
 {
     private readonly IServiceCategoryRepository _repository;
 

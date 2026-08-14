@@ -4,7 +4,7 @@ using MediatR;
 
 namespace CloudServices.Application.Features.ServiceCategories.Commands.UpdateServiceCategory;
 
-public class UpdateServiceCategoryCommandHandler : IRequestHandler<UpdateServiceCategoryCommand>
+public class UpdateServiceCategoryCommandHandler : IRequestHandler<UpdateServiceCategoryCommand, Unit>
 {
     private readonly IServiceCategoryRepository _repository;
 
