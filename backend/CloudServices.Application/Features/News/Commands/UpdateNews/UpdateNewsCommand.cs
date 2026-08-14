@@ -2,7 +2,7 @@ using MediatR;
 
 namespace CloudServices.Application.Features.News.Commands.UpdateNews;
 
-public record UpdateNewsCommand : IRequest
+public record UpdateNewsCommand : IRequest<Unit>
 {
     public Guid Id { get; init; }
     public string? Title { get; init; }
