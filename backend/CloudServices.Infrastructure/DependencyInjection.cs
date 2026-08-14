@@ -31,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
+        services.AddScoped<INewsRepository, NewsRepository>();
+        services.AddScoped<IPlanPriceRepository, PlanPriceRepository>();
 
         // Đăng ký Bcrypt để hash password
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
