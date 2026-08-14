@@ -30,9 +30,12 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
+        services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
+        services.AddScoped<INewsRepository, NewsRepository>();
 
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddSingleton<IQrCodeGenerator, QrCodeGenerator>();
 
         return services;
     }
