@@ -1,60 +1,109 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using CloudServices.Application.Features.Testimonials.Commands;
+﻿using CloudServices.Application.Features.Testimonials.Commands;
 using CloudServices.Application.Features.Testimonials.DTOs;
 using CloudServices.Application.Features.Testimonials.Queries;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CloudServices.API.Controllers;
 
 [ApiController]
-[Route("api/testimonials")]
-public class TestimonialsController : ApiControllerBase
+[Route("api/[controller]")]
+public class TestimonialsController : ControllerBase
 {
-    // 1. PUBLIC: GET /api/testimonials
+    private readonly IMediator _mediator;
+
+    public TestimonialsController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<List<TestimonialDto>>> GetAll()
+    public async Task<ActionResult<List<TestimonialDto>>> GetAll(CancellationToken cancellationToken)
     {
-        var result = await Mediator.Send(new GetAllTestimonialsQuery());
+        var result = await _mediator.Send(new GetAllTestimonialsQuery(), cancellationToken);
         return Ok(result);
     }
 
-    // 2. PUBLIC: GET /api/testimonials/{id}
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
-    public async Task<ActionResult<TestimonialDto>> GetById(Guid id)
+    public async Task<ActionResult<TestimonialDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var result = await Mediator.Send(new GetTestimonialByIdQuery(id));
-        if (result == null) return NotFound(new { message = "Testimonial not found." });
+        var result = await _mediator.Send(new GetTestimonialByIdQuery(id), cancellationToken);
         return Ok(result);
     }
 
-    // 3. ADMIN: POST /api/testimonials
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<TestimonialDto>> Create([FromBody] CreateTestimonialDto dto)
+    public async Task<ActionResult<TestimonialDto>> Create([FromBody] CreateTestimonialRequest request, CancellationToken cancellationToken)
     {
-        var result = await Mediator.Send(new CreateTestimonialCommand(dto));
+        var command = new CreateTestimonialCommand(
+            request.ClientName,
+            request.Company,
+            request.Position,
+            request.Content,
+            request.AvatarUrl,
+            request.CompanyLogoUrl,
+            request.Rating,
+            request.IsActive,
+            request.DisplayOrder
+        );
+
+        var result = await _mediator.Send(command, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
-    // 4. ADMIN: PUT /api/testimonials/{id}
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<TestimonialDto>> Update(Guid id, [FromBody] UpdateTestimonialDto dto)
+    public async Task<ActionResult<TestimonialDto>> Update(Guid id, [FromBody] UpdateTestimonialRequest request, CancellationToken cancellationToken)
     {
-        var result = await Mediator.Send(new UpdateTestimonialCommand(id, dto));
-        if (result == null) return NotFound(new { message = "Testimonial not found." });
+        var command = new UpdateTestimonialCommand(
+            id,
+            request.ClientName,
+            request.Company,
+            request.Position,
+            request.Content,
+            request.AvatarUrl,
+            request.CompanyLogoUrl,
+            request.Rating,
+            request.IsActive,
+            request.DisplayOrder
+        );
+
+        var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
     }
 
-    // 5. ADMIN: DELETE /api/testimonials/{id}
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var success = await Mediator.Send(new DeleteTestimonialCommand(id));
-        if (!success) return NotFound(new { message = "Testimonial not found." });
+        await _mediator.Send(new DeleteTestimonialCommand(id), cancellationToken);
         return Ok(new { message = "Testimonial deleted successfully." });
     }
 }
+
+public record CreateTestimonialRequest(
+    string ClientName,
+    string? Company,
+    string? Position,
+    string Content,
+    string? AvatarUrl,
+    string? CompanyLogoUrl,
+    int Rating,
+    bool IsActive = true,
+    int DisplayOrder = 0
+);
+
+public record UpdateTestimonialRequest(
+    string ClientName,
+    string? Company,
+    string? Position,
+    string Content,
+    string? AvatarUrl,
+    string? CompanyLogoUrl,
+    int Rating,
+    bool IsActive,
+    int DisplayOrder
+);
