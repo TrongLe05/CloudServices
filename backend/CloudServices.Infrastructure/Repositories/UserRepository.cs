@@ -16,16 +16,33 @@ public class UserRepository : IUserRepository
     {
         await _context.AppUsers.AddAsync(user, cancellationToken);
     }
+    public async Task<bool> AnyAsync(string Username, CancellationToken cancellationToken)
+    {
+        return await _context.AppUsers.AnyAsync(u => u.Username == Username, cancellationToken);
+    }
     public async Task<AppUser?> GetByIdAsync(Guid Id, CancellationToken cancellationToken)
     {
-        return await _context.AppUsers.FirstOrDefaultAsync(u => u.Id == Id, cancellationToken);
+        return await _context.AppUsers
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == Id, cancellationToken);
     }
     public async Task<AppUser?> GetByEmailAsync(string email, CancellationToken cancellationToken)
     {
-        return await _context.AppUsers.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+        return await _context.AppUsers
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
     public async Task<AppUser?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
     {
-        return await _context.AppUsers.Include(u => u.Role).FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
+        return await _context.AppUsers
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
+    }
+
+    public async Task<List<AppUser>> GetWithAllRolesAsync(CancellationToken cancellationToken)
+    {
+        return await _context.AppUsers
+            .Include(u => u.Role)
+            .ToListAsync(cancellationToken);
     }
 }
