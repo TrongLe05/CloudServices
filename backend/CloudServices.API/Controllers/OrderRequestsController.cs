@@ -1,5 +1,8 @@
-using CloudServices.Application.Features.OrderRequests.Commands;
-using CloudServices.Application.Features.OrderRequests.Queries;
+using CloudServices.Application.Features.OrderRequests.Commands.ChangeOrderStatus;
+using CloudServices.Application.Features.OrderRequests.Commands.CreateOrderRequest;
+using CloudServices.Application.Features.OrderRequests.Commands.DeleteOrderRequest;
+using CloudServices.Application.Features.OrderRequests.Queries.GetOrderRequestById;
+using CloudServices.Application.Features.OrderRequests.Queries.GetOrderRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
