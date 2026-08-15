@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IPromotionRepository, PromotionRepository>(); // <-- Đã thêm ở đây
         services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
         services.AddScoped<IPlanPriceRepository, PlanPriceRepository>();
 
