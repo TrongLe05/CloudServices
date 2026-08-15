@@ -35,7 +35,11 @@ public static class DependencyInjection
         // Đăng ký Bcrypt để hash password
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
+        // Đăng ký JWT Token Generator
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+        // Đăng ký QR Code Generator
+        services.AddSingleton<IQrCodeGenerator, QrCodeGenerator>();
 
         return services;
     }
