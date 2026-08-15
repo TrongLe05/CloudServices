@@ -3,4 +3,4 @@ using MediatR;
 
 namespace CloudServices.Application.Features.Promotions.Queries;
 
-public record GetPromotionsQuery : IRequest<List<PromotionDto>>;
+public record GetPromotionByIdQuery(Guid Id) : IRequest<PromotionDto?>;
