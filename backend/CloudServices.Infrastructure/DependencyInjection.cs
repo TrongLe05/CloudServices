@@ -35,6 +35,8 @@ public static class DependencyInjection
         services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
         services.AddScoped<IPlanPriceRepository, PlanPriceRepository>();
         services.AddScoped<ITestimonialRepository, TestimonialRepository>();
+        services.AddScoped<IOrderRequestRepository, OrderRequestRepository>();
+        services.AddScoped<INewsRepository, NewsRepository>();
 
         // 5. Hash & JWT
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
