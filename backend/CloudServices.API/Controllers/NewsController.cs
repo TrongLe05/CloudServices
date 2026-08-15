@@ -1,5 +1,8 @@
-using CloudServices.Application.Features.News.Commands;
-using CloudServices.Application.Features.News.Queries;
+using CloudServices.Application.Features.News.Commands.CreateNews;
+using CloudServices.Application.Features.News.Commands.DeleteNews;
+using CloudServices.Application.Features.News.Commands.UpdateNews;
+using CloudServices.Application.Features.News.Queries.GetNews;
+using CloudServices.Application.Features.News.Queries.GetNewsById;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
