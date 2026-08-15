@@ -23,6 +23,12 @@ public class NewsArticleConfiguration : IEntityTypeConfiguration<NewsArticle>
         builder.HasIndex(n => n.Slug)
             .IsUnique();
 
+        builder.Property(n => n.Category)
+            .HasMaxLength(100)
+            .IsRequired();
+
+        builder.HasIndex(n => n.Category);
+
         builder.Property(n => n.Content)
             .HasColumnType("nvarchar(max)")
             .IsRequired();

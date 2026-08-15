@@ -1,7 +1,7 @@
 using System.Reflection;
-using CloudServices.Application.Common.Interfaces;
 using CloudServices.Domain.Common;
 using CloudServices.Domain.Entities;
+using CloudServices.Infrastructure.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace CloudServices.Infrastructure.Data;
@@ -22,15 +22,14 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<AffiliateApplication> AffiliateApplications => Set<AffiliateApplication>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<NewsArticle> NewsArticles => Set<NewsArticle>();
+    public DbSet<Testimonial> Testimonials => Set<Testimonial>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Apply all configurations from the current assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-        // Global Query Filter for Soft Delete (IsActive = true)
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
@@ -78,7 +77,6 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
             }
             else if (entry.State == EntityState.Deleted)
             {
-                // Soft Delete implementation
                 entry.State = EntityState.Modified;
                 entry.Entity.IsActive = false;
                 entry.Entity.LastModifiedAt = DateTime.UtcNow;
