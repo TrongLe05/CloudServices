@@ -28,16 +28,16 @@ public class PromotionsController : ApiControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<PromotionDto>> Create(CreatePromotionCommand command)
+    public async Task<ActionResult<PromotionDto>> Create([FromBody] CreatePromotionCommand command)
     {
         return await Mediator.Send(command);
     }
 
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<PromotionDto>> Update(Guid id, UpdatePromotionCommand command)
+    public async Task<ActionResult<PromotionDto>> Update(Guid id, [FromBody] UpdatePromotionCommand command)
     {
-        if (id != command.Id) return BadRequest();
+        command.Id = id;
         var result = await Mediator.Send(command);
         if (result == null) return NotFound();
         return result;

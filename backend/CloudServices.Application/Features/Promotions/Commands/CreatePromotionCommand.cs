@@ -7,6 +7,5 @@ public record CreatePromotionCommand(
     string Name,
     int DiscountPercentage,
     DateTime StartDate,
-    DateTime EndDate,
-    bool IsActive
+    DateTime EndDate
 ) : IRequest<PromotionDto>;
