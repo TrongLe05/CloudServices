@@ -38,6 +38,9 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
+        // Đăng ký QR Code Generator
+        services.AddSingleton<IQrCodeGenerator, QrCodeGenerator>();
+
         return services;
     }
 }

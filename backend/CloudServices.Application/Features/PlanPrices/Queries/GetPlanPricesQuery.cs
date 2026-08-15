@@ -1,6 +1,6 @@
-﻿using MediatR;
-using CloudServices.Application.Common.Interfaces.Repositories;
+﻿using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Application.Features.PlanPrices.DTOs;
+using MediatR;
 
 namespace CloudServices.Application.Features.PlanPrices.Queries;
 
@@ -8,18 +8,18 @@ public record GetPlanPricesQuery(Guid PlanId) : IRequest<List<PlanPriceDto>>;
 
 public class GetPlanPricesQueryHandler : IRequestHandler<GetPlanPricesQuery, List<PlanPriceDto>>
 {
-    private readonly IPlanPriceRepository _planPriceRepository;
+    private readonly IPlanPriceRepository _repository;
 
-    public GetPlanPricesQueryHandler(IPlanPriceRepository planPriceRepository)
+    public GetPlanPricesQueryHandler(IPlanPriceRepository repository)
     {
-        _planPriceRepository = planPriceRepository;
+        _repository = repository;
     }
 
     public async Task<List<PlanPriceDto>> Handle(GetPlanPricesQuery request, CancellationToken cancellationToken)
     {
-        var prices = await _planPriceRepository.GetByPlanIdAsync(request.PlanId, cancellationToken);
+        var planPrices = await _repository.GetByPlanIdAsync(request.PlanId, cancellationToken);
 
-        return prices.Select(p => new PlanPriceDto
+        return planPrices.Select(p => new PlanPriceDto
         {
             Id = p.Id,
             PlanId = p.PlanId,
