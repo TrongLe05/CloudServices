@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<ITestimonialRepository, TestimonialRepository>();
         services.AddScoped<IOrderRequestRepository, OrderRequestRepository>();
         services.AddScoped<INewsRepository, NewsRepository>();
+        services.AddScoped<IAffiliateApplicationRepository, AffiliateApplicationRepository>();
 
         // 5. Hash & JWT
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();

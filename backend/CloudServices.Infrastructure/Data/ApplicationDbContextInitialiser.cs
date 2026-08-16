@@ -168,5 +168,17 @@ public class ApplicationDbContextInitialiser
             });
             await _context.SaveChangesAsync();
         }
+
+        if (!await _context.AffiliateApplications.AnyAsync())
+        {
+            _context.AffiliateApplications.Add(new AffiliateApplication
+            {
+                FullName = "John Doe",
+                Email = "john.doe@example.com",
+                Phone = "0123456789",
+                Status = AffiliateStatus.Pending,
+            });
+            await _context.SaveChangesAsync();
+        }
     }
 }
