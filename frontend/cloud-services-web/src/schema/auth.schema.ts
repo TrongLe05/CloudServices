@@ -33,8 +33,6 @@ export const registerSchema = z
   });
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;
-<<<<<<< Updated upstream
-=======
 
 // Forgot Password Step 1 Schema
 export const forgotPasswordSchema = z.object({
@@ -64,7 +62,3 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
-
-
-
->>>>>>> Stashed changes

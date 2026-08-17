@@ -1,7 +1,3 @@
-<<<<<<< Updated upstream
-export const Footer = () => {
-  return <footer>Footer</footer>;
-=======
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Phone, MapPin } from "lucide-react";
@@ -159,5 +155,3 @@ export const Footer = () => {
       </div>
     </footer>
   );
->>>>>>> Stashed changes
-};

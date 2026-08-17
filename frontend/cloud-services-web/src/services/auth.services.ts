@@ -39,8 +39,6 @@ export const logout = async (accessToken: string) => {
   );
   return res;
 };
-<<<<<<< Updated upstream
-=======
 
 export const forgotPassword = async (data: { Email: string }) => {
   const res = await fetch(
@@ -77,6 +75,3 @@ export const resetPassword = async (data: { ResetToken: string; NewPassword: str
   );
   return res;
 };
-
-
->>>>>>> Stashed changes

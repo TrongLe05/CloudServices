@@ -14,7 +14,9 @@ public interface IApplicationDbContext
     DbSet<OrderRequest> OrderRequests { get; }
     DbSet<AffiliateApplication> AffiliateApplications { get; }
     DbSet<AuditLog> AuditLogs { get; }
-    DbSet<NewsArticle> NewsArticles { get; } // Added NewsArticles
+    DbSet<NewsArticle> NewsArticles { get; }
+    DbSet<Testimonial> Testimonials { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    int SaveChanges();
 }

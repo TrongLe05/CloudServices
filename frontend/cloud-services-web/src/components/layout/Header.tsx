@@ -1,59 +1,29 @@
 "use client";
 
-<<<<<<< Updated upstream
 import { NavBar } from "./NavBar";
 import { AvatarDropdown } from "@/components/layout/Avatar";
 import { Button } from "../ui/button";
-import Link from "next/link";
-import { useEffect } from "react";
-import { useAuthStore } from "@/store/auth.store";
-
-export const Header = () => {
-  const { user, initialize } = useAuthStore();
-=======
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
-import { Button } from "../ui/button";
-import { NavBar } from "./NavBar";
-import { AvatarDropdown } from "@/components/layout/Avatar";
 
 export const Header = () => {
   const { user, initialize } = useAuthStore();
   const [isScrolled, setIsScrolled] = useState(false);
->>>>>>> Stashed changes
 
-  // Khởi tạo dữ liệu người dùng từ localStorage sau khi component mount ở Client
   useEffect(() => {
     initialize();
-<<<<<<< Updated upstream
-  }, [initialize]);
-
-  return (
-    <header className="flex items-center justify-between sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm border-b border-border px-4 py-2">
-      <NavBar />
-      {user ? (
-        <AvatarDropdown />
-      ) : (
-        <Button
-          variant="destructive"
-          nativeButton={false}
-          render={<Link href="/dang-nhap"> Đăng nhập </Link>}
-        ></Button>
-      )}
-=======
 
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 10);
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [initialize]);
 
   return (
@@ -75,12 +45,13 @@ export const Header = () => {
               height={32}
               className="transition-transform duration-300 group-hover:scale-105"
             />
+
             <span className="font-heading text-lg font-bold text-zinc-900 tracking-tight">
               CloudServices
             </span>
           </Link>
 
-          {/* Navigation links inside viewport */}
+          {/* Navigation */}
           <div className="hidden md:block">
             <NavBar />
           </div>
@@ -100,6 +71,7 @@ export const Header = () => {
               >
                 Đăng nhập
               </Button>
+
               <Button
                 variant="default"
                 size="sm"
@@ -112,7 +84,6 @@ export const Header = () => {
           )}
         </div>
       </div>
->>>>>>> Stashed changes
     </header>
   );
 };

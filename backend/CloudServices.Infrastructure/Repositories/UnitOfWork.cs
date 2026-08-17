@@ -1,4 +1,5 @@
-﻿using CloudServices.Application.Common.Interfaces;
+﻿using CloudServices.Infrastructure.Data.Interfaces;
+using CloudServices.Application.Common.Interfaces;
 
 namespace CloudServices.Infrastructure.Repositories;
 
