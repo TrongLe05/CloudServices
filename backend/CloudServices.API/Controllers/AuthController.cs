@@ -1,13 +1,10 @@
-using Azure.Core;
 using CloudServices.Application.Common.Interfaces;
-﻿using Azure.Core;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Application.Features.Users.Commands.ChangePassword;
 using CloudServices.Application.Features.Users.Commands.Login;
 using CloudServices.Application.Features.Users.Commands.Logout;
 using CloudServices.Application.Features.Users.Commands.RefreshToken;
 using CloudServices.Application.Features.Users.Commands.RegisterUser;
-using CloudServices.Application.Common.Interfaces.Repositories;
-using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
