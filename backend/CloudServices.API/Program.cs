@@ -1,7 +1,9 @@
 using CloudServices.API.Middleware;
 using CloudServices.Application;
+using CloudServices.Application.Common.Interfaces;
 using CloudServices.Infrastructure;
 using CloudServices.Infrastructure.Data;
+using CloudServices.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -81,6 +83,24 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+var corsPolicyName = "AllowFrontendPolicy";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: corsPolicyName,
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000") // Địa chỉ chính xác của Frontend React/Next.js
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // 🔴 BẮT BUỘC: Cho phép gửi/nhận Cookie chéo domain
+        });
+});
+
+builder.Services.AddHttpClient<IEmailSender, ResendEmailSender>();
+
+builder.Services.AddMemoryCache();
+
 var app = builder.Build();
 
 // Global Exception Handler
@@ -108,6 +128,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontendPolicy");
 
 app.UseAuthentication();
 

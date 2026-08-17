@@ -2,4 +2,4 @@
 
 namespace CloudServices.Application.Features.Users.Commands.ChangePassword;
 
-public record ChangePasswordCommand(Guid UserId, string OldPassword, string NewPassword) : IRequest; 
+public record ChangePasswordCommand(string Email,string NewPassword) : IRequest; 

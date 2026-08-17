@@ -1,7 +1,7 @@
-﻿using CloudServices.Domain.Entities;
+using CloudServices.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace CloudServices.Infrastructure.Data.Interfaces;
+namespace CloudServices.Application.Common.Interfaces;
 
 public interface IApplicationDbContext
 {
