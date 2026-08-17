@@ -96,7 +96,11 @@ export function LoginForm() {
           <div className="flex items-center">
             <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
             <a
+<<<<<<< Updated upstream
               href="#"
+=======
+              href="/quen-mat-khau"
+>>>>>>> Stashed changes
               className="ml-auto text-sm underline-offset-2 hover:underline"
             >
               Quên mật khẩu?
@@ -105,7 +109,11 @@ export function LoginForm() {
           <Input
             id="password"
             type="password"
+<<<<<<< Updated upstream
             placeholder="******"
+=======
+            placeholder="••••••••"
+>>>>>>> Stashed changes
             {...register("password")}
             required
           />

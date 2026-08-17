@@ -46,10 +46,19 @@ function Button({
   size = "default",
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+<<<<<<< Updated upstream
+=======
+  const nativeButton = props.render ? false : props.nativeButton;
+
+>>>>>>> Stashed changes
   return (
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+<<<<<<< Updated upstream
+=======
+      nativeButton={nativeButton}
+>>>>>>> Stashed changes
       {...props}
     />
   )

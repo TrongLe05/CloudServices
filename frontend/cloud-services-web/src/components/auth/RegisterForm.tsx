@@ -105,7 +105,11 @@ export function RegisterForm() {
               <Input
                 id="password"
                 type="password"
+<<<<<<< Updated upstream
                 placeholder="******"
+=======
+                placeholder="••••••••"
+>>>>>>> Stashed changes
                 {...register("password")}
                 required
               />
@@ -117,7 +121,11 @@ export function RegisterForm() {
               <Input
                 id="confirm-password"
                 type="password"
+<<<<<<< Updated upstream
                 placeholder="******"
+=======
+                placeholder="••••••••"
+>>>>>>> Stashed changes
                 {...register("confirmPassword")}
                 required
               />

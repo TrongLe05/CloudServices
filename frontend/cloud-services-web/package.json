@@ -9,11 +9,22 @@
     "lint": "eslint"
   },
   "dependencies": {
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
     "@base-ui/react": "^1.7.0",
     "@hookform/resolvers": "^5.7.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+<<<<<<< Updated upstream
     "lucide-react": "^1.31.0",
+=======
+    "input-otp": "^1.4.2",
+    "lucide-react": "^1.31.0",
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",

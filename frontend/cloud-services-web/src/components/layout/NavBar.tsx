@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   NavigationMenu,
+<<<<<<< Updated upstream
   NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
@@ -10,12 +11,21 @@ import {
 } from "@/components/ui/navigation-menu";
 import { CircleAlert, CircleCheck, CircleDashed } from "lucide-react";
 import { ListItem } from "./ListItem";
+=======
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import { features } from "@/mock/navbar.mock";
+>>>>>>> Stashed changes
 
 export const NavBar = () => {
   return (
     <nav>
       <NavigationMenu>
         <NavigationMenuList>
+<<<<<<< Updated upstream
           <NavigationMenuItem>
             <NavigationMenuLink
               className={navigationMenuTriggerStyle()}
@@ -93,6 +103,16 @@ export const NavBar = () => {
               render={<Link href="/docs">Docs</Link>}
             />
           </NavigationMenuItem>
+=======
+          {features.map((feature, index) => (
+            <NavigationMenuItem key={index}>
+              <NavigationMenuLink
+                className={navigationMenuTriggerStyle()}
+                render={<Link href={feature.href}>{feature.title}</Link>}
+              />
+            </NavigationMenuItem>
+          ))}
+>>>>>>> Stashed changes
         </NavigationMenuList>
       </NavigationMenu>
     </nav>
