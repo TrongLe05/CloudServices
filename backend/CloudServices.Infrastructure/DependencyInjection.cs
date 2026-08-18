@@ -1,5 +1,9 @@
 using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Infrastructure.Data;
+using CloudServices.Infrastructure.Data.Interfaces;
+using CloudServices.Infrastructure.Repositories;
+using CloudServices.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,12 +20,31 @@ public static class DependencyInjection
                 configuration.GetConnectionString("DefaultConnection"),
                 builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
-        // 2. Đăng ký Interface IApplicationDbContext trỏ tới ApplicationDbContext
-        services.AddScoped<IApplicationDbContext>(provider => 
+        // 2. Đăng ký Interface IApplicationDbContext
+        services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
 
-        // 3. Đăng ký ApplicationDbContextInitialiser để chạy Migration & Seeding khi khởi tạo
+        // 3. Đăng ký ApplicationDbContextInitialiser
         services.AddScoped<ApplicationDbContextInitialiser>();
+
+        // 4. Đăng ký Repositories & UnitOfWork
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IPromotionRepository, PromotionRepository>(); // <-- Đã thêm ở đây
+        services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
+        services.AddScoped<IPlanPriceRepository, PlanPriceRepository>();
+        services.AddScoped<ITestimonialRepository, TestimonialRepository>();
+        services.AddScoped<IOrderRequestRepository, OrderRequestRepository>();
+        services.AddScoped<INewsRepository, NewsRepository>();
+        services.AddScoped<IAffiliateApplicationRepository, AffiliateApplicationRepository>();
+
+        // 5. Hash & JWT
+        services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+        // Đăng ký QR Code Generator
+        services.AddSingleton<IQrCodeGenerator, QrCodeGenerator>();
 
         return services;
     }

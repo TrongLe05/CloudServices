@@ -1,0 +1,45 @@
+﻿using CloudServices.Application.Common.Exceptions;
+using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces.Repositories;
+using MediatR;
+
+namespace CloudServices.Application.Features.Users.Commands.Login;
+
+public sealed class LoginCommandHandler(
+    IUserRepository _userRepository,
+    IPasswordHasher _passwordHasher,
+    IJwtTokenGenerator _jwtTokenGenerator,
+    IUnitOfWork _unitOfWork
+    ) : IRequestHandler<LoginCommand, LoginResponse>
+{
+    public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
+    {
+        // 1. Kiểm tra tài khoản tồn tại hay không
+        var user = await _userRepository.GetByUsernameAsync(request.Username, cancellationToken);
+        if (user == null)
+        {
+            throw new UnauthorizedException("Tài khoản hoặc mật khẩu không chính xác.");
+        }
+
+        // 2. Xác thực mật khẩu thông qua IPasswordHasher đã tạo ở bước trước
+        var isPasswordValid = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash);
+        if (!isPasswordValid)
+        {
+            throw new UnauthorizedException("Tài khoản hoặc mật khẩu không chính xác.");
+        }
+
+        // 3. Phát sinh Access Token và Refresh Token mới
+        var accessToken = _jwtTokenGenerator.GenerateToken(user);
+        var refreshToken = _jwtTokenGenerator.GenerateRefreshToken();
+        var username = user.Username;
+
+        // 4. Lưu lại Refresh Token vào cơ sở dữ liệu
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Hết hạn sau 7 ngày
+
+        // Lưu thay đổi qua UnitOfWork
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new LoginResponse(accessToken, refreshToken, username);
+    }
+}
