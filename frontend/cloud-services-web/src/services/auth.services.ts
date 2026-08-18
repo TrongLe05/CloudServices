@@ -39,3 +39,39 @@ export const logout = async (accessToken: string) => {
   );
   return res;
 };
+
+export const forgotPassword = async (data: { Email: string }) => {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
+  return res;
+};
+
+export const verifyOtp = async (data: { Email: string; Otp: string }) => {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-otp`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
+  return res;
+};
+
+export const resetPassword = async (data: { ResetToken: string; NewPassword: string }) => {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
+  return res;
+};

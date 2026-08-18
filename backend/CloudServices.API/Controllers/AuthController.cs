@@ -326,7 +326,7 @@ public sealed class AuthController(
                           ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
         if (string.IsNullOrEmpty(userIdClaim))
         {
-            return Unauthorized();
+            return BadRequest(new { message = "Email không tồn tại trong hệ thống." });
         }
         var userId = Guid.Parse(userIdClaim);
         // Gửi GetMeQuery sang Mediator

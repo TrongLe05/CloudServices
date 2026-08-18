@@ -96,7 +96,7 @@ export function LoginForm() {
           <div className="flex items-center">
             <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
             <a
-              href="#"
+              href="/quen-mat-khau"
               className="ml-auto text-sm underline-offset-2 hover:underline"
             >
               Quên mật khẩu?
@@ -105,7 +105,7 @@ export function LoginForm() {
           <Input
             id="password"
             type="password"
-            placeholder="******"
+            placeholder="••••••••"
             {...register("password")}
             required
           />
