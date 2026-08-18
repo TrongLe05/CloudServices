@@ -1,27 +1,43 @@
-using CloudServices.Application.Common.Interfaces;
+﻿using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Domain.Entities;
-using CloudServices.Infrastructure.Data;
+using CloudServices.Infrastructure.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace CloudServices.Infrastructure.Repositories;
 
-public sealed class UserRepository(ApplicationDbContext context) : IUserRepository
+public sealed class UserRepository(IApplicationDbContext context) : IUserRepository
 {
-    public Task<bool> UsernameExistsAsync(string username, CancellationToken cancellationToken = default) =>
-        context.AppUsers.AnyAsync(user => user.Username == username, cancellationToken);
+    public async Task AddAsync(AppUser user, CancellationToken cancellationToken)
+    {
+        await context.AppUsers.AddAsync(user, cancellationToken);
+    }
+    public async Task<bool> AnyAsync(string Username, CancellationToken cancellationToken)
+    {
+        return await context.AppUsers.AnyAsync(u => u.Username == Username, cancellationToken);
+    }
+    public async Task<AppUser?> GetByIdAsync(Guid Id, CancellationToken cancellationToken)
+    {
+        return await context.AppUsers
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == Id, cancellationToken);
+    }
+    public async Task<AppUser?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+    {
+        return await context.AppUsers
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+    }
+    public async Task<AppUser?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
+    {
+        return await context.AppUsers
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
+    }
 
-    public Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default) =>
-        context.AppUsers.AnyAsync(user => user.Email == email, cancellationToken);
-
-    public Task<Role?> GetRoleByNameAsync(string roleName, CancellationToken cancellationToken = default) =>
-        context.Roles.FirstOrDefaultAsync(role => role.Name == roleName, cancellationToken);
-
-    public Task AddAsync(AppUser user, CancellationToken cancellationToken = default) =>
-        context.AppUsers.AddAsync(user, cancellationToken).AsTask();
-
-    public async Task<IReadOnlyList<AppUser>> GetAllAsync(CancellationToken cancellationToken = default) =>
-        await context.AppUsers.Include(user => user.Role).ToListAsync(cancellationToken);
-
-    public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
-        context.SaveChangesAsync(cancellationToken);
+    public async Task<List<AppUser>> GetWithAllRolesAsync(CancellationToken cancellationToken)
+    {
+        return await context.AppUsers
+            .Include(u => u.Role)
+            .ToListAsync(cancellationToken);
+    }
 }
