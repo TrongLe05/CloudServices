@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Newspaper, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { blogPosts } from "@/mock/landing.mock";
+import { blogPosts } from "@/constants/landing";
 
 export const LatestNews = () => {
   return (
@@ -19,7 +19,8 @@ export const LatestNews = () => {
               TIN TỨC & CẨM NANG HẠ TẦNG
             </h2>
             <p className="text-sm md:text-base text-slate-500 leading-relaxed">
-              Cập nhật các thông tin hạ tầng mới nhất, tài liệu hướng dẫn và kinh nghiệm vận hành hệ thống thực tế từ đội ngũ chuyên gia.
+              Cập nhật các thông tin hạ tầng mới nhất, tài liệu hướng dẫn và
+              kinh nghiệm vận hành hệ thống thực tế từ đội ngũ chuyên gia.
             </p>
           </div>
 
@@ -71,7 +72,9 @@ export const LatestNews = () => {
                 </div>
 
                 <div className="w-full pt-4 mt-6 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400 font-sans">
-                  <span className="font-semibold text-slate-700">{post.author}</span>
+                  <span className="font-semibold text-slate-700">
+                    {post.author}
+                  </span>
                   <span>{post.date}</span>
                 </div>
               </div>

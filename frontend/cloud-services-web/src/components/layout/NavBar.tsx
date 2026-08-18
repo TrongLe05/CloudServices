@@ -1,16 +1,12 @@
 import Link from "next/link";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-import { CircleAlert, CircleCheck, CircleDashed } from "lucide-react";
-import { ListItem } from "./ListItem";
-import { features } from "@/mock/navbar.mock";
+import { features } from "@/constants/navigation";
 
 export const NavBar = () => {
   return (

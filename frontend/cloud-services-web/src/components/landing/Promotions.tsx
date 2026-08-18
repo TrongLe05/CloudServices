@@ -2,12 +2,33 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Clock, ChevronRight, Copy, Check, Gift, Percent, RefreshCw, UserCheck } from "lucide-react";
+import {
+  Clock,
+  ChevronRight,
+  Copy,
+  Check,
+  Gift,
+  Percent,
+  RefreshCw,
+  UserCheck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { promotions } from "@/mock/landing.mock";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { promotions } from "@/constants/landing";
 
-const PromoCard = ({ promo, index }: { promo: typeof promotions[0]; index: number }) => {
+const PromoCard = ({
+  promo,
+  index,
+}: {
+  promo: (typeof promotions)[0];
+  index: number;
+}) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (code: string) => {
@@ -47,31 +68,37 @@ const PromoCard = ({ promo, index }: { promo: typeof promotions[0]; index: numbe
             <div className="p-3 bg-primary/10 text-primary rounded-xl group-hover:scale-105 transition-transform">
               <Icon className="size-5" />
             </div>
-            
+
             {/* Active expiry pill */}
             <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1 font-mono bg-slate-50 border border-slate-200/60 px-2.5 py-1 rounded-full shadow-2xs">
               <Clock className="size-3 text-slate-400" />
               Hạn: {promo.expiry}
             </span>
           </div>
-          
+
           <CardTitle className="text-base font-extrabold mt-5 text-slate-900 tracking-tight leading-snug">
             {promo.title}
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent className="pb-6 px-6 flex-1 flex flex-col justify-between text-left">
-          <p className="text-slate-500 text-xs leading-relaxed mb-6">{promo.desc}</p>
-          
+          <p className="text-slate-500 text-xs leading-relaxed mb-6">
+            {promo.desc}
+          </p>
+
           {/* Availability progress bar to add visual details and urgency */}
           <div className="space-y-2 mb-6 pt-4 border-t border-slate-100">
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-slate-400 font-medium">Độ khả dụng ưu đãi</span>
-              <span className="font-bold text-slate-700">Còn {slotsLeft} lượt</span>
+              <span className="text-slate-400 font-medium">
+                Độ khả dụng ưu đãi
+              </span>
+              <span className="font-bold text-slate-700">
+                Còn {slotsLeft} lượt
+              </span>
             </div>
             <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-              <div 
-                className="bg-gradient-to-r from-emerald-400 to-emerald-500 h-full rounded-full transition-all duration-1000" 
+              <div
+                className="bg-gradient-to-r from-emerald-400 to-emerald-500 h-full rounded-full transition-all duration-1000"
                 style={{ width: `${progressVal}%` }}
               ></div>
             </div>
@@ -79,15 +106,19 @@ const PromoCard = ({ promo, index }: { promo: typeof promotions[0]; index: numbe
 
           {/* Interactive Promo Code Box */}
           {promo.code && (
-            <div 
+            <div
               onClick={() => handleCopy(promo.code || "")}
               className="mt-auto p-3 bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200 rounded-xl flex items-center justify-between text-xs cursor-pointer transition-colors group/code"
             >
               <div className="flex flex-col gap-0.5">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Mã kích hoạt</span>
-                <span className="font-mono font-extrabold text-primary tracking-wider text-sm">{promo.code}</span>
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                  Mã kích hoạt
+                </span>
+                <span className="font-mono font-extrabold text-primary tracking-wider text-sm">
+                  {promo.code}
+                </span>
               </div>
-              
+
               <div className="p-2 rounded-lg bg-white border border-slate-200 text-slate-500 group-hover/code:text-primary group-hover/code:border-primary/30 transition-all shadow-xs">
                 {copied ? (
                   <Check className="size-3.5 text-emerald-600" />
@@ -99,7 +130,7 @@ const PromoCard = ({ promo, index }: { promo: typeof promotions[0]; index: numbe
           )}
         </CardContent>
       </div>
-      
+
       <CardFooter className="pt-4 pb-6 px-6 border-t border-slate-100 relative z-10">
         <Button
           variant="outline"
@@ -119,22 +150,22 @@ export const Promotions = () => {
     <section className="w-full py-24 md:py-32 bg-slate-50 border-b border-slate-100 relative overflow-hidden">
       {/* Background ambient light */}
       <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[90px] -z-10"></div>
-      
+
       <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col gap-16">
-        
         {/* Symmetric Centered Section Header for Personal Offers */}
         <div className="text-center flex flex-col items-center gap-4 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1 text-xs font-semibold text-primary">
             <UserCheck className="size-4 animate-pulse" />
             <span>Chương trình đặc quyền cá nhân hóa</span>
           </div>
-          
+
           <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
             ƯU ĐÃI DÀNH RIÊNG CHO BẠN
           </h2>
-          
+
           <p className="text-sm md:text-base text-slate-500 leading-relaxed max-w-xl">
-            Các chương trình khuyến mãi và mã ưu đãi tài chính được hệ thống đề xuất riêng biệt để tối ưu ngân sách hạ tầng cho dự án của bạn.
+            Các chương trình khuyến mãi và mã ưu đãi tài chính được hệ thống đề
+            xuất riêng biệt để tối ưu ngân sách hạ tầng cho dự án của bạn.
           </p>
         </div>
 
