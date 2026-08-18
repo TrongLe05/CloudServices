@@ -2,6 +2,7 @@ export interface Services {
   title: string;
   href: string;
   description?: string;
+  specifications?: string[];
   children?: Services[];
 }
 
@@ -15,21 +16,25 @@ export const services: Services[] = [
         title: "Hosting 1",
         href: "#",
         description: "description 1",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Hosting 2",
         href: "#",
         description: "description 2",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Hosting 3",
         href: "#",
         description: "description 3",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Hosting 4",
         href: "#",
         description: "description 4",
+        specifications: ["specification 1", "specification 2"],
       },
     ],
   },
@@ -41,21 +46,25 @@ export const services: Services[] = [
         title: "Tên miền 1",
         href: "#",
         description: "description 1",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Tên miền 2",
         href: "#",
         description: "description 2",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Tên miền 3",
         href: "#",
         description: "description 3",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Tên miền 4",
         href: "#",
         description: "description 4",
+        specifications: ["specification 1", "specification 2"],
       },
     ],
   },
@@ -67,21 +76,25 @@ export const services: Services[] = [
         title: "VPS 1",
         href: "#",
         description: "description 1",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "VPS 2",
         href: "#",
         description: "description 2",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "VPS 3",
         href: "#",
         description: "description 3",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "VPS 4",
         href: "#",
         description: "description 4",
+        specifications: ["specification 1", "specification 2"],
       },
     ],
   },
@@ -93,21 +106,25 @@ export const services: Services[] = [
         title: "Dịch vụ Cloud 1",
         href: "#",
         description: "description 1",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Dịch vụ Cloud 2",
         href: "#",
         description: "description 2",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Dịch vụ Cloud 3",
         href: "#",
         description: "description 3",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Dịch vụ Cloud 4",
         href: "#",
         description: "description 4",
+        specifications: ["specification 1", "specification 2"],
       },
     ],
   },
@@ -119,21 +136,25 @@ export const services: Services[] = [
         title: "Máy chủ 1",
         href: "#",
         description: "description 1",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Máy chủ 2",
         href: "#",
         description: "description 2",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Máy chủ 3",
         href: "#",
         description: "description 3",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Máy chủ 4",
         href: "#",
         description: "description 4",
+        specifications: ["specification 1", "specification 2"],
       },
     ],
   },
@@ -157,21 +178,25 @@ export const services: Services[] = [
         title: "Giải pháp 1",
         href: "#",
         description: "description 1",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Giải pháp 2",
         href: "#",
         description: "description 2",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Giải pháp 3",
         href: "#",
         description: "description 3",
+        specifications: ["specification 1", "specification 2"],
       },
       {
         title: "Giải pháp 4",
         href: "#",
         description: "description 4",
+        specifications: ["specification 1", "specification 2"],
       },
     ],
   },
