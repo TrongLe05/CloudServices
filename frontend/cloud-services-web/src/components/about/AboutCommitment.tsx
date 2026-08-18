@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { commitments } from "../../constants/aboutData";
 
@@ -22,17 +21,20 @@ export const AboutCommitment = () => {
             </h2>
 
             <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-              Chúng tôi hiểu rằng sự ổn định của hệ thống là yếu tố sống còn đối với hoạt động kinh doanh của bạn. Vì vậy, chúng tôi cam kết mang lại một hạ tầng vững chắc với tỉ lệ hoạt động liên tục (Uptime) tối thiểu đạt 99.9% mỗi tháng.
+              Chúng tôi hiểu rằng sự ổn định của hệ thống là yếu tố sống còn đối
+              với hoạt động kinh doanh của bạn. Vì vậy, chúng tôi cam kết mang
+              lại một hạ tầng vững chắc với tỉ lệ hoạt động liên tục (Uptime)
+              tối thiểu đạt 99.9% mỗi tháng.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
               {commitments.map((item, idx) => (
                 <div key={idx} className="flex gap-3">
-                  <div className="flex-shrink-0 mt-1">
-                    {item.icon}
-                  </div>
+                  <div className="flex-shrink-0 mt-1">{item.icon}</div>
                   <div>
-                    <h4 className="text-sm font-bold text-foreground">{item.title}</h4>
+                    <h4 className="text-sm font-bold text-foreground">
+                      {item.title}
+                    </h4>
                     <p className="text-xs text-muted-foreground mt-1 leading-normal">
                       {item.desc}
                     </p>
@@ -46,10 +48,12 @@ export const AboutCommitment = () => {
           <div className="lg:col-span-6 flex justify-center lg:justify-end">
             <Card className="relative w-full max-w-md bg-card border-border shadow-xl shadow-muted/50 dark:shadow-none overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl"></div>
-              
+
               <CardContent className="text-center space-y-6 pt-6">
-                <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Chỉ số Uptime cam kết</span>
-                
+                <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest">
+                  Chỉ số Uptime cam kết
+                </span>
+
                 <div className="relative inline-block">
                   <div className="text-7xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary to-emerald-500 tracking-tight">
                     99.9%
@@ -61,18 +65,28 @@ export const AboutCommitment = () => {
                 </div>
 
                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Tương đương với thời gian gián đoạn tối đa không quá 43 phút mỗi tháng. Hệ thống luôn được giám sát tự động 24/7 để phát hiện sự cố ngay lập tức.
+                  Tương đương với thời gian gián đoạn tối đa không quá 43 phút
+                  mỗi tháng. Hệ thống luôn được giám sát tự động 24/7 để phát
+                  hiện sự cố ngay lập tức.
                 </p>
 
                 <div className="pt-4 border-t border-border flex justify-around text-center">
                   <div>
-                    <div className="text-xl font-bold text-foreground">{"< 5 phút"}</div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Thời gian phản hồi</div>
+                    <div className="text-xl font-bold text-foreground">
+                      {"< 5 phút"}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                      Thời gian phản hồi
+                    </div>
                   </div>
                   <div className="border-r border-border h-10"></div>
                   <div>
-                    <div className="text-xl font-bold text-foreground">24/7/365</div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Giám sát hệ thống</div>
+                    <div className="text-xl font-bold text-foreground">
+                      24/7/365
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                      Giám sát hệ thống
+                    </div>
                   </div>
                 </div>
               </CardContent>

@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Calendar } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { milestones } from "../../constants/aboutData";
@@ -14,7 +13,8 @@ export const AboutHistory = () => {
             Lịch Sử Phát Triển
           </h2>
           <p className="mt-4 text-base text-muted-foreground">
-            Chặng đường không ngừng sáng tạo, nỗ lực nâng cao chất lượng dịch vụ để mang lại giá trị cao nhất cho khách hàng.
+            Chặng đường không ngừng sáng tạo, nỗ lực nâng cao chất lượng dịch vụ
+            để mang lại giá trị cao nhất cho khách hàng.
           </p>
         </div>
 
@@ -25,7 +25,7 @@ export const AboutHistory = () => {
               <span className="absolute -left-[38px] sm:-left-[46px] top-1 flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-primary text-primary-foreground ring-8 ring-background group-hover:scale-110 transition-transform">
                 <Calendar className="size-3 sm:size-4" />
               </span>
-              
+
               <Card className="bg-card text-card-foreground border-border transition-all group-hover:shadow-lg group-hover:shadow-muted/50 dark:group-hover:shadow-none">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
