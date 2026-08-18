@@ -26,7 +26,6 @@ export function AvatarDropdown() {
   const handleLogout = async () => {
     await logout();
     router.push("/");
-    router.refresh(); // Refresh lại trang để cập nhật trạng thái đăng nhập
   };
 
   return (
