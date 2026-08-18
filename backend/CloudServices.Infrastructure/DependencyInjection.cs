@@ -1,5 +1,6 @@
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Infrastructure.Data;
+using CloudServices.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,9 @@ public static class DependencyInjection
         // 2. Đăng ký Interface IApplicationDbContext trỏ tới ApplicationDbContext
         services.AddScoped<IApplicationDbContext>(provider => 
             provider.GetRequiredService<ApplicationDbContext>());
+
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
 
         // 3. Đăng ký ApplicationDbContextInitialiser để chạy Migration & Seeding khi khởi tạo
         services.AddScoped<ApplicationDbContextInitialiser>();
