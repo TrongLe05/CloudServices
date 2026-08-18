@@ -8,7 +8,9 @@ export const metadata = {
 const ServiceLayout = ({ children }: LayoutProps<"/dich-vu">) => {
   return (
     <div>
-      <ServiceNavigation />
+      <div className="hidden md:block">
+        <ServiceNavigation />
+      </div>
       {children}
     </div>
   );
