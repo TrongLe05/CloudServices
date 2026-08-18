@@ -1,7 +1,6 @@
-﻿using CloudServices.Infrastructure.Data.Interfaces;
-using CloudServices.Application.Common.Interfaces;
-using CloudServices.Application.Common.Interfaces.Repositories;
+﻿using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Domain.Entities;
+using CloudServices.Infrastructure.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace CloudServices.Infrastructure.Repositories;
