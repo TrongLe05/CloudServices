@@ -32,6 +32,7 @@ export function proxy(request: NextRequest) {
       if (role !== "Admin") {
         return NextResponse.redirect(new URL("/", request.url));
       }
+      // return NextResponse.redirect(new URL("/admin/dashboard", request.url)); // Cho phép tiếp tục truy cập nếu là Admin
     } catch (error) {
       console.error("Lỗi khi giải mã JWT:", error);
       const response = NextResponse.redirect(

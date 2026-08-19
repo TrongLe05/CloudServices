@@ -17,6 +17,7 @@ import { LoginFormValues } from "@/schema/auth.schema";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import Link from "next/link";
+import * as jose from "jose";
 
 export function LoginForm() {
   const router = useRouter();
@@ -50,12 +51,27 @@ export function LoginForm() {
         throw new Error(result.message || "Đăng nhập thất bại");
       }
 
-      alert("Đăng nhập thành công!");
-      loginState(result.username);
+      const token = result.accessToken;
 
-      // Chuyển hướng người dùng sang trang chính hoặc dashboard
-      router.push("/");
-      router.refresh();
+      if (token) {
+        const claims = jose.decodeJwt(token);
+        console.log("Decoded JWT claims:", claims);
+        const role =
+          claims[
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+          ] || (claims["role"] as string);
+        const username = (claims.unique_name || claims.sub) as string;
+
+        alert(`Đăng nhập thành công với vai trò: ${role}!`);
+        loginState(username);
+
+        if (role === "Admin") {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/");
+        }
+        router.refresh();
+      }
     } catch (error: any) {
       console.error(error);
       alert(error.message);

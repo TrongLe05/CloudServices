@@ -2,16 +2,11 @@
 
 import * as React from "react";
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
+  Home,
+  Cpu,
+  Tag,
   Settings2,
-  SquareTerminal,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -26,134 +21,82 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-// This is sample data.
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Admin",
+    email: "admin@cloudservices.com",
+    avatar: "/avatars/admin.jpg",
   },
   teams: [
     {
-      name: "Acme Inc",
+      name: "CloudServices Admin",
       logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
+      plan: "Enterprise Control",
     },
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Hệ thống tổng quan",
       url: "#",
-      icon: SquareTerminal,
+      icon: Home,
       isActive: true,
       items: [
         {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
+          title: "Bảng điều khiển",
+          url: "/admin/dashboard",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Quản lý dịch vụ",
       url: "#",
-      icon: Bot,
+      icon: Cpu,
+      isActive: true,
       items: [
         {
-          title: "Genesis",
-          url: "#",
+          title: "Danh mục dịch vụ",
+          url: "/admin/categories",
         },
         {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
+          title: "Gói dịch vụ & Giá",
+          url: "/admin/service-plans",
         },
       ],
     },
     {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
+      title: "Yêu cầu & Đối tác",
       url: "#",
       icon: Settings2,
+      isActive: true,
       items: [
         {
-          title: "General",
-          url: "#",
+          title: "Yêu cầu đặt dịch vụ",
+          url: "/admin/service-orders",
         },
         {
-          title: "Team",
-          url: "#",
+          title: "Đăng ký Affiliate",
+          url: "/admin/affiliates",
+        },
+      ],
+    },
+    {
+      title: "Truyền thông & Ưu đãi",
+      url: "#",
+      icon: Tag,
+      isActive: true,
+      items: [
+        {
+          title: "Chương trình khuyến mãi",
+          url: "/admin/promotions",
         },
         {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
+          title: "Tin tức & Blog",
+          url: "/admin/news",
         },
       ],
     },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
+  projects: [],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
