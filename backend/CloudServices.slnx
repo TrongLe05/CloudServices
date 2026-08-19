@@ -3,4 +3,5 @@
   <Project Path="CloudServices.Application/CloudServices.Application.csproj" />
   <Project Path="CloudServices.Domain/CloudServices.Domain.csproj" />
   <Project Path="CloudServices.Infrastructure/CloudServices.Infrastructure.csproj" Id="1e6250bf-93d8-407e-ab8b-7408cfbddcc0" />
+  <Project Path="CloudServices.UnitTests/CloudServices.UnitTests.csproj" />
 </Solution>
