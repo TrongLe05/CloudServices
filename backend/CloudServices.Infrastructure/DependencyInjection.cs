@@ -47,6 +47,8 @@ public static class DependencyInjection
         // Đăng ký QR Code Generator
         services.AddSingleton<IQrCodeGenerator, QrCodeGenerator>();
 
+        services.AddTransient<IExcelExporter, ExcelExporter>();
+
         return services;
     }
 }

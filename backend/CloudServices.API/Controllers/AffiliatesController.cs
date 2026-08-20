@@ -3,6 +3,7 @@ using CloudServices.Application.Features.Affiliates.Commands.CreateAffiliate;
 using CloudServices.Application.Features.Affiliates.Commands.DeleteAffiliate;
 using CloudServices.Application.Features.Affiliates.Queries.GetAffiliateApplicationById;
 using CloudServices.Application.Features.Affiliates.Queries.GetAffiliateApplications;
+using CloudServices.Application.Features.ExportAffiliates;
 using CloudServices.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -51,6 +52,19 @@ namespace CloudServices.API.Controllers
 
             await Mediator.Send(new DeleteAffiliateCommand(id), cancellationToken);
             return NoContent();
+        }
+
+        [HttpGet("export")]
+        public async Task<IActionResult> ExportAffiliates([FromQuery] string? search, [FromQuery] string? status)
+        {
+            var fileBytes = await Mediator.Send(new ExportAffiliatesQuery(search, status));
+            var fileName = $"Affiliates_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
+
+            return File(
+                fileBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName
+            );
         }
     }
 }
