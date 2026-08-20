@@ -25,8 +25,10 @@ export async function getNews(): Promise<NewsItem[]> {
         title: "CloudServices ra mắt gói dịch vụ Cloud VPS thế hệ mới",
         slug: "cloudservices-ra-mat-cloud-vps-the-he-moi",
         category: "Tin tức",
-        content: "### Giới thiệu dịch vụ Cloud VPS thế hệ mới\n\nChúng tôi hân hạnh giới thiệu giải pháp máy chủ ảo sử dụng 100% ổ cứng **NVMe Enterprise** tốc độ cao, CPU thế hệ mới giúp tăng hiệu suất ứng dụng lên đến 300%.\n\n- Tốc độ đọc ghi cực nhanh\n- Uptime cam kết 99.9%\n- Hỗ trợ kỹ thuật 24/7",
-        thumbnailUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&auto=format&fit=crop&q=60",
+        content:
+          "### Giới thiệu dịch vụ Cloud VPS thế hệ mới\n\nChúng tôi hân hạnh giới thiệu giải pháp máy chủ ảo sử dụng 100% ổ cứng **NVMe Enterprise** tốc độ cao, CPU thế hệ mới giúp tăng hiệu suất ứng dụng lên đến 300%.\n\n- Tốc độ đọc ghi cực nhanh\n- Uptime cam kết 99.9%\n- Hỗ trợ kỹ thuật 24/7",
+        thumbnailUrl:
+          "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&auto=format&fit=crop&q=60",
         publishedAt: new Date().toISOString(),
         createdAt: new Date().toISOString(),
       },
@@ -44,11 +46,14 @@ export default async function AdminNewsPage() {
           Quản Lý Tin Tức & Blog
         </h1>
         <p className="text-sm text-muted-foreground">
-          Đăng tải và quản lý các bài viết tin tức, thông báo nâng cấp và cẩm nang kỹ thuật cho người dùng.
+          Đăng tải và quản lý các bài viết tin tức, thông báo nâng cấp và cẩm
+          nang kỹ thuật cho người dùng.
         </p>
       </div>
 
-      <Suspense fallback={<PanelSkeleton title="Đang tải danh sách bài viết..." />}>
+      <Suspense
+        fallback={<PanelSkeleton title="Đang tải danh sách bài viết..." />}
+      >
         <NewsSectionWrapper newsPromise={newsPromise} />
       </Suspense>
     </div>

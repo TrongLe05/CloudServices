@@ -2,6 +2,7 @@
 
 import { Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ConfirmDeleteDialog } from "../ConfirmDeleteDialog";
 import { Promotion } from "./PromotionsCRUD";
 
@@ -40,13 +41,19 @@ export function PromotionTable({
                 <td className="py-3 px-4 font-medium flex items-center gap-2">
                   {promo.name}
                   {isActive ? (
-                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/10">
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                    >
                       Đang chạy
-                    </span>
+                    </Badge>
                   ) : (
-                    <span className="inline-flex items-center rounded-full bg-yellow-50 px-2 py-0.5 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">
+                    <Badge
+                      variant="outline"
+                      className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                    >
                       Hết hạn/Chờ
-                    </span>
+                    </Badge>
                   )}
                 </td>
                 <td className="py-3 px-4 text-center font-bold text-red-600">

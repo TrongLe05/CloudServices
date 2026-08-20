@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { Edit2, Newspaper, Globe, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ConfirmDeleteDialog } from "../ConfirmDeleteDialog";
 import { NewsItem } from "../NewsCRUD";
+import Image from "next/image";
 
 interface NewsTableProps {
   news: NewsItem[];
@@ -33,9 +35,11 @@ export function NewsTable({ news, onDelete, loading }: NewsTableProps) {
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-3">
                     {item.thumbnailUrl ? (
-                      <img
+                      <Image
                         src={item.thumbnailUrl}
                         alt={item.title}
+                        width={48}
+                        height={48}
                         className="size-12 rounded-lg object-cover border border-border shrink-0"
                         onError={(e) => {
                           (e.target as HTMLElement).style.display = "none";
@@ -58,20 +62,26 @@ export function NewsTable({ news, onDelete, loading }: NewsTableProps) {
                 </td>
 
                 <td className="py-3 px-4">
-                  <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                  <Badge variant="secondary" className="font-medium text-xs">
                     {item.category || "Tin tức"}
-                  </span>
+                  </Badge>
                 </td>
 
                 <td className="py-3 px-4">
                   {isPublished ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/10">
+                    <Badge
+                      variant="outline"
+                      className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                    >
                       <Globe className="size-3" /> Công khai
-                    </span>
+                    </Badge>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2 py-0.5 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">
+                    <Badge
+                      variant="outline"
+                      className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                    >
                       Bản nháp
-                    </span>
+                    </Badge>
                   )}
                 </td>
 
@@ -88,11 +98,7 @@ export function NewsTable({ news, onDelete, loading }: NewsTableProps) {
 
                 <td className="py-3 px-4 text-right space-x-1.5">
                   <Link href={`/admin/news/${item.id}/edit`}>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      disabled={loading}
-                    >
+                    <Button variant="ghost" size="icon-sm" disabled={loading}>
                       <Edit2 className="size-3.5" />
                     </Button>
                   </Link>
