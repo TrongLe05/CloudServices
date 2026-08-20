@@ -6,6 +6,7 @@ import { NewsItem } from "./NewsCRUD";
 import { NewsEditorHeader } from "./news/NewsEditorHeader";
 import { NewsMainContentForm } from "./news/NewsMainContentForm";
 import { NewsSidebarSettings } from "./news/NewsSidebarSettings";
+import { toast } from "@/components/ui/toast";
 
 interface NewsEditorFormProps {
   initialData?: NewsItem | null;
@@ -97,10 +98,21 @@ export function NewsEditorForm({ initialData, isEdit = false }: NewsEditorFormPr
         }
       }
 
+      toast.add({
+        title: isEdit ? "Cập nhật thành công" : "Tạo bài viết thành công",
+        description: isEdit ? "Đã lưu thay đổi cho bài viết." : "Đã xuất bản bài viết mới.",
+        type: "success",
+      });
+
       router.push("/admin/news");
       router.refresh();
     } catch (err: any) {
       setError(err.message || "Đã xảy ra lỗi khi lưu bài viết");
+      toast.add({
+        title: "Lỗi lưu bài viết",
+        description: err.message || "Đã xảy ra lỗi khi lưu bài viết",
+        type: "error",
+      });
       setLoading(false);
     }
   };

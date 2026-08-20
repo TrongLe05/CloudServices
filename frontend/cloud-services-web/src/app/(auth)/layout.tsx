@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import "../globals.css";
 import { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Toaster } from "@/components/ui/toast";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -39,6 +40,7 @@ export default function layout({
         <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
           <div className="w-full max-w-sm md:max-w-4xl">{children}</div>
         </div>
+        <Toaster />
       </body>
     </html>
   );

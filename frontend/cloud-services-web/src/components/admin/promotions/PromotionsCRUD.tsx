@@ -9,6 +9,7 @@ import { AdminPagination } from "../AdminPagination";
 // Import sub-components
 import { PromotionForm } from "./PromotionForm";
 import { PromotionTable } from "./PromotionTable";
+import { toast } from "@/components/ui/toast";
 
 export interface Promotion {
   id: string;
@@ -75,6 +76,11 @@ export function PromotionsCRUD({ initialPromotions }: PromotionsCRUDProps) {
         setPromotions((prev) =>
           prev.map((p) => (p.id === editingPromotion.id ? updated : p))
         );
+        toast.add({
+          title: "Cập nhật thành công",
+          description: "Đã cập nhật chương trình khuyến mãi.",
+          type: "success",
+        });
       } else {
         const res = await fetch("/api/promotions", {
           method: "POST",
@@ -89,7 +95,19 @@ export function PromotionsCRUD({ initialPromotions }: PromotionsCRUDProps) {
 
         const created: Promotion = await res.json();
         setPromotions((prev) => [...prev, created]);
+        toast.add({
+          title: "Tạo thành công",
+          description: "Đã thêm chương trình khuyến mãi mới.",
+          type: "success",
+        });
       }
+    } catch (err: any) {
+      toast.add({
+        title: "Lỗi thực hiện",
+        description: err.message || "Không thể lưu chương trình khuyến mãi",
+        type: "error",
+      });
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -108,8 +126,17 @@ export function PromotionsCRUD({ initialPromotions }: PromotionsCRUDProps) {
       }
 
       setPromotions((prev) => prev.filter((p) => p.id !== id));
+      toast.add({
+        title: "Xóa thành công",
+        description: "Đã xóa chương trình khuyến mãi.",
+        type: "success",
+      });
     } catch (err: any) {
-      alert(err.message || "Không thể xóa chương trình khuyến mãi");
+      toast.add({
+        title: "Lỗi xóa khuyến mãi",
+        description: err.message || "Không thể xóa chương trình khuyến mãi",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

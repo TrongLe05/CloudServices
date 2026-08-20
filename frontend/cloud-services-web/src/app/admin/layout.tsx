@@ -13,6 +13,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/toast";
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
@@ -87,6 +88,7 @@ const layout = ({ children }: LayoutProps<"/admin">) => {
             {children}
           </SidebarInset>
         </SidebarProvider>
+        <Toaster />
       </body>
     </html>
   );

@@ -13,6 +13,7 @@ import { ServicePlanForm } from "./ServicePlanForm";
 import { PlanPriceForm } from "./PlanPriceForm";
 import { PlanPricesList } from "./PlanPricesList";
 import { ServicePlanQrCard } from "./ServicePlanQrCard";
+import { toast } from "@/components/ui/toast";
 
 export interface ServiceCategory {
   id: string;
@@ -168,6 +169,12 @@ export function ServicePlansCRUD({
         if (selectedPlan?.id === editingPlan.id) {
           setSelectedPlan(updatedPlan);
         }
+
+        toast.add({
+          title: "Cập nhật thành công",
+          description: "Đã cập nhật cấu hình gói dịch vụ.",
+          type: "success",
+        });
       } else {
         const res = await fetch("/api/service-plans", {
           method: "POST",
@@ -189,7 +196,20 @@ export function ServicePlansCRUD({
         };
         setPlans((prev) => [...prev, newPlan]);
         setSelectedPlan(newPlan);
+
+        toast.add({
+          title: "Tạo thành công",
+          description: "Đã thêm gói dịch vụ mới.",
+          type: "success",
+        });
       }
+    } catch (err: any) {
+      toast.add({
+        title: "Lỗi thực hiện",
+        description: err.message || "Không thể lưu gói dịch vụ",
+        type: "error",
+      });
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -212,8 +232,18 @@ export function ServicePlansCRUD({
       if (selectedPlan?.id === id) {
         setSelectedPlan(null);
       }
+
+      toast.add({
+        title: "Xóa thành công",
+        description: "Đã xóa gói dịch vụ.",
+        type: "success",
+      });
     } catch (err: any) {
-      alert(err.message || "Không thể xóa gói dịch vụ");
+      toast.add({
+        title: "Lỗi xóa gói dịch vụ",
+        description: err.message || "Không thể xóa gói dịch vụ",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -245,6 +275,12 @@ export function ServicePlansCRUD({
         };
 
         setPrices((prev) => prev.map((p) => (p.id === editingPrice.id ? updatedPrice : p)));
+
+        toast.add({
+          title: "Cập nhật thành công",
+          description: "Đã cập nhật mức giá cho gói dịch vụ.",
+          type: "success",
+        });
       } else {
         const res = await fetch(`/api/service-plans/${selectedPlan.id}/prices`, {
           method: "POST",
@@ -266,7 +302,20 @@ export function ServicePlansCRUD({
           promotionDiscountPercentage: promo?.discountPercentage || 0,
         };
         setPrices((prev) => [...prev, newPrice]);
+
+        toast.add({
+          title: "Tạo thành công",
+          description: "Đã thêm mức giá mới.",
+          type: "success",
+        });
       }
+    } catch (err: any) {
+      toast.add({
+        title: "Lỗi thực hiện",
+        description: err.message || "Không thể lưu mức giá",
+        type: "error",
+      });
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -286,8 +335,18 @@ export function ServicePlansCRUD({
       }
 
       setPrices((prev) => prev.filter((p) => p.id !== priceId));
+
+      toast.add({
+        title: "Xóa thành công",
+        description: "Đã xóa mức giá.",
+        type: "success",
+      });
     } catch (err: any) {
-      alert(err.message || "Không thể xóa mức giá");
+      toast.add({
+        title: "Lỗi xóa mức giá",
+        description: err.message || "Không thể xóa mức giá",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -308,8 +367,18 @@ export function ServicePlansCRUD({
 
       const qrData = await res.json();
       setQrCode(qrData);
+
+      toast.add({
+        title: "Tạo mã QR thành công",
+        description: "Đã tạo mới mã QR cho gói dịch vụ.",
+        type: "success",
+      });
     } catch (err: any) {
-      alert(err.message || "Đã xảy ra lỗi khi tạo lại mã QR");
+      toast.add({
+        title: "Lỗi tạo QR",
+        description: err.message || "Đã xảy ra lỗi khi tạo lại mã QR",
+        type: "error",
+      });
     } finally {
       setLoadingQr(false);
     }

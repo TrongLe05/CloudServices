@@ -7,6 +7,8 @@ import { OrderRequestsTable, OrderRequest } from "./OrderRequestsTable";
 import { OrderRequestsFilter } from "./OrderRequestsFilter";
 import { AdminPagination } from "../AdminPagination";
 
+import { toast } from "@/components/ui/toast";
+
 interface OrderRequestsCRUDProps {
   initialOrders: OrderRequest[];
 }
@@ -14,6 +16,7 @@ interface OrderRequestsCRUDProps {
 export function OrderRequestsCRUD({ initialOrders }: OrderRequestsCRUDProps) {
   const [orders, setOrders] = React.useState<OrderRequest[]>(initialOrders);
   const [loading, setLoading] = React.useState(false);
+  const [exporting, setExporting] = React.useState(false);
 
   // Search & Filter
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -65,10 +68,59 @@ export function OrderRequestsCRUD({ initialOrders }: OrderRequestsCRUDProps) {
       setOrders((prev) =>
         prev.map((o) => (o.id === id ? { ...o, status: nextStatus } : o))
       );
+
+      toast.add({
+        title: "Cập nhật thành công",
+        description: "Đã cập nhật trạng thái yêu cầu đặt dịch vụ.",
+        type: "success",
+      });
     } catch (err: any) {
-      alert(err.message || "Lỗi khi cập nhật trạng thái");
+      toast.add({
+        title: "Lỗi cập nhật",
+        description: err.message || "Lỗi khi cập nhật trạng thái",
+        type: "error",
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append("search", searchTerm);
+      if (selectedStatus !== "ALL") params.append("status", selectedStatus);
+
+      const res = await fetch(`/api/order-requests/export?${params.toString()}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Không thể xuất file Excel");
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `OrderRequests_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.add({
+        title: "Xuất file thành công",
+        description: "Đã tải xuống danh sách yêu cầu đặt dịch vụ dạng Excel.",
+        type: "success",
+      });
+    } catch (err: any) {
+      toast.add({
+        title: "Lỗi xuất file",
+        description: err.message || "Lỗi khi xuất file Excel",
+        type: "error",
+      });
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -88,6 +140,8 @@ export function OrderRequestsCRUD({ initialOrders }: OrderRequestsCRUDProps) {
           setSearchTerm={setSearchTerm}
           selectedStatus={selectedStatus}
           setSelectedStatus={setSelectedStatus}
+          onExport={handleExport}
+          isExporting={exporting}
         />
 
         {filteredOrders.length === 0 ? (

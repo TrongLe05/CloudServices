@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import Link from "next/link";
 import * as jose from "jose";
+import { toast } from "@/components/ui/toast";
 
 export function LoginForm() {
   const router = useRouter();
@@ -62,8 +63,12 @@ export function LoginForm() {
           ] || (claims["role"] as string);
         const username = (claims.unique_name || claims.sub) as string;
 
-        alert(`Đăng nhập thành công với vai trò: ${role}!`);
         loginState(username);
+        toast.add({
+          title: "Đăng nhập thành công",
+          description: `Chào mừng trở lại! Vai trò: ${role}`,
+          type: "success",
+        });
 
         if (role === "Admin") {
           router.push("/admin/dashboard");
@@ -74,7 +79,11 @@ export function LoginForm() {
       }
     } catch (error: any) {
       console.error(error);
-      alert(error.message);
+      toast.add({
+        title: "Đăng nhập thất bại",
+        description: error.message || "Tài khoản hoặc mật khẩu không chính xác",
+        type: "error",
+      });
     }
   };
   return (

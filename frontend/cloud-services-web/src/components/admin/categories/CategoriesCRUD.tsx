@@ -10,6 +10,7 @@ import { AdminPagination } from "../AdminPagination";
 // Import subcomponents
 import { CategoryForm } from "./CategoryForm";
 import { CategoryTable } from "./CategoryTable";
+import { toast } from "@/components/ui/toast";
 
 interface CategoriesCRUDProps {
   initialCategories: ServiceCategory[];
@@ -68,6 +69,11 @@ export function CategoriesCRUD({ initialCategories }: CategoriesCRUDProps) {
         setCategories((prev) =>
           prev.map((c) => (c.id === editingCategory.id ? updated : c))
         );
+        toast.add({
+          title: "Cập nhật thành công",
+          description: "Đã cập nhật danh mục dịch vụ.",
+          type: "success",
+        });
       } else {
         const res = await fetch("/api/service-categories", {
           method: "POST",
@@ -82,7 +88,19 @@ export function CategoriesCRUD({ initialCategories }: CategoriesCRUDProps) {
 
         const created: ServiceCategory = await res.json();
         setCategories((prev) => [...prev, created]);
+        toast.add({
+          title: "Tạo thành công",
+          description: "Đã thêm danh mục dịch vụ mới.",
+          type: "success",
+        });
       }
+    } catch (err: any) {
+      toast.add({
+        title: "Lỗi thực hiện",
+        description: err.message || "Không thể lưu danh mục dịch vụ",
+        type: "error",
+      });
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -101,8 +119,17 @@ export function CategoriesCRUD({ initialCategories }: CategoriesCRUDProps) {
       }
 
       setCategories((prev) => prev.filter((c) => c.id !== id));
+      toast.add({
+        title: "Xóa thành công",
+        description: "Đã xóa danh mục dịch vụ.",
+        type: "success",
+      });
     } catch (err: any) {
-      alert(err.message || "Không thể xóa danh mục. Vui lòng kiểm tra xem danh mục có đang chứa gói dịch vụ nào không.");
+      toast.add({
+        title: "Lỗi xóa danh mục",
+        description: err.message || "Không thể xóa danh mục. Vui lòng kiểm tra xem danh mục có đang chứa gói dịch vụ nào không.",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

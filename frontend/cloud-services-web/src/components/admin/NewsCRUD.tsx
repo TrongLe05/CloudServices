@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { NewsFilterBar } from "./news/NewsFilterBar";
 import { NewsTable } from "./news/NewsTable";
 import { AdminPagination } from "./AdminPagination";
+import { toast } from "@/components/ui/toast";
 
 export interface NewsItem {
   id: string;
@@ -79,8 +80,17 @@ export function NewsCRUD({ initialNews }: NewsCRUDProps) {
       }
 
       setNews((prev) => prev.filter((n) => n.id !== id));
+      toast.add({
+        title: "Xóa thành công",
+        description: "Đã xóa bài viết thành công.",
+        type: "success",
+      });
     } catch (err: any) {
-      alert(err.message || "Không thể xóa bài viết");
+      toast.add({
+        title: "Lỗi xóa bài viết",
+        description: err.message || "Không thể xóa bài viết",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
