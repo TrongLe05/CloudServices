@@ -3,7 +3,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TipTapEditor } from "./TipTapEditor";
+import TinyMCEEditor from "@/components/common/TinyMCEEditor";
 
 interface NewsMainContentFormProps {
   title: string;
@@ -27,7 +27,9 @@ export function NewsMainContentForm({
   return (
     <Card className="shadow-xs border border-border">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">Nội Dung Bài Viết</CardTitle>
+        <CardTitle className="text-base font-semibold">
+          Nội Dung Bài Viết
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-1.5">
@@ -58,13 +60,14 @@ export function NewsMainContentForm({
 
         <div className="space-y-1.5 pt-2">
           <div className="flex items-center justify-between pb-1">
-            <Label>Nội dung chi tiết (TipTap Rich Text)</Label>
-            <span className="text-xs text-muted-foreground">Soạn thảo trực quan WYSIWYG</span>
+            <Label>Nội dung chi tiết</Label>
+            <span className="text-xs text-muted-foreground">
+              Soạn thảo trực quan WYSIWYG
+            </span>
           </div>
-          <TipTapEditor
-            content={content}
+          <TinyMCEEditor
+            value={content}
             onChange={setContent}
-            placeholder="Bắt đầu viết nội dung bài viết, chèn ảnh hoặc định dạng văn bản tại đây..."
             disabled={loading}
           />
         </div>

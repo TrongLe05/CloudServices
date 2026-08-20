@@ -24,7 +24,7 @@ export function NewsEditorHeader({ isEdit, id, loading }: NewsEditorHeaderProps)
             {isEdit ? "Chỉnh Sửa Bài Viết" : "Soạn Thảo Bài Viết Mới"}
           </h1>
           <p className="text-xs text-muted-foreground">
-            {isEdit ? `ID: ${id}` : "Trình soạn thảo trực quan TipTap WYSIWYG"}
+            {isEdit ? `ID: ${id}` : "Trình soạn thảo trực quan WYSIWYG"}
           </p>
         </div>
       </div>
