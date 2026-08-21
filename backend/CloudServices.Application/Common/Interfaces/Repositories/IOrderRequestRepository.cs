@@ -10,4 +10,5 @@ public interface IOrderRequestRepository
     Task AddAsync(OrderRequest orderRequest, CancellationToken cancellationToken = default);
     void Update(OrderRequest orderRequest);
     void Delete(OrderRequest orderRequest);
+    Task<IReadOnlyList<OrderRequest>> GetAllAsync(CancellationToken cancellationToken = default);
 }
