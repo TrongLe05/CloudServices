@@ -3,9 +3,12 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export const Configurator = () => {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
+    "monthly",
+  );
   const [config, setConfig] = useState({
     cpu: 2,
     ram: 4,
@@ -35,7 +38,10 @@ export const Configurator = () => {
   };
 
   return (
-    <section id="configurator" className="w-full py-24 md:py-32 bg-white border-b border-slate-100">
+    <section
+      id="configurator"
+      className="w-full py-24 md:py-32 bg-white border-b border-slate-100"
+    >
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center flex flex-col items-center gap-4 mb-16">
@@ -46,7 +52,8 @@ export const Configurator = () => {
             BỘ TÍNH TOÁN TÀI NGUYÊN TÙY CHỈNH
           </h2>
           <p className="text-sm md:text-base text-slate-500 max-w-2xl leading-relaxed">
-            Tự thiết lập CPU, RAM và ổ cứng SSD phù hợp với nhu cầu sử dụng thực tế của dự án doanh nghiệp để nhận báo giá chi tiết.
+            Tự thiết lập CPU, RAM và ổ cứng SSD phù hợp với nhu cầu sử dụng thực
+            tế của dự án doanh nghiệp để nhận báo giá chi tiết.
           </p>
         </div>
 
@@ -56,18 +63,22 @@ export const Configurator = () => {
             {/* CPU Slider */}
             <div className="space-y-3">
               <div className="flex justify-between items-center text-sm font-semibold text-slate-800">
-                <label htmlFor="cpu-slider" className="font-sans">Số lượng vCPU</label>
+                <label htmlFor="cpu-slider" className="font-sans">
+                  Số lượng vCPU
+                </label>
                 <span className="text-primary bg-white border border-slate-200 px-3 py-1 rounded-full text-xs font-bold shadow-xs">
                   {config.cpu} vCPU
                 </span>
               </div>
-              <input
+              <Input
                 id="cpu-slider"
                 type="range"
                 min="1"
                 max="16"
                 value={config.cpu}
-                onChange={(e) => setConfig({ ...config, cpu: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setConfig({ ...config, cpu: parseInt(e.target.value) })
+                }
                 className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none"
               />
               <div className="flex justify-between text-[10px] text-slate-400 font-sans">
@@ -82,19 +93,23 @@ export const Configurator = () => {
             {/* RAM Slider */}
             <div className="space-y-3">
               <div className="flex justify-between items-center text-sm font-semibold text-slate-800">
-                <label htmlFor="ram-slider" className="font-sans">Dung lượng RAM</label>
+                <label htmlFor="ram-slider" className="font-sans">
+                  Dung lượng RAM
+                </label>
                 <span className="text-primary bg-white border border-slate-200 px-3 py-1 rounded-full text-xs font-bold shadow-xs">
                   {config.ram} GB RAM
                 </span>
               </div>
-              <input
+              <Input
                 id="ram-slider"
                 type="range"
                 min="2"
                 max="64"
                 step="2"
                 value={config.ram}
-                onChange={(e) => setConfig({ ...config, ram: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setConfig({ ...config, ram: parseInt(e.target.value) })
+                }
                 className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none"
               />
               <div className="flex justify-between text-[10px] text-slate-400 font-sans">
@@ -109,7 +124,9 @@ export const Configurator = () => {
             {/* Storage Slider */}
             <div className="space-y-3">
               <div className="flex justify-between items-center text-sm font-semibold text-slate-800">
-                <label htmlFor="storage-slider" className="font-sans">Ổ cứng SSD NVMe</label>
+                <label htmlFor="storage-slider" className="font-sans">
+                  Ổ cứng SSD NVMe
+                </label>
                 <span className="text-primary bg-white border border-slate-200 px-3 py-1 rounded-full text-xs font-bold shadow-xs">
                   {config.storage} GB SSD
                 </span>
@@ -121,7 +138,9 @@ export const Configurator = () => {
                 max="500"
                 step="10"
                 value={config.storage}
-                onChange={(e) => setConfig({ ...config, storage: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setConfig({ ...config, storage: parseInt(e.target.value) })
+                }
                 className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none"
               />
               <div className="flex justify-between text-[10px] text-slate-400 font-sans">
@@ -136,18 +155,24 @@ export const Configurator = () => {
             {/* Public Dedicated IP Switch */}
             <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
               <div className="flex flex-col gap-1 text-left">
-                <label htmlFor="ip-checkbox" className="text-sm font-bold text-slate-800 cursor-pointer">
+                <label
+                  htmlFor="ip-checkbox"
+                  className="text-sm font-bold text-slate-800 cursor-pointer"
+                >
                   IP tĩnh chuyên dụng (IPv4)
                 </label>
                 <p className="text-xs text-slate-500 max-w-sm">
-                  Cấp phát riêng biệt 1 địa chỉ IPv4 công cộng cố định cho máy chủ ảo.
+                  Cấp phát riêng biệt 1 địa chỉ IPv4 công cộng cố định cho máy
+                  chủ ảo.
                 </p>
               </div>
-              <input
+              <Input
                 id="ip-checkbox"
                 type="checkbox"
                 checked={config.hasIp}
-                onChange={(e) => setConfig({ ...config, hasIp: e.target.checked })}
+                onChange={(e) =>
+                  setConfig({ ...config, hasIp: e.target.checked })
+                }
                 className="size-4.5 rounded border-slate-300 text-primary focus:ring-primary accent-primary cursor-pointer"
               />
             </div>
@@ -158,7 +183,9 @@ export const Configurator = () => {
             <div className="text-left space-y-6">
               {/* Summary Header */}
               <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-                <span className="text-xs font-bold text-slate-400 tracking-wider uppercase">Tài nguyên đã chọn</span>
+                <span className="text-xs font-bold text-slate-400 tracking-wider uppercase">
+                  Tài nguyên đã chọn
+                </span>
                 <span className="text-[10px] bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 rounded font-bold">
                   Sẵn sàng
                 </span>
@@ -168,29 +195,39 @@ export const Configurator = () => {
               <div className="space-y-4 text-xs font-sans">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Số lượng vi xử lý:</span>
-                  <span className="text-white font-semibold">{config.cpu} vCPU Cores</span>
+                  <span className="text-white font-semibold">
+                    {config.cpu} vCPU Cores
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Dung lượng bộ nhớ:</span>
-                  <span className="text-white font-semibold">{config.ram} GB RAM</span>
+                  <span className="text-white font-semibold">
+                    {config.ram} GB RAM
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Không gian lưu trữ:</span>
-                  <span className="text-white font-semibold">{config.storage} GB SSD NVMe</span>
+                  <span className="text-white font-semibold">
+                    {config.storage} GB SSD NVMe
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Địa chỉ IPv4 tĩnh:</span>
-                  <span className="text-white font-semibold">{config.hasIp ? "Có (1 IPv4)" : "Không yêu cầu"}</span>
+                  <span className="text-white font-semibold">
+                    {config.hasIp ? "Có (1 IPv4)" : "Không yêu cầu"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Cổng băng thông:</span>
-                  <span className="text-white font-semibold">100 Mbps (Miễn phí)</span>
+                  <span className="text-white font-semibold">
+                    100 Mbps (Miễn phí)
+                  </span>
                 </div>
               </div>
 
               {/* Cycle Switcher - Rounded Premium Style */}
               <div className="grid grid-cols-2 gap-1 p-1 bg-slate-950 rounded-xl border border-slate-850 text-xs font-semibold">
-                <button
+                <Button
                   type="button"
                   onClick={() => setBillingCycle("monthly")}
                   className={`py-2 text-center transition-all cursor-pointer rounded-lg uppercase tracking-wider ${
@@ -200,8 +237,8 @@ export const Configurator = () => {
                   }`}
                 >
                   Tháng
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => setBillingCycle("yearly")}
                   className={`py-2 text-center transition-all cursor-pointer rounded-lg uppercase tracking-wider flex items-center justify-center gap-1.5 ${
@@ -214,14 +251,16 @@ export const Configurator = () => {
                   <span className="bg-emerald-500 text-white font-extrabold px-1 rounded text-[8px]">
                     -20%
                   </span>
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Total Cost Presentation */}
             <div className="mt-8 pt-6 border-t border-slate-800 text-left space-y-6">
               <div>
-                <span className="text-[10px] text-slate-500 font-bold uppercase block tracking-wider">Tổng chi phí dự tính:</span>
+                <span className="text-[10px] text-slate-500 font-bold uppercase block tracking-wider">
+                  Tổng chi phí dự tính:
+                </span>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-3xl font-extrabold text-white tracking-tight font-sans">
                     {formatVND(estimatedCost)}
@@ -232,7 +271,8 @@ export const Configurator = () => {
                 </div>
                 {billingCycle === "yearly" && (
                   <span className="text-[10px] text-emerald-400 mt-1 block">
-                    * Tiết kiệm {formatVND(estimatedCost * 0.2)} so với thanh toán theo tháng
+                    * Tiết kiệm {formatVND(estimatedCost * 0.2)} so với thanh
+                    toán theo tháng
                   </span>
                 )}
               </div>

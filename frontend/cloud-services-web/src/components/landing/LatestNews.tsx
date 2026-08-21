@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Newspaper, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { blogPosts } from "@/constants/landing";
+import Image from "next/image";
 
 export const LatestNews = () => {
   return (
@@ -43,10 +44,12 @@ export const LatestNews = () => {
             >
               {/* Blog Post Thumbnail Image */}
               <div className="w-full relative aspect-[16/10] rounded-xl overflow-hidden mb-5 bg-slate-50 border border-slate-100">
-                <img
+                <Image
                   src={post.image}
                   alt={post.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  width={500}
+                  height={300}
                 />
               </div>
 

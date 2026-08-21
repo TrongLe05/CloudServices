@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { resetPasswordSchema, ResetPasswordFormValues } from "@/schema/auth.schema";
+import { toast } from "@/components/ui/toast";
 
 interface NewPasswordStepProps {
   resetToken: string;
@@ -47,8 +48,18 @@ export const NewPasswordStep = ({ resetToken, onSuccess }: NewPasswordStepProps)
       }
 
       onSuccess();
+      toast.add({
+        title: "Đặt lại mật khẩu thành công",
+        description: "Mật khẩu của bạn đã được cập nhật thành công.",
+        type: "success",
+      });
     } catch (err: any) {
       setError(err.message || "Đã xảy ra lỗi khi đặt lại mật khẩu.");
+      toast.add({
+        title: "Lỗi đặt lại mật khẩu",
+        description: err.message || "Đã xảy ra lỗi khi đặt lại mật khẩu.",
+        type: "error",
+      });
     }
   };
 

@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Features.Affiliates.Commands.ChangeAffiliateStatus;
+using CloudServices.Application.Features.Affiliates.Commands.ChangeAffiliateStatus;
 using CloudServices.Application.Features.Affiliates.Commands.CreateAffiliate;
 using CloudServices.Application.Features.Affiliates.Commands.DeleteAffiliate;
 using CloudServices.Application.Features.Affiliates.Queries.GetAffiliateApplicationById;
@@ -37,7 +37,7 @@ namespace CloudServices.API.Controllers
         }
 
         [HttpPatch("{id:guid}/status")]
-        [Authorize(Roles = "Admin, Editor")]
+        [Authorize(Roles = "Admin,Editor")]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] ChangeAffiliateStatusCommandRequest request, CancellationToken cancellationToken)
         {
             var command = new ChangeAffiliateStatusCommand(id, request.Status);
