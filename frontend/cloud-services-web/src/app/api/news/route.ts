@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getAuthAccessToken } from "@/lib/auth-token";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -38,26 +38,27 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("accessToken")?.value;
-
+    const accessToken = await getAuthAccessToken();
     const payload = await req.json();
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: accessToken ? `Bearer ${accessToken}` : "",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
       const errorText = await res.text();
-      return NextResponse.json(
-        { message: errorText || "Failed to create news" },
-        { status: res.status }
-      );
+      let errorJson;
+      try {
+        errorJson = JSON.parse(errorText);
+      } catch {
+        errorJson = { message: errorText || "Không thể tạo bài viết" };
+      }
+      return NextResponse.json(errorJson, { status: res.status });
     }
 
     const data = await res.json();
