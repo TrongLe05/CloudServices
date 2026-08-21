@@ -38,7 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const data = await res.json();
           const setCookie = res.headers.get("set-cookie") || "";
           const match = setCookie.match(/refreshToken=([^;]+)/);
-          const refreshToken = match ? match[1] : data.refreshToken || null;
+          const refreshToken = match ? match[1] : (data.refreshToken || null);
 
           // Giải mã accessToken (chứa role, exp, claims)
           const decoded: any = jose.decodeJwt(data.accessToken);
@@ -47,18 +47,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             decoded[
               "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
             ] ||
-            decoded[
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"
-            ] ||
+            decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"] ||
             decoded["role"] ||
             decoded["Role"] ||
             "User";
 
           // Chuẩn hóa role (VD: "admin", "ADMIN" -> "Admin")
-          const role =
-            String(roleClaim).toLowerCase() === "admin"
-              ? "Admin"
-              : String(roleClaim);
+          const role = String(roleClaim).toLowerCase() === "admin" ? "Admin" : String(roleClaim);
 
           return {
             id: data.username || (credentials?.username as string),
@@ -132,7 +127,6 @@ async function refreshAccessToken(token: any) {
         },
         body: JSON.stringify({
           expiredAccessToken: token.accessToken,
-          refreshToken: token.refreshToken, // ✅ Truyền kèm trong body
         }),
       },
     );
