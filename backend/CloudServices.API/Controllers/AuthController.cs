@@ -36,16 +36,17 @@ public sealed class AuthController(
 
         var cookieOptions = new CookieOptions
         {
-            HttpOnly = true,             // 🔴 Quan trọng nhất: Chặn Javascript truy cập (chống XSS)
-            Secure = true,               // 🔒 Bắt buộc dùng HTTPS (trình duyệt chỉ gửi cookie qua kênh bảo mật)
-            SameSite = SameSiteMode.None, // 🌐 Cho phép gửi cookie chéo domain (nếu Frontend và API khác domain/port)
-            Expires = DateTime.UtcNow.AddDays(7) // 🕒 Hết hạn trùng với thời gian sống của Refresh Token (7 ngày)
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(7)
         };
 
         Response.Cookies.Append("refreshToken", response.RefreshToken, cookieOptions);
         return Ok(new
         {
             AccessToken = response.AccessToken,
+            RefreshToken = response.RefreshToken, // ✅ Thêm RefreshToken vào body
             Username = response.Username
         });
     }
@@ -74,17 +75,25 @@ public sealed class AuthController(
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshRequestDto request)
     {
-        // Kiểm tra refresh token từ Cookie 
-        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken) || string.IsNullOrEmpty(refreshToken))
+        // ✅ Ưu tiên lấy từ Cookie, nếu không có thì lấy từ Request Body
+        string? refreshToken = null;
+        if (Request.Cookies.TryGetValue("refreshToken", out var cookieToken) && !string.IsNullOrEmpty(cookieToken))
+        {
+            refreshToken = cookieToken;
+        }
+        else if (!string.IsNullOrEmpty(request.RefreshToken))
+        {
+            refreshToken = request.RefreshToken;
+        }
+
+        if (string.IsNullOrEmpty(refreshToken))
         {
             return BadRequest(new { Message = "Refresh token không tồn tại." });
         }
 
-        // Gửi Command sang MediatR
         var command = new RefreshTokenCommand(request.ExpiredAccessToken, refreshToken);
         var response = await Mediator.Send(command);
 
-        //  Cấu hình cookie lưu RefreshToken 
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
@@ -94,10 +103,10 @@ public sealed class AuthController(
         };
         Response.Cookies.Append("refreshToken", response.RefreshToken, cookieOptions);
 
-        // Trả AccessToken mới cho client 
         return Ok(new
         {
             AccessToken = response.AccessToken,
+            RefreshToken = response.RefreshToken, // ✅ Trả refreshToken mới
             Username = response.Username
         });
     }
