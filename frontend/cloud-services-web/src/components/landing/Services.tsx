@@ -60,7 +60,6 @@ export const Services = () => {
                     {service.title}
                   </CardTitle>
                 </CardHeader>
-
                 <CardContent className="pb-6 pt-2 px-6">
                   <CardDescription className="text-slate-500 text-xs leading-relaxed">
                     {service.description}

@@ -6,15 +6,13 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/store/auth.store";
+import { useSession } from "next-auth/react";
 
 export const Header = () => {
-  const { user, initialize } = useAuthStore();
+  const { data: session, status } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    initialize();
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
@@ -24,7 +22,9 @@ export const Header = () => {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [initialize]);
+  }, []);
+
+  const isLoggedIn = status === "authenticated";
 
   return (
     <header
@@ -59,8 +59,8 @@ export const Header = () => {
 
         {/* Authentication actions */}
         <div className="flex items-center gap-3">
-          {user ? (
-            <AvatarDropdown />
+          {isLoggedIn ? (
+            <AvatarDropdown user={session?.user} />
           ) : (
             <>
               <Button
