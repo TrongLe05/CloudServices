@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-<<<<<<< Updated upstream
-import { cookies } from "next/headers";
-=======
 import { getAuthAccessToken } from "@/lib/auth-token";
->>>>>>> Stashed changes
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -16,29 +12,15 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || "";
     const page = searchParams.get("page") || "1";
     const pageSize = searchParams.get("pageSize") || "10";
-<<<<<<< Updated upstream
-
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-=======
     const customerEmail = searchParams.get("customerEmail") || "";
 
     const token = await getAuthAccessToken();
->>>>>>> Stashed changes
 
     const query = new URLSearchParams({
       search,
       status,
       page,
       pageSize,
-<<<<<<< Updated upstream
-    });
-
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    const res = await fetch(`${apiUrl}/api/order-requests?${query.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-=======
       ...(customerEmail ? { customerEmail } : {}),
     });
 
@@ -46,7 +28,6 @@ export async function GET(request: NextRequest) {
     const res = await fetch(`${apiUrl}/api/order-requests?${query.toString()}`, {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
->>>>>>> Stashed changes
       },
       cache: "no-store",
     });
@@ -66,8 +47,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
-<<<<<<< Updated upstream
-=======
 
 export async function POST(request: NextRequest) {
   try {
@@ -109,5 +88,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
->>>>>>> Stashed changes

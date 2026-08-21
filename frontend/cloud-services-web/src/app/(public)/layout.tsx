@@ -4,15 +4,9 @@ import "../globals.css";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-<<<<<<< Updated upstream:frontend/cloud-services-web/src/app/(public)/layout.tsx
-import { Toaster } from "@/components/ui/toast";
-=======
-<<<<<<< Updated upstream:frontend/cloud-services-web/src/app/layout.tsx
-=======
+
 import { Toaster } from "@/components/ui/toast";
 import { SessionProvider } from "next-auth/react";
->>>>>>> Stashed changes:frontend/cloud-services-web/src/app/(public)/layout.tsx
->>>>>>> Stashed changes:frontend/cloud-services-web/src/app/layout.tsx
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -45,22 +39,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       )}
     >
       <body className="min-h-full flex flex-col">
-<<<<<<< Updated upstream:frontend/cloud-services-web/src/app/layout.tsx
-        <Header />
-        {children}
-        <Footer />
-<<<<<<< Updated upstream:frontend/cloud-services-web/src/app/(public)/layout.tsx
-        <Toaster />
-=======
-=======
         <SessionProvider>
           <Header />
           {children}
           <Footer />
           <Toaster />
         </SessionProvider>
->>>>>>> Stashed changes:frontend/cloud-services-web/src/app/(public)/layout.tsx
->>>>>>> Stashed changes:frontend/cloud-services-web/src/app/layout.tsx
       </body>
     </html>
   );
