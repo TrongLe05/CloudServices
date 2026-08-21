@@ -17,8 +17,7 @@ import { LoginFormValues } from "@/schema/auth.schema";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import Link from "next/link";
-import * as jose from "jose";
-import { toast } from "@/components/ui/toast";
+import { signIn } from "next-auth/react";
 
 export function LoginForm() {
   const router = useRouter();
@@ -38,18 +37,15 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+      const result = await signIn("credentials", {
+        username: data.username,
+        password: data.password,
+        redirect: false,
       });
 
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.message || "Đăng nhập thất bại");
+      if (result?.error) {
+        alert("Tên đăng nhập hoặc mật khẩu không chính xác.");
+        return;
       }
 
       const token = result.accessToken;

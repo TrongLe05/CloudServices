@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/store/auth.store";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export function AvatarDropdown() {
@@ -25,8 +26,7 @@ export function AvatarDropdown() {
 
   const handleLogout = async () => {
     await logout();
-    router.push("/");
-    router.refresh(); // Refresh lại trang để cập nhật trạng thái đăng nhập
+    await signOut({ callbackUrl: "/dang-nhap" });
   };
 
   return (
