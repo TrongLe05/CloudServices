@@ -19,7 +19,11 @@ import {
 } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toast";
+<<<<<<< Updated upstream
 import { useAuthStore } from "@/store/auth.store";
+=======
+import { useSession } from "next-auth/react";
+>>>>>>> Stashed changes
 import {
   Camera,
   KeyRound,
@@ -43,6 +47,7 @@ export function ProfileSettingsSheet({
   avatarUrl,
   onAvatarChange,
 }: ProfileSettingsSheetProps) {
+<<<<<<< Updated upstream
   const authUser = useAuthStore((state) => state.user);
   const loginState = useAuthStore((state) => state.loginState);
 
@@ -50,10 +55,30 @@ export function ProfileSettingsSheet({
   const [fullName, setFullName] = React.useState(authUser?.username || "Admin");
   const [email, setEmail] = React.useState(
     authUser?.username ? `${authUser.username}@cloudservices.vn` : "admin@cloudservices.vn"
+=======
+  const { data: session } = useSession();
+
+  const [activeTab, setActiveTab] = React.useState<"info" | "password">("info");
+  const [fullName, setFullName] = React.useState(session?.user?.name || "Admin");
+  const [email, setEmail] = React.useState(
+    session?.user?.email || (session?.user?.name ? `${session.user.name}@cloudservices.vn` : "admin@cloudservices.vn")
+>>>>>>> Stashed changes
   );
   const [currentAvatar, setCurrentAvatar] = React.useState(avatarUrl || "");
   const [loading, setLoading] = React.useState(false);
 
+<<<<<<< Updated upstream
+=======
+  React.useEffect(() => {
+    if (session?.user?.name) {
+      setFullName(session.user.name);
+    }
+    if (session?.user?.email) {
+      setEmail(session.user.email);
+    }
+  }, [session]);
+
+>>>>>>> Stashed changes
   // Password fields
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
@@ -61,6 +86,7 @@ export function ProfileSettingsSheet({
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
+<<<<<<< Updated upstream
   React.useEffect(() => {
     if (authUser?.username) {
       setFullName(authUser.username);
@@ -68,6 +94,8 @@ export function ProfileSettingsSheet({
     }
   }, [authUser]);
 
+=======
+>>>>>>> Stashed changes
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -110,9 +138,12 @@ export function ProfileSettingsSheet({
     e.preventDefault();
     setLoading(true);
     try {
+<<<<<<< Updated upstream
       if (fullName.trim()) {
         loginState(fullName.trim());
       }
+=======
+>>>>>>> Stashed changes
       toast.add({
         title: "Lưu thành công",
         description: "Thông tin hồ sơ cá nhân đã được cập nhật.",

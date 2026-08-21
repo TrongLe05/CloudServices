@@ -32,9 +32,15 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+<<<<<<< Updated upstream
 import { useAuthStore } from "@/store/auth.store";
 import { toast } from "@/components/ui/toast";
 import { ProfileSettingsSheet } from "@/components/admin/profile/ProfileSettingsSheet";
+=======
+import { toast } from "@/components/ui/toast";
+import { ProfileSettingsSheet } from "@/components/admin/profile/ProfileSettingsSheet";
+import { useSession, signOut } from "next-auth/react";
+>>>>>>> Stashed changes
 
 export function NavUser({
   user: initialUser,
@@ -47,13 +53,18 @@ export function NavUser({
 }) {
   const router = useRouter();
   const { isMobile } = useSidebar();
+<<<<<<< Updated upstream
   const authUser = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const initialize = useAuthStore((state) => state.initialize);
+=======
+  const { data: session } = useSession();
+>>>>>>> Stashed changes
 
   const [avatarUrl, setAvatarUrl] = React.useState(initialUser?.avatar || "");
   const [profileSheetOpen, setProfileSheetOpen] = React.useState(false);
 
+<<<<<<< Updated upstream
   React.useEffect(() => {
     initialize();
   }, [initialize]);
@@ -62,6 +73,10 @@ export function NavUser({
   const displayEmail = authUser?.username
     ? `${authUser.username}@cloudservices.vn`
     : initialUser?.email || "admin@cloudservices.vn";
+=======
+  const displayName = session?.user?.name || initialUser?.name || "Admin";
+  const displayEmail = session?.user?.email || (session?.user?.name ? `${session.user.name}@cloudservices.vn` : initialUser?.email || "admin@cloudservices.vn");
+>>>>>>> Stashed changes
 
   const getInitials = (name: string) => {
     if (!name) return "AD";
@@ -74,14 +89,21 @@ export function NavUser({
 
   const handleLogout = async () => {
     try {
+<<<<<<< Updated upstream
       await logout();
+=======
+      await signOut({ callbackUrl: "/dang-nhap" });
+>>>>>>> Stashed changes
       toast.add({
         title: "Đăng xuất thành công",
         description: "Bạn đã đăng xuất khỏi phiên làm việc quản trị.",
         type: "success",
       });
+<<<<<<< Updated upstream
       router.push("/dang-nhap");
       router.refresh();
+=======
+>>>>>>> Stashed changes
     } catch (error: any) {
       toast.add({
         title: "Lỗi đăng xuất",

@@ -15,14 +15,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { LoginFormValues } from "@/schema/auth.schema";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth.store";
 import Link from "next/link";
+<<<<<<< Updated upstream
 import { signIn } from "next-auth/react";
+=======
+<<<<<<< Updated upstream
+=======
+import { signIn } from "next-auth/react";
+import { toast } from "@/components/ui/toast";
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 export function LoginForm() {
   const router = useRouter();
-  const loginState = useAuthStore((state) => state.loginState);
-
   const {
     register,
     handleSubmit,
@@ -48,6 +53,7 @@ export function LoginForm() {
         return;
       }
 
+<<<<<<< Updated upstream
       const token = result.accessToken;
 
       if (token) {
@@ -73,6 +79,25 @@ export function LoginForm() {
         }
         router.refresh();
       }
+=======
+<<<<<<< Updated upstream
+      alert("Đăng nhập thành công!");
+      loginState(result.username);
+
+      // Chuyển hướng người dùng sang trang chính hoặc dashboard
+      router.push("/");
+=======
+      toast.add({
+        title: "Đăng nhập thành công",
+        description: "Chào mừng bạn quay trở lại hệ thống.",
+        type: "success",
+      });
+
+      router.push("/admin/dashboard");
+
+>>>>>>> Stashed changes
+      router.refresh();
+>>>>>>> Stashed changes
     } catch (error: any) {
       console.error(error);
       toast.add({

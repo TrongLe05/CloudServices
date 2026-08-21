@@ -54,6 +54,11 @@ export function ServicePlanQrCard({
               <Image
                 src={`data:image/png;base64,${qrCode.qrCodeBase64}`}
                 alt={`Mã QR ${selectedPlan.name}`}
+<<<<<<< Updated upstream
+=======
+                width={144}
+                height={144}
+>>>>>>> Stashed changes
                 className="size-36 object-contain"
               />
             </div>

@@ -5,13 +5,20 @@ if (process.env.NODE_ENV === "development") {
 }
 
 import * as React from "react";
+<<<<<<< Updated upstream
 import { cookies } from "next/headers";
+=======
+>>>>>>> Stashed changes
 import { getPromotions } from "@/components/admin/promotions/PromotionsSection";
 import { getCategories, getServicePlans } from "@/components/admin/service-plans/ServicePlansSection";
 import { getNews } from "@/app/admin/news/page";
 import { AdminDashboardView, DashboardData } from "@/components/admin/dashboard/AdminDashboardView";
 import { MonthlyOrderData } from "@/components/admin/dashboard/MonthlyOrdersChart";
 import { PopularPlanItem } from "@/components/admin/dashboard/PopularPlansBarChart";
+<<<<<<< Updated upstream
+=======
+import { getAuthAccessToken } from "@/lib/auth-token";
+>>>>>>> Stashed changes
 
 async function getDashboardStatistics(): Promise<{
   totalOrders: number;
@@ -22,6 +29,7 @@ async function getDashboardStatistics(): Promise<{
   popularPlans: PopularPlanItem[];
 } | null> {
   try {
+<<<<<<< Updated upstream
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
@@ -29,6 +37,14 @@ async function getDashboardStatistics(): Promise<{
     const res = await fetch(`${apiUrl}/api/statistics/dashboard`, {
       headers: {
         Authorization: `Bearer ${token}`,
+=======
+    const token = await getAuthAccessToken();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+
+    const res = await fetch(`${apiUrl}/api/statistics/dashboard`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+>>>>>>> Stashed changes
       },
       cache: "no-store",
     });
@@ -43,8 +59,13 @@ async function getDashboardStatistics(): Promise<{
 
 async function getMonthlyOrderStatistics(): Promise<MonthlyOrderData[]> {
   try {
+<<<<<<< Updated upstream
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
+=======
+    const token = await getAuthAccessToken();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+>>>>>>> Stashed changes
 
     const now = new Date();
     const fromDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
@@ -53,10 +74,16 @@ async function getMonthlyOrderStatistics(): Promise<MonthlyOrderData[]> {
     const fromStr = `${fromDate.getFullYear()}-${String(fromDate.getMonth() + 1).padStart(2, "0")}`;
     const toStr = `${toDate.getFullYear()}-${String(toDate.getMonth() + 1).padStart(2, "0")}`;
 
+<<<<<<< Updated upstream
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
     const res = await fetch(`${apiUrl}/api/statistics/orders?from=${fromStr}&to=${toStr}`, {
       headers: {
         Authorization: `Bearer ${token}`,
+=======
+    const res = await fetch(`${apiUrl}/api/statistics/orders?from=${fromStr}&to=${toStr}`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+>>>>>>> Stashed changes
       },
       cache: "no-store",
     });
@@ -72,6 +99,7 @@ async function getMonthlyOrderStatistics(): Promise<MonthlyOrderData[]> {
 
 async function getAffiliatesCount(): Promise<number> {
   try {
+<<<<<<< Updated upstream
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
@@ -79,6 +107,14 @@ async function getAffiliatesCount(): Promise<number> {
     const res = await fetch(`${apiUrl}/api/affiliates?pageSize=1`, {
       headers: {
         Authorization: `Bearer ${token}`,
+=======
+    const token = await getAuthAccessToken();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+
+    const res = await fetch(`${apiUrl}/api/affiliates?pageSize=1`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+>>>>>>> Stashed changes
       },
       cache: "no-store",
     });
@@ -92,7 +128,10 @@ async function getAffiliatesCount(): Promise<number> {
 }
 
 export default async function AdminDashboardPage() {
+<<<<<<< Updated upstream
   // Parallel loading of all overview datasets
+=======
+>>>>>>> Stashed changes
   const [
     statsData,
     monthlyOrders,
@@ -111,7 +150,10 @@ export default async function AdminDashboardPage() {
     getAffiliatesCount(),
   ]);
 
+<<<<<<< Updated upstream
   // Fallback mock months if no orders recorded yet
+=======
+>>>>>>> Stashed changes
   const now = new Date();
   const defaultMonthlyData: MonthlyOrderData[] = [];
   for (let i = 5; i >= 0; i--) {
