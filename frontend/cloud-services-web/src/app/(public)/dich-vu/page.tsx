@@ -1,10 +1,3 @@
-<<<<<<< Updated upstream
-const page = () => {
-  return <div>dịch vụ</div>;
-};
-
-export default page;
-=======
 export const dynamic = "force-dynamic";
 
 if (process.env.NODE_ENV === "development") {
@@ -61,7 +54,7 @@ async function getServicesData() {
       plans: plansWithPrices,
     };
   } catch (error) {
-    console.error("Lỗi khi tải dữ liệu trang tổng quan dịch vụ:", error);
+    console.error("Lỗi khi tải dữ liệu dịch vụ:", error);
     return {
       categories: [],
       plans: [],
@@ -73,22 +66,21 @@ export default async function ServicesPage() {
   const { categories, plans } = await getServicesData();
 
   return (
-    <Suspense fallback={<ServicesPageSkeleton />}>
+    <Suspense fallback={<ServicesOverviewSkeleton />}>
       <ServicesOverviewView categories={categories} plans={plans} />
     </Suspense>
   );
 }
 
-function ServicesPageSkeleton() {
+function ServicesOverviewSkeleton() {
   return (
-    <div className="min-h-screen bg-slate-50/50 py-16 px-6 max-w-7xl mx-auto space-y-8">
-      <Skeleton className="h-96 w-full rounded-3xl" />
+    <div className="min-h-screen bg-slate-50/50 py-12 px-6 max-w-7xl mx-auto space-y-8">
+      <Skeleton className="h-8 w-64" />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Skeleton className="h-80 rounded-2xl" />
-        <Skeleton className="h-80 rounded-2xl" />
-        <Skeleton className="h-80 rounded-2xl" />
+        <Skeleton className="h-96 rounded-3xl" />
+        <Skeleton className="h-96 rounded-3xl" />
+        <Skeleton className="h-96 rounded-3xl" />
       </div>
     </div>
   );
 }
->>>>>>> Stashed changes

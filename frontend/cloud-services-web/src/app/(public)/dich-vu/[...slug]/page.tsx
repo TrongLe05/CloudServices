@@ -1,10 +1,3 @@
-<<<<<<< Updated upstream
-const page = () => {
-  return <div>page</div>;
-};
-
-export default page;
-=======
 export const dynamic = "force-dynamic";
 
 if (process.env.NODE_ENV === "development") {
@@ -138,4 +131,3 @@ function PlanDetailSkeleton() {
     </div>
   );
 }
->>>>>>> Stashed changes

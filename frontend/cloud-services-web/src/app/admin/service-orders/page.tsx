@@ -5,25 +5,6 @@ if (process.env.NODE_ENV === "development") {
 }
 
 import { Suspense } from "react";
-<<<<<<< Updated upstream
-import { cookies } from "next/headers";
-import { OrderRequestsCRUD } from "@/components/admin/service-orders/OrderRequestsCRUD";
-import { PanelSkeleton } from "@/components/admin/PanelSkeleton";
-
-async function getOrderRequests(): Promise<any[]> {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    const res = await fetch(`${apiUrl}/api/order-requests?pageSize=100`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      cache: "no-store",
-    });
-    if (!res.ok) throw new Error("Failed to fetch order requests");
-=======
 import { OrderRequestsCRUD } from "@/components/admin/service-orders/OrderRequestsCRUD";
 import { PanelSkeleton } from "@/components/admin/PanelSkeleton";
 import { getAuthAccessToken } from "@/lib/auth-token";
@@ -40,7 +21,6 @@ async function getOrderRequests(): Promise<any[]> {
       cache: "no-store",
     });
     if (!res.ok) throw new Error(`Failed to fetch order requests (status: ${res.status})`);
->>>>>>> Stashed changes
     const data = await res.json();
     return data.items || data.Items || [];
   } catch (error) {
@@ -61,7 +41,11 @@ export default async function AdminServiceOrdersPage() {
   );
 }
 
-async function OrdersWrapper({ ordersPromise }: { ordersPromise: Promise<any[]> }) {
+async function OrdersWrapper({
+  ordersPromise,
+}: {
+  ordersPromise: Promise<any[]>;
+}) {
   const orders = await ordersPromise;
   return <OrderRequestsCRUD initialOrders={orders} />;
 }

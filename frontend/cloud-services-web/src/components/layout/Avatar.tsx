@@ -10,14 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-<<<<<<< Updated upstream
-import { useAuthStore } from "@/store/auth.store";
-import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
-=======
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
->>>>>>> Stashed changes
 
 export function AvatarDropdown({
   user: initialUser,
@@ -38,17 +32,7 @@ export function AvatarDropdown({
     : "US";
 
   const handleLogout = async () => {
-<<<<<<< Updated upstream
-    await logout();
-<<<<<<< Updated upstream
     await signOut({ callbackUrl: "/dang-nhap" });
-=======
-    router.push("/");
-    router.refresh(); // Refresh lại trang để cập nhật trạng thái đăng nhập
-=======
-    await signOut({ callbackUrl: "/dang-nhap" });
->>>>>>> Stashed changes
->>>>>>> Stashed changes
   };
 
   const isAdmin = (user as any)?.role === "Admin";
@@ -75,14 +59,6 @@ export function AvatarDropdown({
           </div>
         </div>
         <DropdownMenuGroup>
-<<<<<<< Updated upstream
-          <DropdownMenuItem>Hồ sơ</DropdownMenuItem>
-=======
-<<<<<<< Updated upstream
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-=======
           {isAdmin && (
             <DropdownMenuItem render={<Link href="/admin/dashboard" />}>
               Trang Quản trị
@@ -94,8 +70,6 @@ export function AvatarDropdown({
           <DropdownMenuItem render={<Link href="/profile" />}>
             Hồ sơ cá nhân
           </DropdownMenuItem>
->>>>>>> Stashed changes
->>>>>>> Stashed changes
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

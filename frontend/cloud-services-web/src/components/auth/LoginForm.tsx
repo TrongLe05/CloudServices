@@ -16,15 +16,8 @@ import { Input } from "@/components/ui/input";
 import { LoginFormValues } from "@/schema/auth.schema";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-<<<<<<< Updated upstream
-import { signIn } from "next-auth/react";
-=======
-<<<<<<< Updated upstream
-=======
 import { signIn } from "next-auth/react";
 import { toast } from "@/components/ui/toast";
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
 export function LoginForm() {
   const router = useRouter();
@@ -53,40 +46,8 @@ export function LoginForm() {
         return;
       }
 
-<<<<<<< Updated upstream
-      const token = result.accessToken;
-
-      if (token) {
-        const claims = jose.decodeJwt(token);
-        console.log("Decoded JWT claims:", claims);
-        const role =
-          claims[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-          ] || (claims["role"] as string);
-        const username = (claims.unique_name || claims.sub) as string;
-
-        loginState(username);
-        toast.add({
-          title: "Đăng nhập thành công",
-          description: `Chào mừng trở lại! Vai trò: ${role}`,
-          type: "success",
-        });
-
-        if (role === "Admin") {
-          router.push("/admin/dashboard");
-        } else {
-          router.push("/");
-        }
-        router.refresh();
-      }
-=======
-<<<<<<< Updated upstream
-      alert("Đăng nhập thành công!");
-      loginState(result.username);
-
       // Chuyển hướng người dùng sang trang chính hoặc dashboard
       router.push("/");
-=======
       toast.add({
         title: "Đăng nhập thành công",
         description: "Chào mừng bạn quay trở lại hệ thống.",
@@ -95,9 +56,7 @@ export function LoginForm() {
 
       router.push("/admin/dashboard");
 
->>>>>>> Stashed changes
       router.refresh();
->>>>>>> Stashed changes
     } catch (error: any) {
       console.error(error);
       toast.add({

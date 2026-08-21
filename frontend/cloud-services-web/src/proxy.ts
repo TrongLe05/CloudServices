@@ -3,8 +3,7 @@ import { NextResponse } from "next/server";
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
-  const userRole =
-    (req.auth?.user as any)?.role || (req.auth as any)?.role || "";
+  const userRole = (req.auth?.user as any)?.role || (req.auth as any)?.role || "";
   const isAdmin = String(userRole).toLowerCase() === "admin";
   const { pathname } = req.nextUrl;
 

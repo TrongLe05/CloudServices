@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getAuthAccessToken } from "@/lib/auth-token";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -32,26 +32,27 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("accessToken")?.value;
-
+    const accessToken = await getAuthAccessToken();
     const payload = await req.json();
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: accessToken ? `Bearer ${accessToken}` : "",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
       const errorText = await res.text();
-      return NextResponse.json(
-        { message: errorText || "Failed to update news" },
-        { status: res.status }
-      );
+      let errorJson;
+      try {
+        errorJson = JSON.parse(errorText);
+      } catch {
+        errorJson = { message: errorText || "Không thể cập nhật bài viết" };
+      }
+      return NextResponse.json(errorJson, { status: res.status });
     }
 
     // Fetch the updated item
@@ -76,22 +77,24 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("accessToken")?.value;
+    const accessToken = await getAuthAccessToken();
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news/${id}`, {
       method: "DELETE",
       headers: {
-        Authorization: accessToken ? `Bearer ${accessToken}` : "",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
     });
 
     if (!res.ok) {
       const errorText = await res.text();
-      return NextResponse.json(
-        { message: errorText || "Failed to delete news" },
-        { status: res.status }
-      );
+      let errorJson;
+      try {
+        errorJson = JSON.parse(errorText);
+      } catch {
+        errorJson = { message: errorText || "Không thể xóa bài viết" };
+      }
+      return NextResponse.json(errorJson, { status: res.status });
     }
 
     return new Response(null, { status: 204 });
