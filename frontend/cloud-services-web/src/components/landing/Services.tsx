@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { services } from "@/mock/landing.mock";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { services } from "@/constants/landing";
 
 export const Services = () => {
   return (
@@ -19,7 +26,8 @@ export const Services = () => {
               HỆ SINH THÁI DỊCH VỤ CỐT LÕI
             </h2>
             <p className="text-sm md:text-base text-slate-500 leading-relaxed">
-              Các sản phẩm hạ tầng đám mây chuyên nghiệp, hiệu năng cao giúp tối ưu hóa công việc vận hành và phát triển hệ thống của doanh nghiệp.
+              Các sản phẩm hạ tầng đám mây chuyên nghiệp, hiệu năng cao giúp tối
+              ưu hóa công việc vận hành và phát triển hệ thống của doanh nghiệp.
             </p>
           </div>
           <div className="text-xs font-semibold text-slate-400 uppercase hidden md:block">
@@ -31,10 +39,10 @@ export const Services = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service, index) => {
             const Icon = service.icon;
-            
+
             return (
-              <Card 
-                key={index} 
+              <Card
+                key={index}
                 className="bg-slate-50/50 hover:bg-white border border-slate-100 hover:border-slate-200/80 transition-all duration-300 hover:shadow-xl hover:shadow-slate-100/60 hover:-translate-y-1 flex flex-col justify-between rounded-2xl shadow-xs"
               >
                 <CardHeader className="pb-2 pt-6 px-6">
@@ -52,16 +60,15 @@ export const Services = () => {
                     {service.title}
                   </CardTitle>
                 </CardHeader>
-                
                 <CardContent className="pb-6 pt-2 px-6">
                   <CardDescription className="text-slate-500 text-xs leading-relaxed">
                     {service.description}
                   </CardDescription>
                 </CardContent>
-                
+
                 <CardFooter className="pt-4 pb-6 px-6 border-t border-slate-100/80 flex items-center justify-between">
-                  <Link 
-                    href={`/dich-vu#${service.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} 
+                  <Link
+                    href={`/dich-vu#${service.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
                     className="text-xs font-bold text-primary hover:underline flex items-center gap-1 group"
                   >
                     Tìm hiểu chi tiết

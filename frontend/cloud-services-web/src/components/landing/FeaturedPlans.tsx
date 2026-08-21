@@ -3,8 +3,15 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { prebuiltPlans } from "@/mock/landing.mock";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { prebuiltPlans } from "@/constants/landing";
 
 export const FeaturedPlans = () => {
   const formatVND = (value: number) => {
@@ -15,7 +22,10 @@ export const FeaturedPlans = () => {
   };
 
   return (
-    <section id="bang-gia" className="w-full py-24 md:py-32 border-b border-slate-200/80 bg-slate-50">
+    <section
+      id="bang-gia"
+      className="w-full py-24 md:py-32 border-b border-slate-200/80 bg-slate-50"
+    >
       <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col gap-16 text-center items-center">
         {/* Section Header */}
         <div className="flex flex-col items-center gap-4 text-center max-w-2xl">
@@ -26,7 +36,8 @@ export const FeaturedPlans = () => {
             GÓI CẤU HÌNH NỔI BẬT & BÁO GIÁ
           </h2>
           <p className="text-sm md:text-base text-slate-500 leading-relaxed">
-            Các gói tài nguyên tiêu chuẩn tối ưu sẵn cho từng nhu cầu quy mô dự án và ngân sách vận hành của doanh nghiệp bạn.
+            Các gói tài nguyên tiêu chuẩn tối ưu sẵn cho từng nhu cầu quy mô dự
+            án và ngân sách vận hành của doanh nghiệp bạn.
           </p>
         </div>
 
@@ -72,7 +83,9 @@ export const FeaturedPlans = () => {
                       <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 mt-0.5 shrink-0">
                         <Check className="size-3" />
                       </div>
-                      <span className="text-slate-650 leading-snug">{spec}</span>
+                      <span className="text-slate-650 leading-snug">
+                        {spec}
+                      </span>
                     </li>
                   ))}
                 </ul>

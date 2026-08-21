@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Exclude>[CloudServices.Application]CloudServices.Application.Common.Exceptions.*,[CloudServices.Application]CloudServices.Application.Common.Models.*,[CloudServices.Application]CloudServices.Application.Common.Behaviours.*,[CloudServices.Application]CloudServices.Application.DependencyInjection*,[CloudServices.Application]CloudServices.Application.Features.*.DTOs.*,[CloudServices.Application]CloudServices.Application.Features.*.Queries.*,[CloudServices.Application]CloudServices.Application.Features.ServiceCategories.*,[CloudServices.Application]*Mapper*,[CloudServices.Application]*Dto*,[CloudServices.Application]*Response*,[CloudServices.Application]*Validator*,[CloudServices.Application]CloudServices.Application.Common.Workflow.WorkflowParser,[CloudServices.Application]CloudServices.Application.Common.Workflow.WorkflowRegistry</Exclude>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

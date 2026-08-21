@@ -5,6 +5,7 @@ namespace CloudServices.Application.Common.Interfaces.Repositories;
 
 public interface IAffiliateApplicationRepository
 {
+    Task<IReadOnlyList<AffiliateApplication>> GetAllAsync(CancellationToken cancellationToken);
     Task<AffiliateApplication?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<(IReadOnlyList<AffiliateApplication> item, int total)> GetPagedAsync(string? search, AffiliateStatus? status, string? sort, int page, int pageSize, CancellationToken cancellationToken = default);
     Task AddAsync(AffiliateApplication application, CancellationToken cancellationToken);

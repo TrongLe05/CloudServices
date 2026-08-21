@@ -1,13 +1,11 @@
-using Azure.Core;
 using CloudServices.Application.Common.Interfaces;
-﻿using Azure.Core;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Application.Features.Users.Commands.ChangePassword;
 using CloudServices.Application.Features.Users.Commands.Login;
 using CloudServices.Application.Features.Users.Commands.Logout;
 using CloudServices.Application.Features.Users.Commands.RefreshToken;
 using CloudServices.Application.Features.Users.Commands.RegisterUser;
-using CloudServices.Application.Common.Interfaces.Repositories;
-using Microsoft.Extensions.Configuration;
+using CloudServices.Application.Features.Users.Queries.GetMe;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -317,5 +315,23 @@ public sealed class AuthController(
         {
             return BadRequest(new { message = "Yêu cầu đặt lại mật khẩu không hợp lệ.", detail = ex.Message });
         }
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetMe(CancellationToken cancellationToken)
+    {
+        // Trích xuất User ID từ JWT Claim NameIdentifier (hoặc Sub)
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return BadRequest(new { message = "Email không tồn tại trong hệ thống." });
+        }
+        var userId = Guid.Parse(userIdClaim);
+        // Gửi GetMeQuery sang Mediator
+        var query = new GetMeQuery(userId);
+        var response = await Mediator.Send(query, cancellationToken);
+        return Ok(response);
     }
 }
