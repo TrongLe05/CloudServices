@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Features.Testimonials.Commands;
+using CloudServices.Application.Features.Testimonials.Commands;
 using CloudServices.Application.Features.Testimonials.DTOs;
 using CloudServices.Application.Features.Testimonials.Queries;
 using MediatR;
@@ -35,7 +35,7 @@ public class TestimonialsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [AllowAnonymous]
     public async Task<ActionResult<TestimonialDto>> Create([FromBody] CreateTestimonialRequest request, CancellationToken cancellationToken)
     {
         var command = new CreateTestimonialCommand(
