@@ -68,14 +68,12 @@ const PromoCard = ({
             <div className="p-3 bg-primary/10 text-primary rounded-xl group-hover:scale-105 transition-transform">
               <Icon className="size-5" />
             </div>
-
             {/* Active expiry pill */}
             <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1 font-mono bg-slate-50 border border-slate-200/60 px-2.5 py-1 rounded-full shadow-2xs">
               <Clock className="size-3 text-slate-400" />
               Hạn: {promo.expiry}
             </span>
           </div>
-
           <CardTitle className="text-base font-extrabold mt-5 text-slate-900 tracking-tight leading-snug">
             {promo.title}
           </CardTitle>
@@ -130,7 +128,6 @@ const PromoCard = ({
           )}
         </CardContent>
       </div>
-
       <CardFooter className="pt-4 pb-6 px-6 border-t border-slate-100 relative z-10">
         <Button
           variant="outline"
