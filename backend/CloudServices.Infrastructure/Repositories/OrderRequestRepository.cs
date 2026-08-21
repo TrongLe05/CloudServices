@@ -28,4 +28,13 @@ public sealed class OrderRequestRepository(ApplicationDbContext context) : IOrde
     public Task AddAsync(OrderRequest orderRequest, CancellationToken cancellationToken = default) => context.OrderRequests.AddAsync(orderRequest, cancellationToken).AsTask();
     public void Update(OrderRequest orderRequest) => context.OrderRequests.Update(orderRequest);
     public void Delete(OrderRequest orderRequest) => context.OrderRequests.Remove(orderRequest);
+    public async Task<IReadOnlyList<OrderRequest>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await context.OrderRequests
+             .AsNoTracking()
+             .Include(x => x.PlanPrice)
+             .ThenInclude(x => x.Plan)
+             .OrderByDescending(x => x.CreatedAt)
+             .ToListAsync(cancellationToken);
+    }
 }

@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/store/auth.store";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export function AvatarDropdown() {
@@ -25,8 +26,7 @@ export function AvatarDropdown() {
 
   const handleLogout = async () => {
     await logout();
-    router.push("/");
-    router.refresh(); // Refresh lại trang để cập nhật trạng thái đăng nhập
+    await signOut({ callbackUrl: "/dang-nhap" });
   };
 
   return (
@@ -43,14 +43,12 @@ export function AvatarDropdown() {
       />
       <DropdownMenuContent className="w-32">
         <DropdownMenuGroup>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem>Hồ sơ</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-            Log out
+            Đăng xuất
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

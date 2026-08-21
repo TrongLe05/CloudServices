@@ -1,0 +1,103 @@
+Summary
+  Generated on: 8/19/2026 - 11:31:30 PM
+  Coverage date: 8/19/2026 - 11:31:22 PM
+  Parser: Cobertura
+  Assemblies: 2
+  Classes: 79
+  Files: 75
+  Line coverage: 91.5%
+  Covered lines: 705
+  Uncovered lines: 65
+  Coverable lines: 770
+  Total lines: 1560
+  Branch coverage: 84% (121 of 144)
+  Covered branches: 121
+  Total branches: 144
+  Method coverage: 89.7% (219 of 244)
+  Full method coverage: 88.1% (215 of 244)
+  Covered methods: 219
+  Fully covered methods: 215
+  Total methods: 244
+
+CloudServices.Application                                                                                            93.1%
+  CloudServices.Application.Common.Workflow.WorkflowContext                                                          63.6%
+  CloudServices.Application.Common.Workflow.WorkflowDefinition                                                        100%
+  CloudServices.Application.Common.Workflow.WorkflowEngine                                                           82.5%
+  CloudServices.Application.Common.Workflow.WorkflowHistoryRecord                                                     100%
+  CloudServices.Application.Common.Workflow.WorkflowInstance                                                          100%
+  CloudServices.Application.Common.Workflow.WorkflowState                                                             100%
+  CloudServices.Application.Common.Workflow.WorkflowTransition                                                       83.3%
+  CloudServices.Application.Features.Affiliates.AffiliateApplicationPage                                                0%
+  CloudServices.Application.Features.Affiliates.Commands.ChangeAffiliateStatus.ChangeAffiliateStatusCommand           100%
+  CloudServices.Application.Features.Affiliates.Commands.ChangeAffiliateStatus.ChangeAffiliateStatusCommandHandler    100%
+  CloudServices.Application.Features.Affiliates.Commands.ChangeAffiliateStatus.ChangeAffiliateStatusCommandRequest      0%
+  CloudServices.Application.Features.Affiliates.Commands.CreateAffiliate.CreateAffiliateCommand                       100%
+  CloudServices.Application.Features.Affiliates.Commands.CreateAffiliate.CreateAffiliateCommandHandler                100%
+  CloudServices.Application.Features.Affiliates.Commands.DeleteAffiliate.DeleteAffiliateCommand                       100%
+  CloudServices.Application.Features.Affiliates.Commands.DeleteAffiliate.DeleteAffiliateCommandHandler                100%
+  CloudServices.Application.Features.News.Commands.CreateNews.CreateNewsCommand                                       100%
+  CloudServices.Application.Features.News.Commands.CreateNews.CreateNewsCommandHandler                                100%
+  CloudServices.Application.Features.News.Commands.DeleteNews.DeleteNewsCommand                                       100%
+  CloudServices.Application.Features.News.Commands.DeleteNews.DeleteNewsCommandHandler                                100%
+  CloudServices.Application.Features.News.Commands.UpdateNews.UpdateNewsCommand                                       100%
+  CloudServices.Application.Features.News.Commands.UpdateNews.UpdateNewsCommandHandler                                100%
+  CloudServices.Application.Features.News.NewsPage                                                                    100%
+  CloudServices.Application.Features.OrderRequests.Commands.ChangeOrderStatus.ChangeOrderStatusCommand                100%
+  CloudServices.Application.Features.OrderRequests.Commands.ChangeOrderStatus.ChangeOrderStatusCommandHandler         100%
+  CloudServices.Application.Features.OrderRequests.Commands.CreateOrderRequest.CreateOrderRequestCommand              100%
+  CloudServices.Application.Features.OrderRequests.Commands.CreateOrderRequest.CreateOrderRequestCommandHandler       100%
+  CloudServices.Application.Features.OrderRequests.Commands.DeleteOrderRequest.DeleteOrderRequestCommand              100%
+  CloudServices.Application.Features.OrderRequests.Commands.DeleteOrderRequest.DeleteOrderRequestCommandHandler       100%
+  CloudServices.Application.Features.OrderRequests.OrderRequestPage                                                     0%
+  CloudServices.Application.Features.PlanPrices.Commands.CreatePlanPriceCommand                                       100%
+  CloudServices.Application.Features.PlanPrices.Commands.CreatePlanPriceCommandHandler                                100%
+  CloudServices.Application.Features.PlanPrices.Commands.DeletePlanPriceCommand                                       100%
+  CloudServices.Application.Features.PlanPrices.Commands.DeletePlanPriceCommandHandler                                100%
+  CloudServices.Application.Features.PlanPrices.Commands.UpdatePlanPriceCommand                                       100%
+  CloudServices.Application.Features.PlanPrices.Commands.UpdatePlanPriceCommandHandler                                100%
+  CloudServices.Application.Features.Promotions.Commands.CreatePromotionCommand                                       100%
+  CloudServices.Application.Features.Promotions.Commands.CreatePromotionCommandHandler                                100%
+  CloudServices.Application.Features.Promotions.Commands.DeletePromotionCommand                                       100%
+  CloudServices.Application.Features.Promotions.Commands.DeletePromotionCommandHandler                                100%
+  CloudServices.Application.Features.Promotions.Commands.UpdatePromotionCommand                                       100%
+  CloudServices.Application.Features.Promotions.Commands.UpdatePromotionCommandHandler                                100%
+  CloudServices.Application.Features.QrCodes.Commands.RegenerateServicePlanQrCodeCommand                              100%
+  CloudServices.Application.Features.QrCodes.Commands.RegenerateServicePlanQrCodeCommandHandler                       100%
+  CloudServices.Application.Features.ServicePlans.Commands.CreateServicePlanCommand                                   100%
+  CloudServices.Application.Features.ServicePlans.Commands.CreateServicePlanCommandHandler                            100%
+  CloudServices.Application.Features.ServicePlans.Commands.DeleteServicePlanCommand                                   100%
+  CloudServices.Application.Features.ServicePlans.Commands.DeleteServicePlanCommandHandler                            100%
+  CloudServices.Application.Features.ServicePlans.Commands.UpdateServicePlanCommand                                   100%
+  CloudServices.Application.Features.ServicePlans.Commands.UpdateServicePlanCommandHandler                            100%
+  CloudServices.Application.Features.Testimonials.Commands.CreateTestimonialCommand                                   100%
+  CloudServices.Application.Features.Testimonials.Commands.CreateTestimonialCommandHandler                            100%
+  CloudServices.Application.Features.Testimonials.Commands.DeleteTestimonialCommand                                   100%
+  CloudServices.Application.Features.Testimonials.Commands.DeleteTestimonialCommandHandler                            100%
+  CloudServices.Application.Features.Testimonials.Commands.UpdateTestimonialCommand                                   100%
+  CloudServices.Application.Features.Testimonials.Commands.UpdateTestimonialCommandHandler                            100%
+  CloudServices.Application.Features.Users.Commands.ChangePassword.ChangePasswordCommand                              100%
+  CloudServices.Application.Features.Users.Commands.ChangePassword.ChangePasswordCommandHandler                       100%
+  CloudServices.Application.Features.Users.Commands.CreateUser.CreateUserCommandHandler                               100%
+  CloudServices.Application.Features.Users.Commands.CreateUserl.CreateUserCommand                                     100%
+  CloudServices.Application.Features.Users.Commands.Login.LoginCommand                                                100%
+  CloudServices.Application.Features.Users.Commands.Login.LoginCommandHandler                                         100%
+  CloudServices.Application.Features.Users.Commands.Logout.LogoutCommand                                              100%
+  CloudServices.Application.Features.Users.Commands.Logout.LogoutCommandHandler                                       100%
+  CloudServices.Application.Features.Users.Commands.RefreshToken.RefreshTokenCommand                                  100%
+  CloudServices.Application.Features.Users.Commands.RefreshToken.RefreshTokenCommandHandler                           100%
+  CloudServices.Application.Features.Users.Commands.RegisterUser.RegisterUserCommand                                  100%
+  CloudServices.Application.Features.Users.Commands.RegisterUser.RegisterUserCommandHandler                           100%
+
+CloudServices.Domain                                                                                                 78.5%
+  CloudServices.Domain.Common.BaseEntity                                                                               75%
+  CloudServices.Domain.Entities.AffiliateApplication                                                                  100%
+  CloudServices.Domain.Entities.AppUser                                                                               100%
+  CloudServices.Domain.Entities.AuditLog                                                                                0%
+  CloudServices.Domain.Entities.NewsArticle                                                                            75%
+  CloudServices.Domain.Entities.OrderRequest                                                                         87.5%
+  CloudServices.Domain.Entities.PlanPrice                                                                            85.7%
+  CloudServices.Domain.Entities.Promotion                                                                             100%
+  CloudServices.Domain.Entities.Role                                                                                 66.6%
+  CloudServices.Domain.Entities.ServiceCategory                                                                         0%
+  CloudServices.Domain.Entities.ServicePlan                                                                            90%
+  CloudServices.Domain.Entities.Testimonial                                                                          91.6%

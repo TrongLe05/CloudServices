@@ -1,7 +1,7 @@
 using CloudServices.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace CloudServices.Application.Common.Interfaces;
+namespace CloudServices.Infrastructure.Data.Interfaces;
 
 public interface IApplicationDbContext
 {
@@ -14,7 +14,9 @@ public interface IApplicationDbContext
     DbSet<OrderRequest> OrderRequests { get; }
     DbSet<AffiliateApplication> AffiliateApplications { get; }
     DbSet<AuditLog> AuditLogs { get; }
-    DbSet<NewsArticle> NewsArticles { get; } // Added NewsArticles
+    DbSet<NewsArticle> NewsArticles { get; }
+    DbSet<Testimonial> Testimonials { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    int SaveChanges();
 }

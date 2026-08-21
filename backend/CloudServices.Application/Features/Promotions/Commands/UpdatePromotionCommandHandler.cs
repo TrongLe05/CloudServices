@@ -1,4 +1,5 @@
-﻿using CloudServices.Application.Common.Interfaces.Repositories;
+﻿using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Application.Features.Promotions.DTOs;
 using MediatR;
 
@@ -7,10 +8,14 @@ namespace CloudServices.Application.Features.Promotions.Commands;
 public class UpdatePromotionCommandHandler : IRequestHandler<UpdatePromotionCommand, PromotionDto?>
 {
     private readonly IPromotionRepository _promotionRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public UpdatePromotionCommandHandler(IPromotionRepository promotionRepository)
+    public UpdatePromotionCommandHandler(
+        IPromotionRepository promotionRepository,
+        IUnitOfWork unitOfWork)
     {
         _promotionRepository = promotionRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<PromotionDto?> Handle(UpdatePromotionCommand request, CancellationToken cancellationToken)
@@ -24,6 +29,7 @@ public class UpdatePromotionCommandHandler : IRequestHandler<UpdatePromotionComm
         promotion.EndDate = request.EndDate;
 
         _promotionRepository.Update(promotion);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new PromotionDto
         {

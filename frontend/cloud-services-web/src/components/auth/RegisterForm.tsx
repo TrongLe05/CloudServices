@@ -105,7 +105,7 @@ export function RegisterForm() {
               <Input
                 id="password"
                 type="password"
-                placeholder="******"
+                placeholder="••••••••"
                 {...register("password")}
                 required
               />
@@ -117,7 +117,7 @@ export function RegisterForm() {
               <Input
                 id="confirm-password"
                 type="password"
-                placeholder="******"
+                placeholder="••••••••"
                 {...register("confirmPassword")}
                 required
               />

@@ -1,3 +1,4 @@
+using CloudServices.Application.Features.ExportOrderRequests.Queries;
 using CloudServices.Application.Features.OrderRequests.Commands.ChangeOrderStatus;
 using CloudServices.Application.Features.OrderRequests.Commands.CreateOrderRequest;
 using CloudServices.Application.Features.OrderRequests.Commands.DeleteOrderRequest;
@@ -21,5 +22,17 @@ public sealed class OrderRequestsController : ApiControllerBase
     public async Task<IActionResult> ChangeStatus(Guid id, ChangeOrderStatusRequest request, CancellationToken cancellationToken) { await Mediator.Send(new ChangeOrderStatusCommand(id, request.Status), cancellationToken); return NoContent(); }
     [HttpDelete("{id:guid}"), Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken) { await Mediator.Send(new DeleteOrderRequestCommand(id), cancellationToken); return NoContent(); }
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportOrderRequests([FromQuery] string? search, [FromQuery] string? status)
+    {
+        var fileBytes = await Mediator.Send(new ExportOrderRequestsQuery(search, status));
+        var fileName = $"OrderRequests_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
+
+        return File(
+            fileBytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileName
+        );
+    }
 }
 public sealed record ChangeOrderStatusRequest(string Status);

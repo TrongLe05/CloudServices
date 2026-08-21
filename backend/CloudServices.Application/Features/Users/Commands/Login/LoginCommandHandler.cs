@@ -5,24 +5,13 @@ using MediatR;
 
 namespace CloudServices.Application.Features.Users.Commands.Login;
 
-public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
+public sealed class LoginCommandHandler(
+    IUserRepository _userRepository,
+    IPasswordHasher _passwordHasher,
+    IJwtTokenGenerator _jwtTokenGenerator,
+    IUnitOfWork _unitOfWork
+    ) : IRequestHandler<LoginCommand, LoginResponse>
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IPasswordHasher _passwordHasher;
-    private readonly IJwtTokenGenerator _jwtTokenGenerator;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public LoginCommandHandler(
-        IUserRepository userRepository,
-        IPasswordHasher passwordHasher,
-        IJwtTokenGenerator jwtTokenGenerator,
-        IUnitOfWork unitOfWork)
-    {
-        _userRepository = userRepository;
-        _passwordHasher = passwordHasher;
-        _jwtTokenGenerator = jwtTokenGenerator;
-        _unitOfWork = unitOfWork;
-    }
     public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         // 1. Kiểm tra tài khoản tồn tại hay không

@@ -1,3 +1,5 @@
-﻿namespace CloudServices.Application.Features.Users.Commands.ChangePassword;
+namespace CloudServices.Application.Features.Users.Commands.ChangePassword;
 
-public record ChangePasswordDto(string OldPassword, string NewPassword);
+public record ForgotPasswordDto(string Email);
+public record VerifyOtpDto(string Email, string Otp);
+public record ResetPasswordDto(string ResetToken, string NewPassword);

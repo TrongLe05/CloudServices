@@ -1,0 +1,132 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================
+  # BACKEND CI: .NET 10 Build, Unit Tests & Coverage Report
+  # ============================================================
+  backend-ci:
+    name: Backend (Build & Test)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore CloudServices.slnx
+
+      - name: Build solution
+        run: dotnet build CloudServices.slnx --no-restore --configuration Release
+
+      - name: Run Unit Tests & Collect Code Coverage
+        run: >
+          dotnet test CloudServices.slnx
+          --no-build
+          --configuration Release
+          --settings CloudServices.UnitTests/.runsettings
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+
+      - name: Generate Code Coverage Report
+        if: always()
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
+        with:
+          reports: 'backend/TestResults/**/coverage.cobertura.xml'
+          targetdir: 'coveragereport'
+          reporttypes: 'HtmlInline;HtmlSummary;TextSummary;MarkdownSummaryGithub'
+          title: 'CloudServices Backend Code Coverage'
+
+      - name: Publish Coverage to GitHub Job Summary
+        if: always()
+        run: |
+          if [ -f "coveragereport/SummaryGithub.md" ]; then
+            cat coveragereport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Test Coverage Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-code-coverage-report
+          path: coveragereport/
+          retention-days: 7
+
+  # ============================================================
+  # FRONTEND CI: Next.js, TypeScript, ESLint & Build
+  # ============================================================
+  frontend-ci:
+    name: Frontend (Lint & Build)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend/cloud-services-web
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: frontend/cloud-services-web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm run lint
+        continue-on-error: true
+
+      - name: Build Next.js Web App
+        run: pnpm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          NODE_ENV: production
+
+  # ============================================================
+  # PIPELINE GATE: Verify all CI checks
+  # ============================================================
+  pipeline-status:
+    name: CI Pipeline Status
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+    if: always()
+
+    steps:
+      - name: Check Backend & Frontend Status
+        run: |
+          if [ "${{ needs.backend-ci.result }}" != "success" ] || [ "${{ needs.frontend-ci.result }}" != "success" ]; then
+            echo "❌ CI Pipeline Failed!"
+            echo "Backend CI Result: ${{ needs.backend-ci.result }}"
+            echo "Frontend CI Result: ${{ needs.frontend-ci.result }}"
+            exit 1
+          fi
+          echo "✅ All CI checks passed successfully!"
