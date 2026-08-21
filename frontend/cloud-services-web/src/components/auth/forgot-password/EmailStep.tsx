@@ -12,6 +12,7 @@ import {
   forgotPasswordSchema,
   ForgotPasswordFormValues,
 } from "@/schema/auth.schema";
+import { toast } from "@/components/ui/toast";
 
 interface EmailStepProps {
   onSuccess: (email: string) => void;
@@ -47,8 +48,18 @@ export const EmailStep = ({ onSuccess }: EmailStepProps) => {
       }
 
       onSuccess(data.email);
+      toast.add({
+        title: "Gửi mã thành công",
+        description: "Vui lòng kiểm tra mã OTP đã gửi tới email của bạn.",
+        type: "success",
+      });
     } catch (err: any) {
       setError(err.message || "Không thể gửi mã OTP. Vui lòng thử lại.");
+      toast.add({
+        title: "Lỗi gửi mã OTP",
+        description: err.message || "Không thể gửi mã OTP. Vui lòng thử lại.",
+        type: "error",
+      });
     }
   };
 

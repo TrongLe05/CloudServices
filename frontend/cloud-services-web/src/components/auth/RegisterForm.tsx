@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "@/components/ui/toast";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -49,14 +50,22 @@ export function RegisterForm() {
         throw new Error(result.message || "Đăng ký thất bại");
       }
 
-      alert("Đăng ký thành công!");
+      toast.add({
+        title: "Đăng ký thành công",
+        description: "Tài khoản của bạn đã được tạo thành công.",
+        type: "success",
+      });
 
-      // Chuyển hướng người dùng sang trang chính hoặc dashboard
-      router.push("/");
+      // Chuyển hướng người dùng sang trang đăng nhập hoặc trang chính
+      router.push("/dang-nhap");
       router.refresh();
     } catch (error: any) {
       console.error(error);
-      alert(error.message);
+      toast.add({
+        title: "Đăng ký thất bại",
+        description: error.message || "Không thể tạo tài khoản, vui lòng thử lại.",
+        type: "error",
+      });
     }
   };
   return (

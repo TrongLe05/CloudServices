@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { toast } from "@/components/ui/toast";
 
 interface OtpStepProps {
   email: string;
@@ -53,8 +54,18 @@ export const OtpStep = ({ email, onSuccess, onBack }: OtpStepProps) => {
       }
 
       onSuccess(result.resetToken);
+      toast.add({
+        title: "Xác thực thành công",
+        description: "Mã OTP hợp lệ. Vui lòng thiết lập mật khẩu mới.",
+        type: "success",
+      });
     } catch (err: any) {
       setError(err.message || "Mã OTP không chính xác hoặc đã hết hạn.");
+      toast.add({
+        title: "Lỗi xác thực",
+        description: err.message || "Mã OTP không chính xác hoặc đã hết hạn.",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -78,8 +89,19 @@ export const OtpStep = ({ email, onSuccess, onBack }: OtpStepProps) => {
       if (!res.ok) {
         throw new Error(result.message || "Không thể gửi lại mã OTP");
       }
+
+      toast.add({
+        title: "Đã gửi lại mã OTP",
+        description: "Vui lòng kiểm tra lại hòm thư email của bạn.",
+        type: "success",
+      });
     } catch (err: any) {
       setError(err.message || "Không thể gửi lại mã OTP. Vui lòng thử lại.");
+      toast.add({
+        title: "Lỗi gửi lại OTP",
+        description: err.message || "Không thể gửi lại mã OTP. Vui lòng thử lại.",
+        type: "error",
+      });
     }
   };
 

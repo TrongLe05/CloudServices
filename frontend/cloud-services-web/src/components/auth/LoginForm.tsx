@@ -15,14 +15,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { LoginFormValues } from "@/schema/auth.schema";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth.store";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { toast } from "@/components/ui/toast";
 
 export function LoginForm() {
   const router = useRouter();
-  const loginState = useAuthStore((state) => state.loginState);
-
   const {
     register,
     handleSubmit,
@@ -48,14 +46,24 @@ export function LoginForm() {
         return;
       }
 
-      alert("Đăng nhập thành công!");
-      loginState(data.username);
+      // Chuyển hướng người dùng sang trang chính hoặc dashboard
+      router.push("/");
+      toast.add({
+        title: "Đăng nhập thành công",
+        description: "Chào mừng bạn quay trở lại hệ thống.",
+        type: "success",
+      });
 
       router.push("/admin/dashboard");
+
       router.refresh();
     } catch (error: any) {
       console.error(error);
-      alert(error.message || "Lỗi khi đăng nhập");
+      toast.add({
+        title: "Đăng nhập thất bại",
+        description: error.message || "Tài khoản hoặc mật khẩu không chính xác",
+        type: "error",
+      });
     }
   };
   return (
