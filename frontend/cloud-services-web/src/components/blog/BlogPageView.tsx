@@ -32,7 +32,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { stripHtml, decodeHtmlEntities } from "@/lib/htmlUtils";
 
 export interface BlogPostItem {
   id: string;
@@ -134,10 +134,13 @@ export function BlogPageView({ initialNews }: BlogPageViewProps) {
   const filteredArticles = React.useMemo(() => {
     return allArticles.filter((article) => {
       const matchCat = selectedCategory === "all" || article.category === selectedCategory;
+      const cleanTitle = decodeHtmlEntities(article.title).toLowerCase();
+      const cleanContent = stripHtml(article.content).toLowerCase();
+      const q = searchQuery.toLowerCase();
       const matchQuery =
         !searchQuery.trim() ||
-        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.content.toLowerCase().includes(searchQuery.toLowerCase());
+        cleanTitle.includes(q) ||
+        cleanContent.includes(q);
       return matchCat && matchQuery;
     });
   }, [allArticles, selectedCategory, searchQuery]);
@@ -153,12 +156,6 @@ export function BlogPageView({ initialNews }: BlogPageViewProps) {
     (currentPage - 1) * postsPerPage,
     currentPage * postsPerPage
   );
-
-  // Helper to remove HTML tags when previewing excerpt
-  const stripHtml = (htmlString: string) => {
-    if (!htmlString) return "";
-    return htmlString.replace(/<[^>]*>?/gm, "").replace(/&nbsp;/g, " ").trim();
-  };
 
   // Helper to estimate read time
   const calculateReadTime = (content: string) => {
@@ -335,7 +332,7 @@ export function BlogPageView({ initialNews }: BlogPageViewProps) {
                 <div className="space-y-3">
                   <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 group-hover:text-primary transition-colors leading-tight font-heading">
                     <Link href={`/blog/${leadArticle.slug || leadArticle.id}`}>
-                      {leadArticle.title}
+                      {decodeHtmlEntities(leadArticle.title)}
                     </Link>
                   </h2>
                   <p className="text-slate-600 text-sm md:text-base leading-relaxed line-clamp-3 font-sans">
@@ -380,7 +377,7 @@ export function BlogPageView({ initialNews }: BlogPageViewProps) {
                       <div className="flex-1 space-y-1">
                         <h4 className="text-xs md:text-sm font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                           <Link href={`/blog/${article.slug || article.id}`}>
-                            {article.title}
+                            {decodeHtmlEntities(article.title)}
                           </Link>
                         </h4>
                         <p className="text-[11px] text-slate-500 line-clamp-2">
@@ -482,7 +479,7 @@ export function BlogPageView({ initialNews }: BlogPageViewProps) {
                       </div>
 
                       <CardTitle className="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-2 leading-snug font-heading">
-                        <Link href={`/blog/${post.slug || post.id}`}>{post.title}</Link>
+                        <Link href={`/blog/${post.slug || post.id}`}>{decodeHtmlEntities(post.title)}</Link>
                       </CardTitle>
                     </CardHeader>
 

@@ -31,6 +31,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { decodeHtmlEntities, formatHtmlContent } from "@/lib/htmlUtils";
 
 async function getArticleDetail(slugOrId: string) {
   try {
@@ -95,7 +96,7 @@ export default async function BlogDetailPage({
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage className="line-clamp-1 max-w-xs">{article.title}</BreadcrumbPage>
+                <BreadcrumbPage className="line-clamp-1 max-w-xs">{decodeHtmlEntities(article.title)}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -124,7 +125,7 @@ export default async function BlogDetailPage({
           </div>
 
           <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight font-heading">
-            {article.title}
+            {decodeHtmlEntities(article.title)}
           </h1>
 
           {/* Author info & Actions bar */}
@@ -166,7 +167,7 @@ export default async function BlogDetailPage({
         {/* Article Body Content (Typography phong cách báo chí chuẩn HTML) */}
         <article
           className="prose prose-slate max-w-none bg-white p-8 md:p-12 rounded-3xl border border-slate-200/80 shadow-xs text-slate-800 leading-relaxed text-sm md:text-base prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-primary prose-a:underline hover:prose-a:text-primary/80 prose-img:rounded-2xl prose-img:border prose-img:border-slate-200 prose-table:border prose-table:border-slate-200 prose-th:bg-slate-50 prose-th:p-3 prose-td:p-3 prose-blockquote:border-l-primary prose-blockquote:bg-slate-50 prose-blockquote:p-4 prose-blockquote:rounded-r-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:rounded-2xl"
-          dangerouslySetInnerHTML={{ __html: article.content }}
+          dangerouslySetInnerHTML={{ __html: formatHtmlContent(article.content) }}
         />
 
         {/* Related Articles */}
@@ -202,7 +203,7 @@ export default async function BlogDetailPage({
                     {item.category}
                   </Badge>
                   <h4 className="text-xs font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-                    {item.title}
+                    {decodeHtmlEntities(item.title)}
                   </h4>
                 </Link>
               ))}
