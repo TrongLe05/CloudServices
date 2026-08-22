@@ -1,27 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { getAuthAccessToken } from "@/lib/auth-token";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const accessToken = await getAuthAccessToken();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
     const res = await fetch(`${apiUrl}/api/statistics/dashboard`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       cache: "no-store",
     });
 
     if (!res.ok) {
-      const errText = await res.text();
       return NextResponse.json(
-        { message: errText || "Failed to fetch dashboard statistics" },
+        { message: "Failed to fetch dashboard stats" },
         { status: res.status }
       );
     }
@@ -29,9 +27,8 @@ export async function GET(request: NextRequest) {
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error("Error in BFF GET statistics/dashboard:", error);
     return NextResponse.json(
-      { message: error.message || "Internal Server Error" },
+      { message: error.message || "An error occurred" },
       { status: 500 }
     );
   }

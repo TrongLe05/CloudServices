@@ -1,7 +1,10 @@
-﻿using CloudServices.Application.Common.Exceptions;
+using CloudServices.Application.Common.Exceptions;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using MediatR;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CloudServices.Application.Features.Users.Commands.Login;
 
@@ -21,19 +24,25 @@ public sealed class LoginCommandHandler(
             throw new UnauthorizedException("Tài khoản hoặc mật khẩu không chính xác.");
         }
 
-        // 2. Xác thực mật khẩu thông qua IPasswordHasher đã tạo ở bước trước
+        // 2. Kiểm tra tài khoản có đang bị khóa hay không
+        if (!user.IsActive)
+        {
+            throw new UnauthorizedException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để được hỗ trợ.");
+        }
+
+        // 3. Xác thực mật khẩu thông qua IPasswordHasher
         var isPasswordValid = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash);
         if (!isPasswordValid)
         {
             throw new UnauthorizedException("Tài khoản hoặc mật khẩu không chính xác.");
         }
 
-        // 3. Phát sinh Access Token và Refresh Token mới
+        // 4. Phát sinh Access Token và Refresh Token mới
         var accessToken = _jwtTokenGenerator.GenerateToken(user);
         var refreshToken = _jwtTokenGenerator.GenerateRefreshToken();
         var username = user.Username;
 
-        // 4. Lưu lại Refresh Token vào cơ sở dữ liệu
+        // 5. Lưu lại Refresh Token vào cơ sở dữ liệu
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Hết hạn sau 7 ngày
 

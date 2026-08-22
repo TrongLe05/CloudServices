@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getAuthAccessToken } from "@/lib/auth-token";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -11,14 +11,13 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
 
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const token = await getAuthAccessToken();
 
     const query = new URLSearchParams();
     if (search) query.append("search", search);
     if (status && status !== "ALL") query.append("status", status);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
     const res = await fetch(`${apiUrl}/api/Affiliates/export?${query.toString()}`, {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

@@ -32,14 +32,8 @@ export interface CategoryWithPlans extends ServiceCategory {
   plans: ServicePlan[];
 }
 
-export const slugify = (text: string) => {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/\s+/g, "-");
-};
+import { slugify } from "@/lib/slugUtils";
+export { slugify };
 
 async function getNavigationData(): Promise<CategoryWithPlans[]> {
   try {

@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { slugify } from "@/lib/slugUtils";
 import {
   Card,
   CardHeader,
@@ -334,7 +335,7 @@ export function ServicesPageView({
                     <div className="flex items-start justify-between gap-3 mt-3">
                       <div className="space-y-1 flex-1">
                         <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-primary transition-colors">
-                          <Link href={`/dich-vu/${plan.categorySlug || "cloud"}/${plan.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}>
+                          <Link href={`/dich-vu/${plan.categorySlug || slugify(plan.categoryName || "cloud")}/${slugify(plan.name)}`}>
                             {plan.name}
                           </Link>
                         </CardTitle>
@@ -444,7 +445,7 @@ export function ServicesPageView({
                     <Button
                       variant="outline"
                       render={
-                        <Link href={`/dich-vu/${plan.categorySlug || "cloud"}/${plan.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} />
+                        <Link href={`/dich-vu/${plan.categorySlug || slugify(plan.categoryName || "cloud")}/${slugify(plan.name)}`} />
                       }
                       className="flex-1 text-xs font-semibold rounded-xl"
                     >

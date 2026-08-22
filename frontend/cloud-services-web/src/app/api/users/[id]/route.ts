@@ -5,44 +5,69 @@ if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 }
 
-export async function PUT(
-  req: NextRequest,
+export async function GET(
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
     const accessToken = await getAuthAccessToken();
-    const payload = await req.json();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
-    const res = await fetch(`${apiUrl}/api/service-categories/${id}`, {
-      method: "PUT",
+    const res = await fetch(`${apiUrl}/api/users/${id}`, {
       headers: {
-        "Content-Type": "application/json",
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      body: JSON.stringify(payload),
+      cache: "no-store",
     });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       return NextResponse.json(
-        { message: err.message || "Không thể cập nhật danh mục dịch vụ" },
+        { message: err.message || "Failed to fetch user" },
         { status: res.status }
       );
     }
 
-    // Lấy lại dữ liệu danh mục vừa cập nhật để phản hồi
-    const getRes = await fetch(`${apiUrl}/api/service-categories/${id}`, {
-      cache: "no-store",
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (error: any) {
+    return NextResponse.json(
+      { message: error.message || "An error occurred" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const accessToken = await getAuthAccessToken();
+    const body = await request.json();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+
+    const res = await fetch(`${apiUrl}/api/users/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: JSON.stringify(body),
     });
 
-    if (getRes.ok) {
-      const updatedData = await getRes.json();
-      return NextResponse.json(updatedData);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return NextResponse.json(
+        { message: err.message || "Không thể cập nhật người dùng" },
+        { status: res.status }
+      );
     }
 
-    return NextResponse.json({ id, ...payload });
+    const data = await res.json();
+    return NextResponse.json(data);
   } catch (error: any) {
     return NextResponse.json(
       { message: error.message || "An error occurred" },
@@ -52,7 +77,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  req: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -60,7 +85,7 @@ export async function DELETE(
     const accessToken = await getAuthAccessToken();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
-    const res = await fetch(`${apiUrl}/api/service-categories/${id}`, {
+    const res = await fetch(`${apiUrl}/api/users/${id}`, {
       method: "DELETE",
       headers: {
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
@@ -70,12 +95,13 @@ export async function DELETE(
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       return NextResponse.json(
-        { message: err.message || "Không thể xóa danh mục dịch vụ" },
+        { message: err.message || "Không thể xóa người dùng" },
         { status: res.status }
       );
     }
 
-    return new Response(null, { status: 204 });
+    const data = await res.json();
+    return NextResponse.json(data);
   } catch (error: any) {
     return NextResponse.json(
       { message: error.message || "An error occurred" },

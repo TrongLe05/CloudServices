@@ -12,7 +12,7 @@ import {
   TestimonialItem,
 } from "@/components/services/PlanDetailView";
 import { Skeleton } from "@/components/ui/skeleton";
-import { slugify } from "@/components/services/ServiceNavigation";
+import { slugify } from "@/lib/slugUtils";
 
 async function getPlanDetail(categorySlugOrId: string, planSlugOrId: string) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
@@ -35,19 +35,24 @@ async function getPlanDetail(categorySlugOrId: string, planSlugOrId: string) {
       testimonials = await testimonialsRes.json();
     }
 
-    // Find the matching plan either by GUID ID or slugified name
+    const decodedSlug = decodeURIComponent(planSlugOrId).trim();
+    const normalizedTargetSlug = slugify(decodedSlug);
+
+    // Tìm gói dịch vụ khớp theo GUID ID hoặc slug đã chuẩn hóa
     const targetPlan = allPlans.find(
       (p) =>
-        p.id === planSlugOrId ||
-        slugify(p.name) === planSlugOrId ||
-        p.name.toLowerCase() === planSlugOrId.toLowerCase()
+        p.id.toLowerCase() === decodedSlug.toLowerCase() ||
+        slugify(p.name) === normalizedTargetSlug ||
+        slugify(p.name) === decodedSlug.toLowerCase() ||
+        p.name.toLowerCase() === decodedSlug.toLowerCase() ||
+        (p.slug && (p.slug.toLowerCase() === decodedSlug.toLowerCase() || slugify(p.slug) === normalizedTargetSlug))
     );
 
     if (!targetPlan) return null;
 
     const currentCat = categories.find((c) => c.id === targetPlan.categoryId);
 
-    // Fetch prices for this plan
+    // Lấy thông tin giá của gói dịch vụ
     let prices = [];
     try {
       const priceRes = await fetch(`${apiUrl}/api/service-plans/${targetPlan.id}/prices`, {
@@ -63,18 +68,18 @@ async function getPlanDetail(categorySlugOrId: string, planSlugOrId: string) {
     const planData: PlanDetailData = {
       ...targetPlan,
       categoryName: currentCat?.name || "Dịch vụ Đám mây",
-      categorySlug: currentCat?.slug || slugify(currentCat?.name || ""),
+      categorySlug: currentCat?.slug || slugify(currentCat?.name || "cloud"),
       prices,
     };
 
-    // Find related plans in same category
+    // Lấy các gói liên quan trong cùng danh mục
     const related = allPlans
       .filter((p) => p.categoryId === targetPlan.categoryId && p.id !== targetPlan.id)
       .slice(0, 3)
       .map((p) => ({
         ...p,
         categoryName: currentCat?.name || "Dịch vụ Đám mây",
-        categorySlug: currentCat?.slug || slugify(currentCat?.name || ""),
+        categorySlug: currentCat?.slug || slugify(currentCat?.name || "cloud"),
       }));
 
     return {

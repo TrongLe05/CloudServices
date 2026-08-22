@@ -311,6 +311,13 @@ public class AuditLoggingMiddleware
         if (p.Contains("/auth/verify-otp")) return "Xác thực mã OTP";
         if (p.Contains("/auth/refresh-token")) return "Làm mới phiên đăng nhập (Refresh Token)";
         if (p.Contains("/users/me")) return "Xem thông tin cá nhân";
+        if (p.Contains("/users/roles")) return "Xem danh sách vai trò";
+        if (p.Contains("/users") && p.Contains("/status") && m == "PATCH") return "Khóa / Mở khóa tài khoản người dùng";
+        if (p.Contains("/users") && p.Contains("/password") && m == "PATCH") return "Quản trị viên đặt lại mật khẩu người dùng";
+        if (p.Contains("/users") && m == "POST") return "Tạo tài khoản người dùng mới";
+        if (p.Contains("/users") && m == "PUT") return "Cập nhật thông tin người dùng";
+        if (p.Contains("/users") && m == "DELETE") return "Xóa tài khoản người dùng";
+        if (p.Contains("/users") && m == "GET") return "Xem danh sách tài khoản người dùng";
 
         // 2. Yêu cầu đặt dịch vụ (Order Requests)
         if (p.Contains("/order-requests"))

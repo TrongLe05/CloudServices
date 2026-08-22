@@ -10,7 +10,7 @@ export async function GET() {
     const accessToken = await getAuthAccessToken();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
-    const res = await fetch(`${apiUrl}/api/statistics/popular-plans`, {
+    const res = await fetch(`${apiUrl}/api/users/roles`, {
       headers: {
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
@@ -18,8 +18,9 @@ export async function GET() {
     });
 
     if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
       return NextResponse.json(
-        { message: "Failed to fetch popular plans stats" },
+        { message: err.message || "Failed to fetch roles" },
         { status: res.status }
       );
     }
