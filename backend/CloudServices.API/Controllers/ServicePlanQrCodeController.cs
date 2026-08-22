@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Features.QrCodes.Commands;
+using CloudServices.Application.Features.QrCodes.Commands;
 using CloudServices.Application.Features.QrCodes.DTOs;
 using CloudServices.Application.Features.QrCodes.Queries;
 using Microsoft.AspNetCore.Authorization;
@@ -23,12 +23,14 @@ public class ServicePlanQrCodeController : ApiControllerBase
 
     // 2. ADMIN: POST /api/service-plans/{id}/qr-code/regenerate
     [HttpPost("{id:guid}/qr-code/regenerate")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<QrCodeDto>> RegenerateQrCode(Guid id)
+    [Authorize(Roles = "Admin,Editor")]
+    public async Task<ActionResult<QrCodeDto>> RegenerateQrCode(Guid id, [FromBody] RegenerateQrCodeRequest? request = null)
     {
-        var result = await Mediator.Send(new RegenerateServicePlanQrCodeCommand(id));
+        var result = await Mediator.Send(new RegenerateServicePlanQrCodeCommand(id, request?.CustomDomain));
         if (result == null) return NotFound(new { message = "Service plan not found." });
 
         return Ok(result);
     }
 }
+
+public record RegenerateQrCodeRequest(string? CustomDomain);

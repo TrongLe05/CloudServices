@@ -29,6 +29,7 @@ import {
   User,
   ThumbsUp,
   MessageCircle,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { OrderServiceModal, OrderModalPlan } from "./OrderServiceModal";
+import { PlanQrModal } from "./PlanQrModal";
+import { PlanQrThumbnail } from "./PlanQrThumbnail";
 import { toast } from "@/components/ui/toast";
 
 export interface TestimonialItem {
@@ -97,6 +100,7 @@ export function PlanDetailView({
 }: PlanDetailViewProps) {
   const [selectedCycle, setSelectedCycle] = React.useState<string>("monthly");
   const [isOrderModalOpen, setIsOrderModalOpen] = React.useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"specs" | "features" | "faq" | "reviews">("specs");
 
   const formatVND = (value: number) => {
@@ -187,32 +191,64 @@ export function PlanDetailView({
 
               {/* Status & Badges */}
               <div className="flex items-center justify-between relative z-10">
-                <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-3 py-1">
-                  <span className="size-1.5 rounded-full bg-white mr-1.5 animate-pulse" />
-                  Sẵn sàng kích hoạt
-                </Badge>
-
-                {discountPercent > 0 && (
-                  <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1">
-                    <Flame className="size-3.5 mr-1" />
-                    Giảm -{discountPercent}%
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-3 py-1">
+                    <span className="size-1.5 rounded-full bg-white mr-1.5 animate-pulse" />
+                    Sẵn sàng kích hoạt
                   </Badge>
-                )}
+
+                  {discountPercent > 0 && (
+                    <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1">
+                      <Flame className="size-3.5 mr-1" />
+                      Giảm -{discountPercent}%
+                    </Badge>
+                  )}
+                </div>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  title="Xem mã QR quét đặt mua nhanh"
+                  onClick={() => setIsQrModalOpen(true)}
+                  className="size-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors"
+                >
+                  <QrCode className="size-4" />
+                </Button>
               </div>
 
-              {/* Graphic Icon Centerpiece */}
-              <div className="my-10 flex flex-col items-center justify-center text-center space-y-4 relative z-10">
-                <div className="size-28 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 p-0.5 shadow-2xl shadow-primary/30">
-                  <div className="size-full rounded-[14px] bg-slate-950 flex items-center justify-center text-indigo-400">
-                    <Server className="size-14" />
+              {/* Graphic Icon & QR Code Centerpiece */}
+              <div className="my-8 flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="size-14 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 p-0.5 shadow-lg shadow-primary/20 shrink-0">
+                    <div className="size-full rounded-[14px] bg-slate-950 flex items-center justify-center text-indigo-400">
+                      <Server className="size-7" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-0.5 text-left">
+                    <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold block">
+                      {plan.categoryName || "Dịch vụ Đám mây"}
+                    </span>
+                    <h2 className="text-lg font-bold text-white leading-snug">{plan.name}</h2>
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <span className="text-xs uppercase tracking-widest text-slate-400 font-semibold">
-                    {plan.categoryName || "Dịch vụ Đám mây"}
+                {/* Direct Embedded QR Code */}
+                <div
+                  onClick={() => setIsQrModalOpen(true)}
+                  className="cursor-pointer group/qr text-center shrink-0"
+                  title="Nhấp để phóng to mã QR"
+                >
+                  <PlanQrThumbnail
+                    planId={plan.id}
+                    planName={plan.name}
+                    size="md"
+                    className="border-slate-700 bg-white"
+                  />
+                  <span className="text-[9px] text-slate-400 font-medium block mt-1 group-hover/qr:text-indigo-400">
+                    Quét đặt mua
                   </span>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white">{plan.name}</h2>
                 </div>
               </div>
 
@@ -306,7 +342,7 @@ export function PlanDetailView({
                       {plan.name}
                     </h1>
                     <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                      {plan.description || "Gói giải pháp đám mây thế hệ mới được cấu hình tối ưu sẵn sàng cho sản xuất."}
+                      {plan.description}
                     </p>
                   </div>
 
@@ -875,6 +911,15 @@ export function PlanDetailView({
         plan={plan}
         isOpen={isOrderModalOpen}
         onClose={() => setIsOrderModalOpen(false)}
+      />
+
+      {/* Plan QR Modal */}
+      <PlanQrModal
+        planId={plan.id}
+        planName={plan.name}
+        categoryName={plan.categoryName}
+        isOpen={isQrModalOpen}
+        onClose={() => setIsQrModalOpen(false)}
       />
     </div>
   );

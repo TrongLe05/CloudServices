@@ -1,31 +1,38 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthAccessToken } from "@/lib/auth-token";
+
+if (process.env.NODE_ENV === "development") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
 
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string; priceId: string }> }
 ) {
   try {
     const { id, priceId } = await params;
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("accessToken")?.value;
+    const accessToken = await getAuthAccessToken();
     const body = await request.json();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/service-plans/${id}/prices/${priceId}`, {
+    const res = await fetch(`${apiUrl}/api/service-plans/${id}/prices/${priceId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify(body),
     });
 
     if (!res.ok) {
       const errText = await res.text();
-      return NextResponse.json(
-        { message: errText || "Failed to update plan price" },
-        { status: res.status }
-      );
+      let errorJson;
+      try {
+        errorJson = JSON.parse(errText);
+      } catch {
+        errorJson = { message: errText || "Failed to update plan price" };
+      }
+      return NextResponse.json(errorJson, { status: res.status });
     }
 
     return new Response(null, { status: 204 });
@@ -35,27 +42,30 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string; priceId: string }> }
 ) {
   try {
     const { id, priceId } = await params;
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("accessToken")?.value;
+    const accessToken = await getAuthAccessToken();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/service-plans/${id}/prices/${priceId}`, {
+    const res = await fetch(`${apiUrl}/api/service-plans/${id}/prices/${priceId}`, {
       method: "DELETE",
       headers: {
-        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
     });
 
     if (!res.ok) {
       const errText = await res.text();
-      return NextResponse.json(
-        { message: errText || "Failed to delete plan price" },
-        { status: res.status }
-      );
+      let errorJson;
+      try {
+        errorJson = JSON.parse(errText);
+      } catch {
+        errorJson = { message: errText || "Failed to delete plan price" };
+      }
+      return NextResponse.json(errorJson, { status: res.status });
     }
 
     return new Response(null, { status: 204 });
