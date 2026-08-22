@@ -19,6 +19,7 @@ import {
   Globe,
   Database,
   FolderKanban,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { OrderServiceModal, OrderModalPlan } from "@/components/services/OrderServiceModal";
+import { PlanQrModal } from "@/components/services/PlanQrModal";
+import { PlanQrThumbnail } from "@/components/services/PlanQrThumbnail";
 
 export interface CategoryData {
   id: string;
@@ -60,23 +63,22 @@ export interface PlanPriceData {
   planId: string;
   billingCycle: string;
   price: number;
-  promotionId?: string | null;
   promotionDiscountPercentage?: number;
 }
 
 export interface PricingPlan {
   id: string;
   categoryId: string;
-  categoryName: string;
   name: string;
   description?: string | null;
   cpu?: string | null;
   ram?: string | null;
   storage?: string | null;
   bandwidth?: string | null;
+  categoryName?: string;
+  categorySlug?: string;
   prices: PlanPriceData[];
   promotion?: PromotionData | null;
-  isPopular?: boolean;
 }
 
 interface PricingPageViewProps {
@@ -93,6 +95,7 @@ export function PricingPageView({
   const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
   const [billingCycle, setBillingCycle] = React.useState<"monthly" | "yearly">("monthly");
   const [orderModalPlan, setOrderModalPlan] = React.useState<OrderModalPlan | null>(null);
+  const [qrModalPlan, setQrModalPlan] = React.useState<{ id: string; name: string; categoryName?: string } | null>(null);
 
   // Active promotion countdown calculations (Khuyến mãi có thời hạn)
   const activePromotions = React.useMemo(() => {
@@ -354,12 +357,33 @@ export function PricingPageView({
                                   )}
                                 </div>
 
-                                <CardTitle className="text-lg font-bold text-slate-900 pt-1 font-heading">
-                                  {plan.name}
-                                </CardTitle>
-                                <CardDescription className="text-xs text-slate-500 line-clamp-2 min-h-8">
-                                  {plan.description || "Máy chủ đám mây hiệu năng cao tối ưu doanh nghiệp"}
-                                </CardDescription>
+                                {/* Plan Title & Embedded QR Code */}
+                                <div className="flex items-start justify-between gap-3 pt-1">
+                                  <div className="space-y-1 flex-1">
+                                    <CardTitle className="text-lg font-bold text-slate-900 font-heading">
+                                      {plan.name}
+                                    </CardTitle>
+                                    <CardDescription className="text-xs text-slate-500 line-clamp-2 min-h-8">
+                                      {plan.description}
+                                    </CardDescription>
+                                  </div>
+
+                                  {/* Direct QR Code Thumbnail (Click to enlarge) */}
+                                  <div 
+                                    onClick={() => setQrModalPlan({ id: plan.id, name: plan.name, categoryName: plan.categoryName || category.name })}
+                                    className="cursor-pointer group/zoom relative shrink-0"
+                                    title="Nhấp để phóng to mã QR"
+                                  >
+                                    <PlanQrThumbnail
+                                      planId={plan.id}
+                                      planName={plan.name}
+                                      size="sm"
+                                    />
+                                    <span className="text-[9px] text-slate-400 font-medium block text-center mt-0.5 group-hover/zoom:text-primary">
+                                      Quét mã
+                                    </span>
+                                  </div>
+                                </div>
 
                                 {/* Price Block */}
                                 <section aria-label="Giá gói" className="pt-4 border-b border-slate-100 pb-4">
@@ -383,57 +407,51 @@ export function PricingPageView({
                               </CardHeader>
 
                               {/* Core Hardware Specifications */}
-                              <CardContent className="p-6 pt-0 space-y-3 text-xs">
-                                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                                  Cấu hình phần cứng:
-                                </span>
+                              {(plan.cpu || plan.ram || plan.storage || plan.bandwidth) && (
+                                <CardContent className="p-6 pt-0 space-y-3 text-xs">
+                                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                                    Cấu hình phần cứng:
+                                  </span>
 
-                                <div className="space-y-2 text-slate-700">
-                                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
-                                    <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
-                                      <Cpu className="size-3.5 text-primary" /> CPU Cores
-                                    </span>
-                                    <strong className="font-bold text-slate-900 text-xs">{plan.cpu || "2 vCPU"}</strong>
-                                  </div>
+                                  <div className="space-y-2 text-slate-700">
+                                    {plan.cpu && (
+                                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
+                                          <Cpu className="size-3.5 text-primary" /> CPU Cores
+                                        </span>
+                                        <strong className="font-bold text-slate-900 text-xs">{plan.cpu}</strong>
+                                      </div>
+                                    )}
 
-                                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
-                                    <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
-                                      <Server className="size-3.5 text-indigo-500" /> Bộ nhớ RAM
-                                    </span>
-                                    <strong className="font-bold text-slate-900 text-xs">{plan.ram || "4 GB RAM"}</strong>
-                                  </div>
+                                    {plan.ram && (
+                                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
+                                          <Server className="size-3.5 text-indigo-500" /> Bộ nhớ RAM
+                                        </span>
+                                        <strong className="font-bold text-slate-900 text-xs">{plan.ram}</strong>
+                                      </div>
+                                    )}
 
-                                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
-                                    <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
-                                      <HardDrive className="size-3.5 text-amber-500" /> Lưu trữ NVMe
-                                    </span>
-                                    <strong className="font-bold text-slate-900 text-xs">{plan.storage || "80 GB SSD"}</strong>
-                                  </div>
+                                    {plan.storage && (
+                                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
+                                          <HardDrive className="size-3.5 text-amber-500" /> Lưu trữ
+                                        </span>
+                                        <strong className="font-bold text-slate-900 text-xs">{plan.storage}</strong>
+                                      </div>
+                                    )}
 
-                                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
-                                    <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
-                                      <Activity className="size-3.5 text-emerald-500" /> Băng thông
-                                    </span>
-                                    <strong className="font-bold text-slate-900 text-xs">{plan.bandwidth || "Không giới hạn"}</strong>
+                                    {plan.bandwidth && (
+                                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                                        <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
+                                          <Activity className="size-3.5 text-emerald-500" /> Băng thông
+                                        </span>
+                                        <strong className="font-bold text-slate-900 text-xs">{plan.bandwidth}</strong>
+                                      </div>
+                                    )}
                                   </div>
-                                </div>
-
-                                {/* Features checklist */}
-                                <div className="pt-2 space-y-1.5 text-[11px] text-slate-600">
-                                  <div className="flex items-center gap-1.5">
-                                    <Check className="size-3.5 text-emerald-600 shrink-0" />
-                                    <span>1 IPv4 Dedicated riêng</span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <Check className="size-3.5 text-emerald-600 shrink-0" />
-                                    <span>Quản trị Root / Admin</span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <Check className="size-3.5 text-emerald-600 shrink-0" />
-                                    <span>Bảo vệ Anti-DDoS tự động</span>
-                                  </div>
-                                </div>
-                              </CardContent>
+                                </CardContent>
+                              )}
                             </div>
 
                             {/* Order Button */}
@@ -501,10 +519,10 @@ export function PricingPageView({
                       return (
                         <tr key={plan.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="py-3 px-4 font-bold text-slate-900">{plan.name}</td>
-                          <td className="py-3 px-4 font-medium">{plan.cpu || "2 vCPU"}</td>
-                          <td className="py-3 px-4 font-medium">{plan.ram || "4 GB"}</td>
-                          <td className="py-3 px-4 font-medium">{plan.storage || "80 GB SSD"}</td>
-                          <td className="py-3 px-4 font-medium">{plan.bandwidth || "Không giới hạn"}</td>
+                          <td className="py-3 px-4 font-medium">{plan.cpu || "—"}</td>
+                          <td className="py-3 px-4 font-medium">{plan.ram || "—"}</td>
+                          <td className="py-3 px-4 font-medium">{plan.storage || "—"}</td>
+                          <td className="py-3 px-4 font-medium">{plan.bandwidth || "—"}</td>
                           <td className="py-3 px-4">
                             <strong className="font-bold text-slate-900 text-xs block">
                               {formatVND(finalPrice)}
@@ -595,6 +613,17 @@ export function PricingPageView({
         isOpen={!!orderModalPlan}
         onClose={() => setOrderModalPlan(null)}
       />
+
+      {/* Plan QR Code Modal */}
+      {qrModalPlan && (
+        <PlanQrModal
+          planId={qrModalPlan.id}
+          planName={qrModalPlan.name}
+          categoryName={qrModalPlan.categoryName}
+          isOpen={!!qrModalPlan}
+          onClose={() => setQrModalPlan(null)}
+        />
+      )}
     </main>
   );
 }
