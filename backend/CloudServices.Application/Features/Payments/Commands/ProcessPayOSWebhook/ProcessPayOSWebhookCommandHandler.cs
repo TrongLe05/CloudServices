@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Domain.Enums;
 using MediatR;
@@ -34,12 +34,15 @@ public class ProcessPayOSWebhookCommandHandler : IRequestHandler<ProcessPayOSWeb
         if (verification.Code == "00")
         {
             // Cập nhật trạng thái đơn hàng (Completed / Approved)
-            // var order = await _orderRepository.GetByOrderCodeAsync(verification.OrderCode, cancellationToken);
-            // if (order != null)
-            // {
-            //     order.Status = OrderStatus.Completed;
-            //     await _unitOfWork.SaveChangesAsync(cancellationToken);
-            // }
+            var allOrders = await _orderRepository.GetAllAsync(cancellationToken);
+            var matchedOrder = allOrders.FirstOrDefault(o => o.Notes == $"PayOS:{verification.OrderCode}");
+            
+            if (matchedOrder != null)
+            {
+                matchedOrder.Status = OrderStatus.Completed;
+                _orderRepository.Update(matchedOrder);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
         }
 
         return true;

@@ -86,6 +86,10 @@ export function OrderHistoryView({ initialOrders, userEmail }: OrderHistoryViewP
     amount: number;
     orderCode: number;
     qrCodeString: string;
+    vietQrUrl?: string | null;
+    accountNumber?: string | null;
+    accountName?: string | null;
+    bin?: string | null;
     checkoutUrl?: string;
     description: string;
   } | null>(null);
@@ -115,6 +119,10 @@ export function OrderHistoryView({ initialOrders, userEmail }: OrderHistoryViewP
         amount: order.estimatedPrice || 200000,
         orderCode: payData.orderCode,
         qrCodeString: payData.qrCode,
+        vietQrUrl: payData.vietQrUrl,
+        accountNumber: payData.accountNumber,
+        accountName: payData.accountName,
+        bin: payData.bin,
         checkoutUrl: payData.checkoutUrl,
         description: `DH${payData.orderCode % 1000000}`,
       });
@@ -581,6 +589,10 @@ export function OrderHistoryView({ initialOrders, userEmail }: OrderHistoryViewP
           amount={paymentModalData.amount}
           orderCode={paymentModalData.orderCode}
           qrCodeString={paymentModalData.qrCodeString}
+          vietQrUrl={paymentModalData.vietQrUrl}
+          accountNumber={paymentModalData.accountNumber}
+          accountName={paymentModalData.accountName}
+          bin={paymentModalData.bin}
           checkoutUrl={paymentModalData.checkoutUrl}
           description={paymentModalData.description}
           onPaymentSuccess={() => {

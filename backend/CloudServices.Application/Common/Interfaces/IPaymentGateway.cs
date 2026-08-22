@@ -1,6 +1,22 @@
-﻿namespace CloudServices.Application.Common.Interfaces;
+namespace CloudServices.Application.Common.Interfaces;
 
-public record PaymentLinkDto(string CheckoutUrl, long OrderCode, string QrCode);
+public record PaymentLinkDto(
+    string CheckoutUrl,
+    long OrderCode,
+    string QrCode,
+    string? AccountNumber = null,
+    string? AccountName = null,
+    string? Bin = null
+);
+
+public record PaymentStatusDto(
+    long OrderCode,
+    int Amount,
+    int AmountPaid,
+    string Status,
+    bool IsPaid
+);
+
 public record WebhookVerificationResult(bool IsValid, long OrderCode, string Code);
 
 public interface IPaymentGateway
@@ -13,6 +29,8 @@ public interface IPaymentGateway
         string returnUrl,
         string cancelUrl,
         CancellationToken cancellationToken = default);
+
+    Task<PaymentStatusDto> GetPaymentStatusAsync(long orderCode, CancellationToken cancellationToken = default);
 
     WebhookVerificationResult VerifyWebhook(object webhookBody);
 }
