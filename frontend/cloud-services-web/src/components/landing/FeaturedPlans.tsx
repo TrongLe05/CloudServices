@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Check, ShoppingCart, Award } from "lucide-react";
+import { Check, ShoppingCart, Award, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,6 +14,8 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { OrderServiceModal, OrderModalPlan } from "@/components/services/OrderServiceModal";
+import { PlanQrModal } from "@/components/services/PlanQrModal";
+import { PlanQrThumbnail } from "@/components/services/PlanQrThumbnail";
 
 export interface FeaturedPlanItem {
   id: string;
@@ -41,6 +43,7 @@ interface FeaturedPlansProps {
 
 export const FeaturedPlans = ({ initialPlans = [] }: FeaturedPlansProps) => {
   const [orderModalPlan, setOrderModalPlan] = React.useState<OrderModalPlan | null>(null);
+  const [qrModalPlan, setQrModalPlan] = React.useState<{ id: string; name: string; categoryName?: string } | null>(null);
 
   const formatVND = (value: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -49,44 +52,8 @@ export const FeaturedPlans = ({ initialPlans = [] }: FeaturedPlansProps) => {
     }).format(value);
   };
 
-  // If no plans from API, fallback to default plans
-  const displayPlans = initialPlans.length > 0
-    ? initialPlans.slice(0, 3)
-    : [
-        {
-          id: "1",
-          name: "Cloud Server Basic",
-          description: "Phù hợp cho cá nhân, website nhỏ và môi trường kiểm thử.",
-          categoryName: "Cloud VPS",
-          cpu: "2",
-          ram: "4GB",
-          storage: "50GB",
-          bandwidth: "Unlimited",
-          prices: [{ id: "p1", billingCycle: "Monthly", price: 150000 }],
-        },
-        {
-          id: "2",
-          name: "Cloud VPS Pro",
-          description: "Cấu hình tiêu chuẩn cho doanh nghiệp vừa và nhỏ, ứng dụng web.",
-          categoryName: "Cloud VPS",
-          cpu: "4",
-          ram: "8GB",
-          storage: "100GB",
-          bandwidth: "Unlimited",
-          prices: [{ id: "p2", billingCycle: "Monthly", price: 350000, promotionDiscountPercentage: 15 }],
-        },
-        {
-          id: "3",
-          name: "Enterprise Dedicated",
-          description: "Hạ tầng hiệu năng cực cao dành riêng cho hệ thống tải lớn.",
-          categoryName: "Dedicated Server",
-          cpu: "8",
-          ram: "16GB",
-          storage: "200GB",
-          bandwidth: "Unlimited",
-          prices: [{ id: "p3", billingCycle: "Monthly", price: 850000 }],
-        },
-      ];
+  const displayPlans = initialPlans.slice(0, 3);
+
 
   return (
     <section
@@ -129,22 +96,45 @@ export const FeaturedPlans = ({ initialPlans = [] }: FeaturedPlansProps) => {
                   <div>
                     <CardHeader className="text-left pb-4 pt-8 px-6 space-y-3">
                       <div className="flex items-center justify-between gap-2">
-                        <Badge variant="secondary" className="text-[10px] text-slate-600 bg-slate-100 font-semibold">
-                          {plan.categoryName || "Cloud Service"}
-                        </Badge>
-                        {isPopular && (
-                          <Badge className="bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
-                            <Award className="size-3" /> Khuyên dùng
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Badge variant="secondary" className="text-[10px] text-slate-600 bg-slate-100 font-semibold">
+                            {plan.categoryName || "Cloud Service"}
                           </Badge>
-                        )}
+                          {isPopular && (
+                            <Badge className="bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+                              <Award className="size-3" /> Khuyên dùng
+                            </Badge>
+                          )}
+                        </div>
                       </div>
 
-                      <CardTitle className="text-xl font-bold text-slate-900 font-heading">
-                        {plan.name}
-                      </CardTitle>
-                      <CardDescription className="text-xs min-h-[35px] text-slate-500 leading-relaxed font-sans line-clamp-2">
-                        {plan.description || "Máy chủ đám mây hiệu năng cao tối ưu doanh nghiệp"}
-                      </CardDescription>
+                      {/* Plan Title & Direct Embedded QR Code */}
+                      <div className="flex items-start justify-between gap-3 pt-1">
+                        <div className="space-y-1 flex-1">
+                          <CardTitle className="text-xl font-bold text-slate-900 font-heading">
+                            {plan.name}
+                          </CardTitle>
+                          <CardDescription className="text-xs min-h-[35px] text-slate-500 leading-relaxed font-sans line-clamp-2">
+                            {plan.description}
+                          </CardDescription>
+                        </div>
+
+                        {/* Direct QR Code Thumbnail */}
+                        <div 
+                          onClick={() => setQrModalPlan({ id: plan.id, name: plan.name, categoryName: plan.categoryName })}
+                          className="cursor-pointer group/zoom relative shrink-0"
+                          title="Nhấp để phóng to mã QR"
+                        >
+                          <PlanQrThumbnail
+                            planId={plan.id}
+                            planName={plan.name}
+                            size="sm"
+                          />
+                          <span className="text-[9px] text-slate-400 font-medium block text-center mt-0.5 group-hover/zoom:text-primary">
+                            Quét mã
+                          </span>
+                        </div>
+                      </div>
                     </CardHeader>
 
                     <CardContent className="text-left pb-6 px-6 flex-1 flex flex-col">
@@ -162,32 +152,42 @@ export const FeaturedPlans = ({ initialPlans = [] }: FeaturedPlansProps) => {
                       )}
 
                       {/* Specs List */}
-                      <ul className="space-y-3 text-xs mt-6 flex-1 text-slate-700">
-                        <li className="flex items-center gap-2.5">
-                          <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
-                            <Check className="size-3" />
-                          </div>
-                          <span>Vi xử lý: <strong>{plan.cpu || "2"} Cores CPU</strong></span>
-                        </li>
-                        <li className="flex items-center gap-2.5">
-                          <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
-                            <Check className="size-3" />
-                          </div>
-                          <span>Bộ nhớ: <strong>{plan.ram || "4GB"} RAM ECC</strong></span>
-                        </li>
-                        <li className="flex items-center gap-2.5">
-                          <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
-                            <Check className="size-3" />
-                          </div>
-                          <span>Lưu trữ: <strong>{plan.storage || "80GB"} NVMe SSD</strong></span>
-                        </li>
-                        <li className="flex items-center gap-2.5">
-                          <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
-                            <Check className="size-3" />
-                          </div>
-                          <span>Băng thông: <strong>{plan.bandwidth || "Không giới hạn"}</strong></span>
-                        </li>
-                      </ul>
+                      {(plan.cpu || plan.ram || plan.storage || plan.bandwidth) && (
+                        <ul className="space-y-3 text-xs mt-6 flex-1 text-slate-700">
+                          {plan.cpu && (
+                            <li className="flex items-center gap-2.5">
+                              <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
+                                <Check className="size-3" />
+                              </div>
+                              <span>Vi xử lý: <strong>{plan.cpu}</strong></span>
+                            </li>
+                          )}
+                          {plan.ram && (
+                            <li className="flex items-center gap-2.5">
+                              <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
+                                <Check className="size-3" />
+                              </div>
+                              <span>Bộ nhớ RAM: <strong>{plan.ram}</strong></span>
+                            </li>
+                          )}
+                          {plan.storage && (
+                            <li className="flex items-center gap-2.5">
+                              <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
+                                <Check className="size-3" />
+                              </div>
+                              <span>Lưu trữ: <strong>{plan.storage}</strong></span>
+                            </li>
+                          )}
+                          {plan.bandwidth && (
+                            <li className="flex items-center gap-2.5">
+                              <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
+                                <Check className="size-3" />
+                              </div>
+                              <span>Băng thông: <strong>{plan.bandwidth}</strong></span>
+                            </li>
+                          )}
+                        </ul>
+                      )}
                     </CardContent>
                   </div>
 
@@ -227,6 +227,17 @@ export const FeaturedPlans = ({ initialPlans = [] }: FeaturedPlansProps) => {
         isOpen={!!orderModalPlan}
         onClose={() => setOrderModalPlan(null)}
       />
+
+      {/* Plan QR Modal */}
+      {qrModalPlan && (
+        <PlanQrModal
+          planId={qrModalPlan.id}
+          planName={qrModalPlan.name}
+          categoryName={qrModalPlan.categoryName}
+          isOpen={!!qrModalPlan}
+          onClose={() => setQrModalPlan(null)}
+        />
+      )}
     </section>
   );
 };

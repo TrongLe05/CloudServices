@@ -36,17 +36,23 @@ export default async function BlogPage() {
 
 function BlogPageSkeleton() {
   return (
-    <div className="min-h-screen bg-slate-50/50 py-12 px-6 max-w-7xl mx-auto space-y-8">
-      <Skeleton className="h-10 w-96" />
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <Skeleton className="lg:col-span-8 h-[450px] rounded-3xl" />
-        <Skeleton className="lg:col-span-4 h-[450px] rounded-3xl" />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
-        <Skeleton className="h-80 rounded-2xl" />
-        <Skeleton className="h-80 rounded-2xl" />
-        <Skeleton className="h-80 rounded-2xl" />
-      </div>
-    </div>
+    <main className="min-h-screen bg-slate-50/50 py-12 px-6 max-w-7xl mx-auto space-y-8">
+      <header className="space-y-4">
+        <Skeleton className="h-6 w-48 rounded-md" />
+        <Skeleton className="h-10 w-96 rounded-xl" />
+        <Skeleton className="h-4 w-72 rounded-md" />
+      </header>
+
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+            <Skeleton className="aspect-[16/10] w-full rounded-xl" />
+            <Skeleton className="h-4 w-24 rounded-md" />
+            <Skeleton className="h-6 w-full rounded-md" />
+            <Skeleton className="h-4 w-5/6 rounded-md" />
+          </div>
+        ))}
+      </section>
+    </main>
   );
 }

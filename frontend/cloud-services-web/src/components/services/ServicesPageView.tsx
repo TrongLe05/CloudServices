@@ -17,6 +17,7 @@ import {
   Sparkles,
   ArrowRight,
   ShoppingCart,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,8 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { OrderServiceModal, OrderModalPlan } from "./OrderServiceModal";
+import { PlanQrModal } from "./PlanQrModal";
+import { PlanQrThumbnail } from "./PlanQrThumbnail";
 
 export interface ServiceCategory {
   id: string;
@@ -74,6 +77,7 @@ export function ServicesPageView({
   const [searchTerm, setSearchTerm] = React.useState("");
   const [billingCycle, setBillingCycle] = React.useState<"monthly" | "yearly">("monthly");
   const [orderModalPlan, setOrderModalPlan] = React.useState<OrderModalPlan | null>(null);
+  const [qrModalPlan, setQrModalPlan] = React.useState<{ id: string; name: string; categoryName?: string } | null>(null);
 
   // Sync if slug changes via navigation
   React.useEffect(() => {
@@ -299,7 +303,7 @@ export function ServicesPageView({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPlans.map((plan, index) => {
+            {filteredPlans.map((plan) => {
               // Find matching price based on cycle
               const priceObj = plan.prices?.find((p) => p.billingCycle === billingCycle) || plan.prices?.[0];
               const basePrice = priceObj?.price ?? 0;
@@ -314,23 +318,51 @@ export function ServicesPageView({
                   {/* Category Pill Tag */}
                   <div className="p-6 pb-2">
                     <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className="text-[11px] font-semibold text-slate-600 bg-slate-100">
-                        {plan.categoryName || "Dịch vụ Đám mây"}
-                      </Badge>
-                      {discount > 0 && (
-                        <Badge className="bg-red-500 hover:bg-red-600 text-[10px] font-bold">
-                          Ưu đãi -{discount}%
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-[11px] font-semibold text-slate-600 bg-slate-100">
+                          {plan.categoryName || "Dịch vụ Đám mây"}
                         </Badge>
-                      )}
+                        {discount > 0 && (
+                          <Badge className="bg-red-500 hover:bg-red-600 text-[10px] font-bold text-white">
+                            Ưu đãi -{discount}%
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <CardTitle className="text-lg font-bold mt-4 text-slate-900 group-hover:text-primary transition-colors">
-                      <Link href={`/dich-vu/${plan.categorySlug || "cloud"}/${plan.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}>
-                        {plan.name}
-                      </Link>
-                    </CardTitle>
-                    <CardDescription className="text-xs mt-1.5 text-slate-500 line-clamp-2 min-h-[32px]">
-                      {plan.description || "Gói hạ tầng đám mây tối ưu sẵn sàng triển khai nhanh chóng."}
-                    </CardDescription>
+
+                    {/* Plan Title & Direct Embedded QR Code */}
+                    <div className="flex items-start justify-between gap-3 mt-3">
+                      <div className="space-y-1 flex-1">
+                        <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-primary transition-colors">
+                          <Link href={`/dich-vu/${plan.categorySlug || "cloud"}/${plan.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}>
+                            {plan.name}
+                          </Link>
+                        </CardTitle>
+                        <CardDescription className="text-xs text-slate-500 line-clamp-2 min-h-[32px]">
+                          {plan.description}
+                        </CardDescription>
+                      </div>
+
+                      {/* Direct QR Code Thumbnail */}
+                      <div 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setQrModalPlan({ id: plan.id, name: plan.name, categoryName: plan.categoryName });
+                        }}
+                        className="cursor-pointer group/zoom relative shrink-0"
+                        title="Nhấp để phóng to mã QR"
+                      >
+                        <PlanQrThumbnail
+                          planId={plan.id}
+                          planName={plan.name}
+                          size="sm"
+                        />
+                        <span className="text-[9px] text-slate-400 font-medium block text-center mt-0.5 group-hover/zoom:text-primary">
+                          Quét mã
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Pricing Box */}
@@ -433,12 +465,23 @@ export function ServicesPageView({
         )}
       </section>
 
-      {/* 3. Order Service Modal */}
+      {/* Order Service Modal */}
       <OrderServiceModal
         plan={orderModalPlan}
         isOpen={!!orderModalPlan}
         onClose={() => setOrderModalPlan(null)}
       />
+
+      {/* Plan QR Code Modal */}
+      {qrModalPlan && (
+        <PlanQrModal
+          planId={qrModalPlan.id}
+          planName={qrModalPlan.name}
+          categoryName={qrModalPlan.categoryName}
+          isOpen={!!qrModalPlan}
+          onClose={() => setQrModalPlan(null)}
+        />
+      )}
     </div>
   );
 }
