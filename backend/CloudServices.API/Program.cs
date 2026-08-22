@@ -7,6 +7,7 @@ using CloudServices.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Net.payOS;
 using Scalar.AspNetCore;
 using System.Text;
 
@@ -101,6 +102,15 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient<IEmailSender, ResendEmailSender>();
 
 builder.Services.AddMemoryCache();
+
+var payOsClientId = builder.Configuration["PayOS:ClientId"] ?? builder.Configuration["PayOs:ClientId"]
+    ?? throw new InvalidOperationException("Chưa cấu hình PayOS ClientId");
+var payOsApiKey = builder.Configuration["PayOS:ApiKey"] ?? builder.Configuration["PayOs:ApiKey"]
+    ?? throw new InvalidOperationException("Chưa cấu hình PayOS ApiKey");
+var payOsChecksumKey = builder.Configuration["PayOS:ChecksumKey"] ?? builder.Configuration["PayOs:ChecksumKey"]
+    ?? throw new InvalidOperationException("Chưa cấu hình PayOS ChecksumKey");
+
+builder.Services.AddSingleton(new PayOS(payOsClientId, payOsApiKey, payOsChecksumKey));
 
 var app = builder.Build();
 

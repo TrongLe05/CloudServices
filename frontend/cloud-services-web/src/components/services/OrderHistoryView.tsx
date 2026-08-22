@@ -51,6 +51,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { toast } from "@/components/ui/toast";
+import { PaymentQrModal } from "./PaymentQrModal";
 
 export interface UserOrder {
   id: string;
@@ -77,6 +78,65 @@ export function OrderHistoryView({ initialOrders, userEmail }: OrderHistoryViewP
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
   const [selectedOrder, setSelectedOrder] = React.useState<UserOrder | null>(null);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [payingOrderId, setPayingOrderId] = React.useState<string | null>(null);
+  const [showPaymentQr, setShowPaymentQr] = React.useState(false);
+  const [paymentModalData, setPaymentModalData] = React.useState<{
+    orderId: string;
+    planName: string;
+    amount: number;
+    orderCode: number;
+    qrCodeString: string;
+    vietQrUrl?: string | null;
+    accountNumber?: string | null;
+    accountName?: string | null;
+    bin?: string | null;
+    checkoutUrl?: string;
+    description: string;
+  } | null>(null);
+
+  const handleOpenPayOSQr = async (order: UserOrder) => {
+    setPayingOrderId(order.id);
+    try {
+      const res = await fetch("/api/payments/create-payos-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.id,
+          returnUrl: `${window.location.origin}/don-hang?status=success`,
+          cancelUrl: `${window.location.origin}/don-hang?status=cancelled`,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Không thể tạo mã thanh toán");
+      }
+
+      const payData = await res.json();
+      setPaymentModalData({
+        orderId: order.id,
+        planName: order.servicePlanName,
+        amount: order.estimatedPrice || 200000,
+        orderCode: payData.orderCode,
+        qrCodeString: payData.qrCode,
+        vietQrUrl: payData.vietQrUrl,
+        accountNumber: payData.accountNumber,
+        accountName: payData.accountName,
+        bin: payData.bin,
+        checkoutUrl: payData.checkoutUrl,
+        description: `DH${payData.orderCode % 1000000}`,
+      });
+      setShowPaymentQr(true);
+    } catch (err: any) {
+      toast.add({
+        title: "Lỗi thanh toán",
+        description: err.message || "Không thể tạo liên kết PayOS.",
+        type: "error",
+      });
+    } finally {
+      setPayingOrderId(null);
+    }
+  };
 
   // Load any locally tracked orders from localStorage if needed
   React.useEffect(() => {
@@ -380,6 +440,23 @@ export function OrderHistoryView({ initialOrders, userEmail }: OrderHistoryViewP
 
                   {/* Right: Actions */}
                   <div className="flex items-center gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
+                    {/* Nếu đơn hàng đang ở trạng thái Chờ xử lý (0/New) thì cho phép thanh toán trực tiếp qua PayOS QR */}
+                    {(String(order.status) === "0" || String(order.status) === "New") && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleOpenPayOSQr(order)}
+                        disabled={payingOrderId === order.id}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs"
+                      >
+                        {payingOrderId === order.id ? (
+                          <RefreshCw className="size-3.5 animate-spin" />
+                        ) : (
+                          <CreditCard className="size-3.5" />
+                        )}
+                        Thanh toán VietQR
+                      </Button>
+                    )}
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -501,6 +578,34 @@ export function OrderHistoryView({ initialOrders, userEmail }: OrderHistoryViewP
           )}
         </SheetContent>
       </Sheet>
+
+      {/* PayOS VietQR Payment Modal */}
+      {paymentModalData && (
+        <PaymentQrModal
+          isOpen={showPaymentQr}
+          onClose={() => setShowPaymentQr(false)}
+          orderId={paymentModalData.orderId}
+          planName={paymentModalData.planName}
+          amount={paymentModalData.amount}
+          orderCode={paymentModalData.orderCode}
+          qrCodeString={paymentModalData.qrCodeString}
+          vietQrUrl={paymentModalData.vietQrUrl}
+          accountNumber={paymentModalData.accountNumber}
+          accountName={paymentModalData.accountName}
+          bin={paymentModalData.bin}
+          checkoutUrl={paymentModalData.checkoutUrl}
+          description={paymentModalData.description}
+          onPaymentSuccess={() => {
+            toast.add({
+              title: "Thanh toán thành công!",
+              description: "Hệ thống đã nhận thanh toán cho đơn hàng của bạn.",
+              type: "success",
+            });
+            setShowPaymentQr(false);
+            refreshOrders();
+          }}
+        />
+      )}
     </div>
   );
 }
