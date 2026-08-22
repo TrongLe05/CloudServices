@@ -1,7 +1,11 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthAccessToken } from "@/lib/auth-token";
 
-export async function GET(request: Request) {
+if (process.env.NODE_ENV === "development") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
+
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get("categoryId") || "";
@@ -11,10 +15,11 @@ export async function GET(request: Request) {
     const pageSize = searchParams.get("pageSize") || "100";
 
     const query = new URLSearchParams({ categoryId, search, sort, page, pageSize }).toString();
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/service-plans?${query}`,
-      { cache: "no-store" }
-    );
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+
+    const res = await fetch(`${apiUrl}/api/service-plans?${query}`, {
+      cache: "no-store",
+    });
 
     if (!res.ok) {
       return NextResponse.json({ message: "Failed to fetch service plans" }, { status: res.status });
@@ -27,27 +32,30 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("accessToken")?.value;
+    const accessToken = await getAuthAccessToken();
     const body = await request.json();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/service-plans`, {
+    const res = await fetch(`${apiUrl}/api/service-plans`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify(body),
     });
 
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      return NextResponse.json(
-        { message: errData.message || "Failed to create service plan" },
-        { status: res.status }
-      );
+      const errText = await res.text();
+      let errorJson;
+      try {
+        errorJson = JSON.parse(errText);
+      } catch {
+        errorJson = { message: errText || "Failed to create service plan" };
+      }
+      return NextResponse.json(errorJson, { status: res.status });
     }
 
     const data = await res.json();

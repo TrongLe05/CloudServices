@@ -20,6 +20,7 @@ import {
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { PaymentQrModal } from "./PaymentQrModal";
 
 export interface OrderModalPlan {
   id: string;
@@ -56,6 +57,20 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
   const [companyName, setCompanyName] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
+  const [showPaymentQr, setShowPaymentQr] = React.useState(false);
+  const [paymentModalData, setPaymentModalData] = React.useState<{
+    orderId: string;
+    planName: string;
+    amount: number;
+    orderCode: number;
+    qrCodeString: string;
+    vietQrUrl?: string | null;
+    accountNumber?: string | null;
+    accountName?: string | null;
+    bin?: string | null;
+    checkoutUrl?: string;
+    description: string;
+  } | null>(null);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -117,28 +132,38 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
       const resData = await res.json().catch(() => ({}));
       const orderId = resData?.id || resData?.Id || `order-${Date.now()}`;
 
-      // Save to local storage for quick access in Order History
+      // 💳 Gọi API tạo PayOS Payment Link & QR Code
       try {
-        const newOrder = {
-          id: orderId,
-          servicePlanId: plan.id,
-          servicePlanName: plan.name,
-          billingCycle,
-          customerName: customerName.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          companyName: companyName.trim() || null,
-          status: 0,
-          createdAt: new Date().toISOString(),
-        };
+        const payRes = await fetch("/api/payments/create-payos-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: orderId,
+            returnUrl: `${window.location.origin}/don-hang?status=success`,
+            cancelUrl: `${window.location.origin}/don-hang?status=cancelled`,
+          }),
+        });
 
-        const existing = JSON.parse(localStorage.getItem("my_cloud_orders") || "[]");
-        localStorage.setItem(
-          "my_cloud_orders",
-          JSON.stringify([newOrder, ...(Array.isArray(existing) ? existing : [])])
-        );
-      } catch {
-        // Ignore localStorage error
+        if (payRes.ok) {
+          const payData = await payRes.json();
+          setPaymentModalData({
+            orderId: orderId,
+            planName: plan.name,
+            amount: finalPrice,
+            orderCode: payData.orderCode,
+            qrCodeString: payData.qrCode,
+            vietQrUrl: payData.vietQrUrl,
+            accountNumber: payData.accountNumber,
+            accountName: payData.accountName,
+            bin: payData.bin,
+            checkoutUrl: payData.checkoutUrl,
+            description: `DH${payData.orderCode % 1000000}`,
+          });
+          setShowPaymentQr(true);
+          return;
+        }
+      } catch (payErr) {
+        console.error("Không thể tạo QR PayOS:", payErr);
       }
 
       setIsSuccess(true);
@@ -378,7 +403,7 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
                   ) : (
                     <>
                       <Send className="size-4 mr-2" />
-                      {isLoggedIn ? "Gửi yêu cầu ngay" : "Vui lòng đăng nhập"}
+                      {isLoggedIn ? "Thanh toán VietQR ngay" : "Vui lòng đăng nhập"}
                     </>
                   )}
                 </Button>
@@ -387,6 +412,40 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
           )}
         </div>
       </div>
+
+      {/* PayOS VietQR Payment Modal */}
+      {paymentModalData && (
+        <PaymentQrModal
+          isOpen={showPaymentQr}
+          onClose={() => {
+            setShowPaymentQr(false);
+            onClose();
+          }}
+          orderId={paymentModalData.orderId}
+          planName={paymentModalData.planName}
+          amount={paymentModalData.amount}
+          orderCode={paymentModalData.orderCode}
+          qrCodeString={paymentModalData.qrCodeString}
+          vietQrUrl={paymentModalData.vietQrUrl}
+          accountNumber={paymentModalData.accountNumber}
+          accountName={paymentModalData.accountName}
+          bin={paymentModalData.bin}
+          checkoutUrl={paymentModalData.checkoutUrl}
+          description={paymentModalData.description}
+          onPaymentSuccess={() => {
+            toast.add({
+              title: "Thanh toán thành công!",
+              description: "Hệ thống đã nhận thanh toán và đang kích hoạt dịch vụ.",
+              type: "success",
+            });
+            setTimeout(() => {
+              setShowPaymentQr(false);
+              onClose();
+              router.push("/don-hang");
+            }, 1500);
+          }}
+        />
+      )}
     </div>
   );
 }

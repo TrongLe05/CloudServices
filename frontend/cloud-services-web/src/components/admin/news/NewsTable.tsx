@@ -8,6 +8,8 @@ import { ConfirmDeleteDialog } from "../ConfirmDeleteDialog";
 import { NewsItem } from "../NewsCRUD";
 import Image from "next/image";
 
+import { decodeHtmlEntities } from "@/lib/htmlUtils";
+
 interface NewsTableProps {
   news: NewsItem[];
   onDelete: (id: string) => Promise<void>;
@@ -52,7 +54,7 @@ export function NewsTable({ news, onDelete, loading }: NewsTableProps) {
                     )}
                     <div className="space-y-0.5 max-w-sm">
                       <h4 className="font-semibold text-foreground line-clamp-1">
-                        {item.title}
+                        {decodeHtmlEntities(item.title)}
                       </h4>
                       <p className="text-xs text-muted-foreground font-mono truncate">
                         /{item.slug}

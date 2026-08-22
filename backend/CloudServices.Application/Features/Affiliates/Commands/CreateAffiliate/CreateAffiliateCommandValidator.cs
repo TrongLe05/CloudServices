@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace CloudServices.Application.Features.Affiliates.Commands.CreateAffiliate;
 
@@ -17,7 +17,7 @@ public sealed class CreateAffiliateCommandValidator : AbstractValidator<CreateAf
 
         RuleFor(a => a.Phone)
             .NotEmpty()
-            .MinimumLength(10)
-            .MaximumLength(10);
+            .MinimumLength(9)
+            .MaximumLength(15);
     }
 }

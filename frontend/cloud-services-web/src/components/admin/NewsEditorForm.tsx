@@ -8,6 +8,8 @@ import { NewsMainContentForm } from "./news/NewsMainContentForm";
 import { NewsSidebarSettings } from "./news/NewsSidebarSettings";
 import { toast } from "@/components/ui/toast";
 
+import { decodeHtmlEntities, formatHtmlContent } from "@/lib/htmlUtils";
+
 interface NewsEditorFormProps {
   initialData?: NewsItem | null;
   isEdit?: boolean;
@@ -19,10 +21,10 @@ export function NewsEditorForm({ initialData, isEdit = false }: NewsEditorFormPr
   const [error, setError] = React.useState("");
 
   // Form states
-  const [title, setTitle] = React.useState(initialData?.title || "");
+  const [title, setTitle] = React.useState(decodeHtmlEntities(initialData?.title || ""));
   const [slug, setSlug] = React.useState(initialData?.slug || "");
   const [category, setCategory] = React.useState(initialData?.category || "Tin tức");
-  const [content, setContent] = React.useState(initialData?.content || "");
+  const [content, setContent] = React.useState(formatHtmlContent(initialData?.content || ""));
   const [thumbnailUrl, setThumbnailUrl] = React.useState(initialData?.thumbnailUrl || "");
   const [isPublished, setIsPublished] = React.useState(!!initialData?.publishedAt || !isEdit);
 

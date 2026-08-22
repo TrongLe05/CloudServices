@@ -29,6 +29,7 @@ import {
   User,
   ThumbsUp,
   MessageCircle,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,9 +50,9 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { OrderServiceModal, OrderModalPlan } from "./OrderServiceModal";
+import { PlanQrModal } from "./PlanQrModal";
+import { PlanQrThumbnail } from "./PlanQrThumbnail";
 import { toast } from "@/components/ui/toast";
-
-import { useSession } from "next-auth/react";
 
 export interface TestimonialItem {
   id: string;
@@ -95,86 +96,12 @@ interface PlanDetailViewProps {
 export function PlanDetailView({
   plan,
   relatedPlans = [],
-  testimonials: initialTestimonials = [],
+  testimonials = [],
 }: PlanDetailViewProps) {
-  const { data: session } = useSession();
   const [selectedCycle, setSelectedCycle] = React.useState<string>("monthly");
   const [isOrderModalOpen, setIsOrderModalOpen] = React.useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"specs" | "features" | "faq" | "reviews">("specs");
-
-  // Dynamic reviews list (combines server testimonials + newly added reviews)
-  const [reviewsList, setReviewsList] = React.useState<TestimonialItem[]>(initialTestimonials);
-
-  // Review Form State
-  const [newAuthor, setNewAuthor] = React.useState("");
-  const [newRole, setNewRole] = React.useState("");
-  const [newRating, setNewRating] = React.useState(5);
-  const [newComment, setNewComment] = React.useState("");
-  const [isSubmittingReview, setIsSubmittingReview] = React.useState(false);
-
-  React.useEffect(() => {
-    if (session?.user) {
-      if (session.user.name) setNewAuthor(session.user.name);
-    }
-  }, [session]);
-
-  const handleAddReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newAuthor.trim() || !newComment.trim()) {
-      toast.add({
-        title: "Thiếu thông tin",
-        description: "Vui lòng nhập họ tên và nội dung đánh giá của bạn.",
-        type: "error",
-      });
-      return;
-    }
-
-    setIsSubmittingReview(true);
-    try {
-      const payload = {
-        clientName: newAuthor.trim(),
-        position: newRole.trim() || "Khách hàng xác thực",
-        company: plan.name ? `Gói ${plan.name}` : "Doanh nghiệp",
-        content: newComment.trim(),
-        avatarUrl: session?.user?.image || null,
-        companyLogoUrl: null,
-        rating: newRating,
-        isActive: true,
-        displayOrder: 0,
-      };
-
-      const res = await fetch("/api/testimonials", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || "Không thể gửi đánh giá.");
-      }
-
-      const createdReview: TestimonialItem = await res.json();
-
-      setReviewsList((prev) => [createdReview, ...prev]);
-      setNewComment("");
-      setNewRating(5);
-
-      toast.add({
-        title: "Đánh giá thành công!",
-        description: "Đánh giá của bạn đã được ghi nhận và lưu vào hệ thống.",
-        type: "success",
-      });
-    } catch (err: any) {
-      toast.add({
-        title: "Lỗi gửi đánh giá",
-        description: err.message || "Đã xảy ra lỗi khi lưu đánh giá.",
-        type: "error",
-      });
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
 
   const formatVND = (value: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -197,8 +124,8 @@ export function PlanDetailView({
     { id: "yearly", label: "1 Năm (Khuyên dùng)", badge: "Ưu đãi 20%" },
   ];
 
-  // Calculate real average rating from active reviews
-  const activeTestimonials = reviewsList.filter((t) => t.isActive);
+  // Calculate real average rating from API testimonials
+  const activeTestimonials = testimonials.filter((t) => t.isActive);
   const totalReviews = activeTestimonials.length;
   const averageRating =
     totalReviews > 0
@@ -264,32 +191,64 @@ export function PlanDetailView({
 
               {/* Status & Badges */}
               <div className="flex items-center justify-between relative z-10">
-                <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-3 py-1">
-                  <span className="size-1.5 rounded-full bg-white mr-1.5 animate-pulse" />
-                  Sẵn sàng kích hoạt
-                </Badge>
-
-                {discountPercent > 0 && (
-                  <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1">
-                    <Flame className="size-3.5 mr-1" />
-                    Giảm -{discountPercent}%
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-3 py-1">
+                    <span className="size-1.5 rounded-full bg-white mr-1.5 animate-pulse" />
+                    Sẵn sàng kích hoạt
                   </Badge>
-                )}
+
+                  {discountPercent > 0 && (
+                    <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1">
+                      <Flame className="size-3.5 mr-1" />
+                      Giảm -{discountPercent}%
+                    </Badge>
+                  )}
+                </div>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  title="Xem mã QR quét đặt mua nhanh"
+                  onClick={() => setIsQrModalOpen(true)}
+                  className="size-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors"
+                >
+                  <QrCode className="size-4" />
+                </Button>
               </div>
 
-              {/* Graphic Icon Centerpiece */}
-              <div className="my-10 flex flex-col items-center justify-center text-center space-y-4 relative z-10">
-                <div className="size-28 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 p-0.5 shadow-2xl shadow-primary/30">
-                  <div className="size-full rounded-[14px] bg-slate-950 flex items-center justify-center text-indigo-400">
-                    <Server className="size-14" />
+              {/* Graphic Icon & QR Code Centerpiece */}
+              <div className="my-8 flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="size-14 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 p-0.5 shadow-lg shadow-primary/20 shrink-0">
+                    <div className="size-full rounded-[14px] bg-slate-950 flex items-center justify-center text-indigo-400">
+                      <Server className="size-7" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-0.5 text-left">
+                    <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold block">
+                      {plan.categoryName || "Dịch vụ Đám mây"}
+                    </span>
+                    <h2 className="text-lg font-bold text-white leading-snug">{plan.name}</h2>
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <span className="text-xs uppercase tracking-widest text-slate-400 font-semibold">
-                    {plan.categoryName || "Dịch vụ Đám mây"}
+                {/* Direct Embedded QR Code */}
+                <div
+                  onClick={() => setIsQrModalOpen(true)}
+                  className="cursor-pointer group/qr text-center shrink-0"
+                  title="Nhấp để phóng to mã QR"
+                >
+                  <PlanQrThumbnail
+                    planId={plan.id}
+                    planName={plan.name}
+                    size="md"
+                    className="border-slate-700 bg-white"
+                  />
+                  <span className="text-[9px] text-slate-400 font-medium block mt-1 group-hover/qr:text-indigo-400">
+                    Quét đặt mua
                   </span>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white">{plan.name}</h2>
                 </div>
               </div>
 
@@ -383,7 +342,7 @@ export function PlanDetailView({
                       {plan.name}
                     </h1>
                     <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                      {plan.description || "Gói giải pháp đám mây thế hệ mới được cấu hình tối ưu sẵn sàng cho sản xuất."}
+                      {plan.description}
                     </p>
                   </div>
 
@@ -861,129 +820,24 @@ export function PlanDetailView({
                     </div>
                   </div>
                 </>
-              ) : null}
-              {/* 4.1 Write a review card form (Luôn hiển thị để khách hàng đánh giá bất kỳ lúc nào) */}
-              <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                      <MessageSquarePlus className="size-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900">
-                        Gửi đánh giá của bạn về gói dịch vụ
-                      </h4>
-                      <p className="text-[11px] text-slate-500">
-                        Chia sẻ cảm nhận và mức độ hài lòng về chất lượng hạ tầng, tốc độ và dịch vụ
-                      </p>
-                    </div>
+              ) : (
+                <div className="p-12 text-center flex flex-col items-center justify-center space-y-3 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                  <div className="size-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
+                    <MessageCircle className="size-6" />
                   </div>
-                </div>
-
-                <form onSubmit={handleAddReview} className="space-y-4 pt-1">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-700">
-                        Họ và tên của bạn <span className="text-destructive">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={newAuthor}
-                        onChange={(e) => setNewAuthor(e.target.value)}
-                        placeholder="VD: Nguyễn Văn A..."
-                        required
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-700">
-                        Chức vụ / Đơn vị công tác
-                      </label>
-                      <input
-                        type="text"
-                        value={newRole}
-                        onChange={(e) => setNewRole(e.target.value)}
-                        placeholder="VD: IT Leader, DevOps Engineer..."
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                      />
-                    </div>
+                  <div className="space-y-1">
+                    <p className="font-semibold text-slate-800 text-sm">Chưa có đánh giá nào</p>
+                    <p className="text-slate-500 text-xs max-w-sm">
+                      Gói dịch vụ này hiện chưa có phản hồi từ khách hàng. Bạn có thể là người đầu tiên trải nghiệm!
+                    </p>
                   </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
-                      Mức độ hài lòng (Số sao)
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => setNewRating(star)}
-                            className="p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer"
-                          >
-                            <Star
-                              className={`size-5 ${
-                                star <= newRating
-                                  ? "fill-amber-400 text-amber-400"
-                                  : "text-slate-300"
-                              }`}
-                            />
-                          </button>
-                        ))}
-                      </div>
-                      <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
-                        {newRating === 5
-                          ? "Tuyệt vời (5/5)"
-                          : newRating === 4
-                          ? "Rất tốt (4/5)"
-                          : newRating === 3
-                          ? "Bình thường (3/5)"
-                          : newRating === 2
-                          ? "Chưa hài lòng (2/5)"
-                          : "Kém (1/5)"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
-                      Nội dung nhận xét & đánh giá <span className="text-destructive">*</span>
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Chia sẻ trải nghiệm của bạn khi sử dụng gói dịch vụ này..."
-                      required
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-end">
-                    <Button
-                      type="submit"
-                      disabled={isSubmittingReview}
-                      size="sm"
-                      className="bg-primary hover:bg-primary/95 text-white font-semibold text-xs px-5 rounded-xl gap-1.5 shadow-sm"
-                    >
-                      <MessageSquarePlus className="size-3.5" />
-                      {isSubmittingReview ? "Đang gửi..." : "Gửi đánh giá ngay"}
-                    </Button>
-                  </div>
-                </form>
-              </div>
-
-              {totalReviews === 0 && (
-                <div className="p-8 text-center flex flex-col items-center justify-center space-y-2 bg-slate-50/80 rounded-2xl border border-dashed border-slate-200">
-                  <div className="size-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
-                    <MessageCircle className="size-5" />
-                  </div>
-                  <p className="font-semibold text-slate-800 text-xs">Chưa có bài đánh giá nào trước đó</p>
-                  <p className="text-slate-500 text-[11px] max-w-sm">
-                    Hãy là khách hàng đầu tiên chia sẻ cảm nhận trải nghiệm về gói cấu hình này bằng biểu mẫu phía trên!
-                  </p>
+                  <Button
+                    onClick={() => setIsOrderModalOpen(true)}
+                    size="sm"
+                    className="mt-2"
+                  >
+                    Đăng ký trải nghiệm ngay
+                  </Button>
                 </div>
               )}
             </div>
@@ -1057,6 +911,15 @@ export function PlanDetailView({
         plan={plan}
         isOpen={isOrderModalOpen}
         onClose={() => setIsOrderModalOpen(false)}
+      />
+
+      {/* Plan QR Modal */}
+      <PlanQrModal
+        planId={plan.id}
+        planName={plan.name}
+        categoryName={plan.categoryName}
+        isOpen={isQrModalOpen}
+        onClose={() => setIsQrModalOpen(false)}
       />
     </div>
   );
