@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Features.Promotions.Commands;
+using CloudServices.Application.Features.Promotions.Commands;
 using CloudServices.Application.Features.Promotions.DTOs;
 using CloudServices.Application.Features.Promotions.Queries;
 using Microsoft.AspNetCore.Authorization;
@@ -27,14 +27,14 @@ public class PromotionsController : ApiControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<ActionResult<PromotionDto>> Create([FromBody] CreatePromotionCommand command)
     {
         return await Mediator.Send(command);
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<ActionResult<PromotionDto>> Update(Guid id, [FromBody] UpdatePromotionCommand command)
     {
         command.Id = id;
@@ -44,7 +44,7 @@ public class PromotionsController : ApiControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await Mediator.Send(new DeletePromotionCommand(id));

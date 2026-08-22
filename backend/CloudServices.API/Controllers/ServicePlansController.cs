@@ -15,21 +15,21 @@ public sealed class ServicePlansController : ApiControllerBase
     [HttpGet("{id:guid}"), AllowAnonymous]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken) => Ok(await Mediator.Send(new GetServicePlanByIdQuery(id), cancellationToken));
 
-    [HttpPost, Authorize(Roles = "Admin")]
+    [HttpPost, Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> Create(CreateServicePlanCommand command, CancellationToken cancellationToken)
     {
         var id = await Mediator.Send(command, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }
 
-    [HttpPut("{id:guid}"), Authorize(Roles = "Admin")]
+    [HttpPut("{id:guid}"), Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> Update(Guid id, UpdateServicePlanRequest request, CancellationToken cancellationToken)
     {
         await Mediator.Send(new UpdateServicePlanCommand(id, request.CategoryId, request.Name, request.Description, request.Cpu, request.Ram, request.Storage, request.Bandwidth), cancellationToken);
         return NoContent();
     }
 
-    [HttpDelete("{id:guid}"), Authorize(Roles = "Admin")]
+    [HttpDelete("{id:guid}"), Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken) { await Mediator.Send(new DeleteServicePlanCommand(id), cancellationToken); return NoContent(); }
 }
 
