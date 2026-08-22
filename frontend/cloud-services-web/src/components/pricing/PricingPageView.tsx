@@ -9,19 +9,16 @@ import {
   Activity,
   Zap,
   Check,
-  X,
   Sparkles,
   ShieldCheck,
   Flame,
   ArrowRight,
   ShoppingCart,
-  Clock,
-  Tag,
-  ChevronDown,
-  Info,
-  HelpCircle,
-  Award,
   Layers,
+  Award,
+  Globe,
+  Database,
+  FolderKanban,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +30,13 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { OrderServiceModal, OrderModalPlan } from "@/components/services/OrderServiceModal";
 
 export interface CategoryData {
@@ -86,9 +90,7 @@ export function PricingPageView({
   plans,
   promotions,
 }: PricingPageViewProps) {
-  const [selectedCategory, setSelectedCategory] = React.useState<string>(
-    categories[0]?.id || "all"
-  );
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
   const [billingCycle, setBillingCycle] = React.useState<"monthly" | "yearly">("monthly");
   const [orderModalPlan, setOrderModalPlan] = React.useState<OrderModalPlan | null>(null);
 
@@ -103,11 +105,24 @@ export function PricingPageView({
 
   const nearestPromo = activePromotions[0] || null;
 
-  // Filter plans based on category selection
-  const filteredPlans = React.useMemo(() => {
-    if (selectedCategory === "all") return plans;
-    return plans.filter((p) => p.categoryId === selectedCategory);
-  }, [plans, selectedCategory]);
+  // Group plans by category (Phân chia từng dịch vụ riêng biệt)
+  const groupedCategories = React.useMemo(() => {
+    // If a specific category is selected, only show that category
+    const activeCats =
+      selectedCategory === "all"
+        ? categories
+        : categories.filter((c) => c.id === selectedCategory);
+
+    return activeCats
+      .map((cat) => {
+        const catPlans = plans.filter((p) => p.categoryId === cat.id);
+        return {
+          category: cat,
+          plans: catPlans,
+        };
+      })
+      .filter((group) => group.plans.length > 0);
+  }, [categories, plans, selectedCategory]);
 
   const formatVND = (value: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -119,15 +134,15 @@ export function PricingPageView({
   // Helper to calculate price and promo details for each plan based on billingCycle
   const getPlanPriceInfo = (plan: PricingPlan) => {
     const cyclePriceObj =
-      plan.prices.find(
+      plan.prices?.find(
         (p) => p.billingCycle.toLowerCase() === (billingCycle === "yearly" ? "yearly" : "monthly")
       ) ||
-      plan.prices[0] || { price: 0, promotionDiscountPercentage: 0 };
+      plan.prices?.[0] || { price: 0, promotionDiscountPercentage: 0 };
 
-    let basePrice = cyclePriceObj.price;
+    let basePrice = cyclePriceObj.price || 0;
     // If selecting yearly and no explicit yearly price object is set, compute standard 12-month * discount
-    if (billingCycle === "yearly" && !plan.prices.some((p) => p.billingCycle.toLowerCase() === "yearly")) {
-      const monthlyPrice = plan.prices.find((p) => p.billingCycle.toLowerCase() === "monthly")?.price || basePrice;
+    if (billingCycle === "yearly" && !plan.prices?.some((p) => p.billingCycle.toLowerCase() === "yearly")) {
+      const monthlyPrice = plan.prices?.find((p) => p.billingCycle.toLowerCase() === "monthly")?.price || basePrice;
       basePrice = monthlyPrice * 12 * 0.8; // 20% discount on 12 months
     }
 
@@ -150,13 +165,13 @@ export function PricingPageView({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-24">
+    <main className="min-h-screen bg-slate-50/50 pb-24">
       {/* 1. Header Banner */}
-      <section className="relative overflow-hidden bg-slate-900 text-white pt-20 pb-24 px-6 lg:px-8">
+      <header className="relative overflow-hidden bg-slate-900 text-white pt-20 pb-24 px-6 lg:px-8">
         <div className="absolute inset-0 bg-grid-white/[0.04] bg-[size:32px_32px] -z-10" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] bg-primary/20 rounded-full blur-[140px] pointer-events-none -z-10" />
 
-        <div className="mx-auto max-w-5xl text-center space-y-4">
+        <div className="mx-auto max-w-4xl text-center space-y-4">
           <Badge
             variant="outline"
             className="border-primary/40 bg-primary/10 text-primary-foreground text-xs py-1 px-3.5 rounded-full inline-flex items-center gap-1.5 font-semibold backdrop-blur-xs"
@@ -165,14 +180,14 @@ export function PricingPageView({
             Bảng giá dịch vụ Cloud & Hạ tầng máy chủ
           </Badge>
 
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white leading-tight font-heading">
-            Bảng giá minh bạch, hiệu năng vượt trội
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight font-heading">
+            Bảng Giá Theo Từng Dịch Vụ
           </h1>
           <p className="text-sm md:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Dễ dàng so sánh chi tiết cấu hình CPU, RAM, NVMe SSD, Băng thông và lựa chọn gói dịch vụ tối ưu ngân sách cho doanh nghiệp của bạn.
+            Phân chia chi tiết từng cụm dịch vụ Điện toán Đám mây. So sánh cấu hình CPU, RAM, SSD NVMe, Băng thông và đặt hàng từng gói nhanh chóng.
           </p>
 
-          {/* Time-Limited Promotion Alert Banner */}
+          {/* Time-Limited Promotion Alert Banner (Khuyến mãi có thời hạn) */}
           {nearestPromo && (
             <div className="mt-6 inline-flex items-center gap-3 p-3.5 px-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs backdrop-blur-md animate-pulse">
               <Flame className="size-4 text-amber-400 shrink-0" />
@@ -186,343 +201,393 @@ export function PricingPageView({
             </div>
           )}
 
-          {/* 2. Billing Cycle Switcher */}
-          <div className="pt-6 flex justify-center">
-            <div className="flex items-center p-1.5 bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/60 shadow-xl">
-              <button
+          {/* 2. Billing Cycle Switcher (Chu kỳ Tháng / Năm) */}
+          <section className="pt-6 flex justify-center">
+            <div className="flex items-center p-1.5 bg-slate-800/90 backdrop-blur-md rounded-2xl border border-slate-700/60 shadow-xl">
+              <Button
                 type="button"
+                variant={billingCycle === "monthly" ? "default" : "ghost"}
                 onClick={() => setBillingCycle("monthly")}
-                className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`rounded-xl text-xs font-bold px-6 py-2 h-auto ${
                   billingCycle === "monthly"
                     ? "bg-primary text-white shadow-md"
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-400 hover:text-white hover:bg-slate-700/50"
                 }`}
               >
                 Thanh toán theo tháng
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant={billingCycle === "yearly" ? "default" : "ghost"}
                 onClick={() => setBillingCycle("yearly")}
-                className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                className={`rounded-xl text-xs font-bold px-6 py-2 h-auto flex items-center gap-2 ${
                   billingCycle === "yearly"
                     ? "bg-primary text-white shadow-md"
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-400 hover:text-white hover:bg-slate-700/50"
                 }`}
               >
                 <span>Thanh toán 1 năm</span>
-                <span className="bg-amber-400 text-slate-950 text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-xs">
+                <Badge className="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs border-0 hover:bg-amber-400">
                   Tiết kiệm 20%
-                </span>
-              </button>
+                </Badge>
+              </Button>
             </div>
-          </div>
+          </section>
         </div>
-      </section>
+      </header>
 
       {/* 3. Main Content Container */}
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 -mt-10 space-y-12">
-        {/* Category Filter Pills */}
-        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2">
-          <button
+      <section className="mx-auto max-w-7xl px-6 lg:px-8 -mt-10 space-y-16">
+        
+        {/* Category Navigation Pills */}
+        <nav aria-label="Lọc theo dịch vụ" className="flex items-center justify-center gap-2 overflow-x-auto pb-2">
+          <Button
             type="button"
+            variant={selectedCategory === "all" ? "default" : "outline"}
             onClick={() => setSelectedCategory("all")}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all shrink-0 shadow-xs ${
+            className={`rounded-2xl text-xs font-bold px-5 h-10 shrink-0 shadow-xs ${
               selectedCategory === "all"
-                ? "bg-white text-primary border-2 border-primary ring-2 ring-primary/20 shadow-md"
-                : "bg-white/90 text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-900"
+                ? "bg-white text-primary border-2 border-primary ring-2 ring-primary/20 shadow-md hover:bg-white hover:text-primary"
+                : "bg-white/90 text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-900 hover:bg-white"
             }`}
           >
-            Tất cả danh mục ({plans.length})
-          </button>
+            Tất cả dịch vụ ({plans.length})
+          </Button>
           {categories.map((cat) => (
-            <button
+            <Button
               key={cat.id}
               type="button"
+              variant={selectedCategory === cat.id ? "default" : "outline"}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all shrink-0 shadow-xs ${
+              className={`rounded-2xl text-xs font-bold px-5 h-10 shrink-0 shadow-xs ${
                 selectedCategory === cat.id
-                  ? "bg-white text-primary border-2 border-primary ring-2 ring-primary/20 shadow-md"
-                  : "bg-white/90 text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-900"
+                  ? "bg-white text-primary border-2 border-primary ring-2 ring-primary/20 shadow-md hover:bg-white hover:text-primary"
+                  : "bg-white/90 text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-900 hover:bg-white"
               }`}
             >
               {cat.name}
-            </button>
+            </Button>
           ))}
-        </div>
+        </nav>
 
-        {/* 4. Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredPlans.map((plan, idx) => {
-            const { basePrice, finalPrice, promoDiscount, hasPromo } = getPlanPriceInfo(plan);
-            const isFeatured = idx === 1 || plan.name.toLowerCase().includes("pro") || plan.name.toLowerCase().includes("enterprise");
-
-            return (
-              <Card
-                key={plan.id}
-                className={`relative flex flex-col justify-between rounded-3xl transition-all duration-300 bg-white ${
-                  isFeatured
-                    ? "border-2 border-primary shadow-xl shadow-primary/10 ring-4 ring-primary/5 scale-[1.02]"
-                    : "border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300"
-                }`}
-              >
-                {/* Popular / Promo Badge */}
-                {isFeatured && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
-                    <Badge className="bg-primary text-white text-[11px] font-bold px-3 py-0.5 rounded-full shadow-sm flex items-center gap-1">
-                      <Award className="size-3" /> Được chọn nhiều nhất
-                    </Badge>
-                  </div>
-                )}
-
-                <div>
-                  <CardHeader className="p-6 pb-4">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className="text-[10px] text-slate-500 bg-slate-100">
-                        {plan.categoryName || "Cloud VPS"}
-                      </Badge>
-                      {hasPromo && (
-                        <Badge className="bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-bold">
-                          Giảm {promoDiscount}%
-                        </Badge>
-                      )}
-                    </div>
-                    <CardTitle className="text-xl font-bold text-slate-900 pt-2 font-heading">
-                      {plan.name}
-                    </CardTitle>
-                    <CardDescription className="text-xs text-slate-500 line-clamp-2 min-h-8">
-                      {plan.description || "Máy chủ ảo đám mây hiệu năng cao tối ưu cho doanh nghiệp"}
-                    </CardDescription>
-
-                    {/* Price Block */}
-                    <div className="pt-4 border-b border-slate-100 pb-4">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl font-extrabold text-slate-900">
-                          {formatVND(finalPrice)}
-                        </span>
-                        <span className="text-xs text-slate-500 font-medium">
-                          /{billingCycle === "yearly" ? "năm" : "tháng"}
-                        </span>
-                      </div>
-                      {hasPromo && (
-                        <div className="flex items-center gap-2 pt-0.5 text-xs text-slate-400">
-                          <span className="line-through">{formatVND(basePrice)}</span>
-                          <span className="text-rose-600 font-semibold">Tiết kiệm {formatVND(basePrice - finalPrice)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
-
-                  {/* Core Hardware Specifications */}
-                  <CardContent className="p-6 pt-0 space-y-3 text-xs">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Thông số tài nguyên:
-                    </span>
-
-                    <div className="space-y-2.5 text-slate-700">
-                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
-                        <span className="flex items-center gap-2 text-slate-600">
-                          <Cpu className="size-4 text-primary" /> CPU Cores
-                        </span>
-                        <span className="font-bold text-slate-900">{plan.cpu || "2 vCPU Intel Xeon"}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
-                        <span className="flex items-center gap-2 text-slate-600">
-                          <Server className="size-4 text-indigo-500" /> Bộ nhớ RAM
-                        </span>
-                        <span className="font-bold text-slate-900">{plan.ram || "4 GB ECC DDR4"}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
-                        <span className="flex items-center gap-2 text-slate-600">
-                          <HardDrive className="size-4 text-amber-500" /> Dung lượng NVMe
-                        </span>
-                        <span className="font-bold text-slate-900">{plan.storage || "80 GB Enterprise"}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
-                        <span className="flex items-center gap-2 text-slate-600">
-                          <Activity className="size-4 text-emerald-500" /> Băng thông
-                        </span>
-                        <span className="font-bold text-slate-900">{plan.bandwidth || "Không giới hạn"}</span>
-                      </div>
-                    </div>
-
-                    {/* Features checklist */}
-                    <div className="pt-2 space-y-1.5 text-[11px] text-slate-600">
-                      <div className="flex items-center gap-2">
-                        <Check className="size-3.5 text-emerald-600 shrink-0" />
-                        <span>1 Dedicated IPv4 tĩnh riêng</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="size-3.5 text-emerald-600 shrink-0" />
-                        <span>Toàn quyền quản trị Root / Admin</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="size-3.5 text-emerald-600 shrink-0" />
-                        <span>Chống tấn công Anti-DDoS tự động</span>
-                      </div>
-                    </div>
-                  </CardContent>
+        {/* 4. Service Categories Sections with Carousel */}
+        {groupedCategories.map(({ category, plans: catPlans }) => (
+          <section
+            key={category.id}
+            aria-labelledby={`category-${category.id}`}
+            className="space-y-6 pt-4"
+          >
+            {/* Section Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200/80 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5">
+                  <span className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                    <FolderKanban className="size-4" />
+                  </span>
+                  <h2
+                    id={`category-${category.id}`}
+                    className="text-2xl font-extrabold text-slate-900 tracking-tight font-heading"
+                  >
+                    {category.name}
+                  </h2>
                 </div>
+                <p className="text-xs text-slate-500 max-w-2xl pl-10.5">
+                  {category.description ||
+                    `Danh sách các gói dịch vụ ${category.name} chuyên biệt với cấu hình tối ưu và khả năng mở rộng linh hoạt.`}
+                </p>
+              </div>
 
-                {/* Order and Details Buttons */}
-                <CardFooter className="p-6 pt-0 flex flex-col gap-2">
-                  <Button
-                    onClick={() =>
-                      setOrderModalPlan({
-                        ...plan,
-                        prices: plan.prices.map((p) => ({
-                          ...p,
-                          price: p.price,
-                          promotionDiscountPercentage: promoDiscount,
-                        })),
-                      })
-                    }
-                    className={`w-full rounded-2xl font-bold text-xs py-5 gap-2 shadow-sm ${
-                      isFeatured
-                        ? "bg-primary hover:bg-primary/95 text-white shadow-primary/20"
-                        : "bg-slate-900 hover:bg-slate-800 text-white"
-                    }`}
-                  >
-                    <ShoppingCart className="size-3.5" /> Đặt mua gói này
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-xs text-slate-500 hover:text-slate-900"
-                    render={<Link href={`/dich-vu/${plan.categoryName ? plan.categoryName.toLowerCase() : "cloud-vps"}/${plan.id}`} />}
-                  >
-                    Xem chi tiết thông số <ArrowRight className="size-3.5 ml-1" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* 5. Comprehensive Comparison Table (Bảng so sánh chi tiết tất cả các gói) */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <Layers className="size-5 text-primary" /> Bảng so sánh chi tiết cấu hình các gói
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Xem tổng hợp tất cả thông số phần cứng, băng thông, giá cả và tính năng chuyên sâu
-              </p>
+              <Badge variant="outline" className="text-xs px-3 py-1 font-medium border-slate-300 w-fit shrink-0">
+                {catPlans.length} gói dịch vụ
+              </Badge>
             </div>
-            <Badge variant="outline" className="text-xs px-3 py-1 font-semibold border-slate-300 w-fit">
-              {filteredPlans.length} gói dịch vụ đang khả dụng
-            </Badge>
-          </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-400 uppercase tracking-wider font-semibold">
-                  <th className="py-4 px-4 min-w-[200px]">Gói dịch vụ</th>
-                  <th className="py-4 px-4 min-w-[120px]">Vi xử lý (CPU)</th>
-                  <th className="py-4 px-4 min-w-[120px]">Bộ nhớ (RAM)</th>
-                  <th className="py-4 px-4 min-w-[140px]">Lưu trữ (SSD NVMe)</th>
-                  <th className="py-4 px-4 min-w-[130px]">Băng thông</th>
-                  <th className="py-4 px-4 min-w-[120px]">Địa chỉ IPv4</th>
-                  <th className="py-4 px-4 min-w-[150px]">Giá ({billingCycle === "yearly" ? "1 năm" : "1 tháng"})</th>
-                  <th className="py-4 px-4 min-w-[120px] text-right">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {filteredPlans.map((plan) => {
-                  const { basePrice, finalPrice, promoDiscount, hasPromo } = getPlanPriceInfo(plan);
-                  return (
-                    <tr key={plan.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-4 px-4 font-bold text-slate-900">
-                        <div>
-                          <span>{plan.name}</span>
-                          <span className="text-[10px] text-slate-400 block font-normal">{plan.categoryName}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 font-medium">{plan.cpu || "2 Cores"}</td>
-                      <td className="py-4 px-4 font-medium">{plan.ram || "4 GB"}</td>
-                      <td className="py-4 px-4 font-medium">{plan.storage || "80 GB NVMe"}</td>
-                      <td className="py-4 px-4 font-medium">{plan.bandwidth || "Không giới hạn"}</td>
-                      <td className="py-4 px-4">
-                        <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold">
-                          <Check className="size-3.5" /> 1 IP Dedicated
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div>
-                          <span className="font-bold text-slate-900 text-sm block">
-                            {formatVND(finalPrice)}
-                          </span>
-                          {hasPromo && (
-                            <span className="text-[10px] text-rose-600 font-semibold">
-                              Giảm {promoDiscount}% (gốc {formatVND(basePrice)})
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <Button
-                          onClick={() =>
-                            setOrderModalPlan({
-                              ...plan,
-                              prices: plan.prices.map((p) => ({
-                                ...p,
-                                price: p.price,
-                                promotionDiscountPercentage: promoDiscount,
-                              })),
-                            })
-                          }
-                          size="sm"
-                          className="bg-primary hover:bg-primary/95 text-white font-semibold text-xs rounded-xl px-4"
+            {/* Carousel Giao diện thẻ dịch vụ */}
+            <div className="relative px-2">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-4 pt-4 pb-4">
+                  {catPlans.map((plan, idx) => {
+                    const { basePrice, finalPrice, promoDiscount, hasPromo } = getPlanPriceInfo(plan);
+                    const isFeatured =
+                      idx === 1 ||
+                      plan.name.toLowerCase().includes("pro") ||
+                      plan.name.toLowerCase().includes("enterprise");
+
+                    return (
+                      <CarouselItem
+                        key={plan.id}
+                        className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                      >
+                        <Card
+                          className={`h-full relative flex flex-col justify-between rounded-3xl transition-all duration-300 bg-white ${
+                            isFeatured
+                              ? "border-2 border-primary shadow-xl shadow-primary/10 ring-4 ring-primary/5"
+                              : "border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300"
+                          }`}
                         >
-                          Đặt hàng
-                        </Button>
-                      </td>
+                          <article className="flex flex-col justify-between h-full">
+                            <div>
+                              <CardHeader className="p-6 pb-4 space-y-3">
+                                {/* Badges Row */}
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <Badge variant="secondary" className="text-[10px] text-slate-600 bg-slate-100 font-semibold">
+                                      {plan.categoryName || category.name}
+                                    </Badge>
+                                    {isFeatured && (
+                                      <Badge className="bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1 whitespace-nowrap">
+                                        <Award className="size-3 shrink-0" /> Phổ biến & Khuyên dùng
+                                      </Badge>
+                                    )}
+                                  </div>
+
+                                  {hasPromo && (
+                                    <Badge className="bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-bold shrink-0">
+                                      Giảm {promoDiscount}%
+                                    </Badge>
+                                  )}
+                                </div>
+
+                                <CardTitle className="text-lg font-bold text-slate-900 pt-1 font-heading">
+                                  {plan.name}
+                                </CardTitle>
+                                <CardDescription className="text-xs text-slate-500 line-clamp-2 min-h-8">
+                                  {plan.description || "Máy chủ đám mây hiệu năng cao tối ưu doanh nghiệp"}
+                                </CardDescription>
+
+                                {/* Price Block */}
+                                <section aria-label="Giá gói" className="pt-4 border-b border-slate-100 pb-4">
+                                  <div className="flex items-baseline gap-1.5">
+                                    <strong className="text-2xl font-black text-slate-900 font-sans">
+                                      {formatVND(finalPrice)}
+                                    </strong>
+                                    <span className="text-xs text-slate-500 font-medium">
+                                      /{billingCycle === "yearly" ? "năm" : "tháng"}
+                                    </span>
+                                  </div>
+                                  {hasPromo && (
+                                    <div className="flex items-center gap-2 pt-0.5 text-xs text-slate-400">
+                                      <span className="line-through">{formatVND(basePrice)}</span>
+                                      <span className="text-rose-600 font-semibold">
+                                        Tiết kiệm {formatVND(basePrice - finalPrice)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </section>
+                              </CardHeader>
+
+                              {/* Core Hardware Specifications */}
+                              <CardContent className="p-6 pt-0 space-y-3 text-xs">
+                                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                                  Cấu hình phần cứng:
+                                </span>
+
+                                <div className="space-y-2 text-slate-700">
+                                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                                    <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
+                                      <Cpu className="size-3.5 text-primary" /> CPU Cores
+                                    </span>
+                                    <strong className="font-bold text-slate-900 text-xs">{plan.cpu || "2 vCPU"}</strong>
+                                  </div>
+
+                                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                                    <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
+                                      <Server className="size-3.5 text-indigo-500" /> Bộ nhớ RAM
+                                    </span>
+                                    <strong className="font-bold text-slate-900 text-xs">{plan.ram || "4 GB RAM"}</strong>
+                                  </div>
+
+                                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                                    <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
+                                      <HardDrive className="size-3.5 text-amber-500" /> Lưu trữ NVMe
+                                    </span>
+                                    <strong className="font-bold text-slate-900 text-xs">{plan.storage || "80 GB SSD"}</strong>
+                                  </div>
+
+                                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                                    <span className="flex items-center gap-2 text-slate-600 font-medium text-[11px]">
+                                      <Activity className="size-3.5 text-emerald-500" /> Băng thông
+                                    </span>
+                                    <strong className="font-bold text-slate-900 text-xs">{plan.bandwidth || "Không giới hạn"}</strong>
+                                  </div>
+                                </div>
+
+                                {/* Features checklist */}
+                                <div className="pt-2 space-y-1.5 text-[11px] text-slate-600">
+                                  <div className="flex items-center gap-1.5">
+                                    <Check className="size-3.5 text-emerald-600 shrink-0" />
+                                    <span>1 IPv4 Dedicated riêng</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <Check className="size-3.5 text-emerald-600 shrink-0" />
+                                    <span>Quản trị Root / Admin</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <Check className="size-3.5 text-emerald-600 shrink-0" />
+                                    <span>Bảo vệ Anti-DDoS tự động</span>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </div>
+
+                            {/* Order Button */}
+                            <CardFooter className="p-6 pt-0 flex flex-col gap-2">
+                              <Button
+                                onClick={() =>
+                                  setOrderModalPlan({
+                                    ...plan,
+                                    prices: plan.prices.map((p) => ({
+                                      ...p,
+                                      price: p.price,
+                                      promotionDiscountPercentage: promoDiscount,
+                                    })),
+                                  })
+                                }
+                                className={`w-full rounded-2xl font-bold text-xs py-4.5 gap-2 shadow-sm ${
+                                  isFeatured
+                                    ? "bg-primary hover:bg-primary/95 text-white shadow-primary/20"
+                                    : "bg-slate-900 hover:bg-slate-800 text-white"
+                                }`}
+                              >
+                                <ShoppingCart className="size-3.5" /> Đặt mua gói này
+                              </Button>
+                            </CardFooter>
+                          </article>
+                        </Card>
+                      </CarouselItem>
+                    );
+                  })}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
+
+            {/* Bảng so sánh mini theo từng danh mục */}
+            <Card className="rounded-3xl border-slate-200 p-6 shadow-xs bg-white overflow-hidden">
+              <CardHeader className="p-0 pb-4 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Layers className="size-4 text-primary" /> Bảng so sánh thông số: {category.name}
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Đối chiếu nhanh cấu hình CPU, RAM, Lưu trữ và giá của các gói thuộc nhóm {category.name}
+                  </CardDescription>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-0 overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-400 uppercase tracking-wider font-semibold">
+                      <th className="py-3 px-4 min-w-[180px]">Gói dịch vụ</th>
+                      <th className="py-3 px-4 min-w-[110px]">CPU</th>
+                      <th className="py-3 px-4 min-w-[110px]">RAM</th>
+                      <th className="py-3 px-4 min-w-[120px]">Lưu trữ</th>
+                      <th className="py-3 px-4 min-w-[120px]">Băng thông</th>
+                      <th className="py-3 px-4 min-w-[140px]">Giá ({billingCycle === "yearly" ? "1 năm" : "1 tháng"})</th>
+                      <th className="py-3 px-4 min-w-[110px] text-right">Thao tác</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                    {catPlans.map((plan) => {
+                      const { basePrice, finalPrice, promoDiscount, hasPromo } = getPlanPriceInfo(plan);
+                      return (
+                        <tr key={plan.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-3 px-4 font-bold text-slate-900">{plan.name}</td>
+                          <td className="py-3 px-4 font-medium">{plan.cpu || "2 vCPU"}</td>
+                          <td className="py-3 px-4 font-medium">{plan.ram || "4 GB"}</td>
+                          <td className="py-3 px-4 font-medium">{plan.storage || "80 GB SSD"}</td>
+                          <td className="py-3 px-4 font-medium">{plan.bandwidth || "Không giới hạn"}</td>
+                          <td className="py-3 px-4">
+                            <strong className="font-bold text-slate-900 text-xs block">
+                              {formatVND(finalPrice)}
+                            </strong>
+                            {hasPromo && (
+                              <span className="text-[10px] text-rose-600 font-semibold">
+                                Giảm {promoDiscount}%
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <Button
+                              onClick={() =>
+                                setOrderModalPlan({
+                                  ...plan,
+                                  prices: plan.prices.map((p) => ({
+                                    ...p,
+                                    price: p.price,
+                                    promotionDiscountPercentage: promoDiscount,
+                                  })),
+                                })
+                              }
+                              size="sm"
+                              className="bg-primary hover:bg-primary/95 text-white font-semibold text-xs rounded-xl px-3 h-8 gap-1 shadow-xs"
+                            >
+                              <ShoppingCart className="size-3" /> Đặt mua
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </section>
+        ))}
 
-        {/* 6. FAQ & Assurance Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-3xl bg-white border border-slate-200 space-y-2">
-            <div className="size-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <ShieldCheck className="size-5" />
-            </div>
-            <h4 className="font-bold text-slate-900 text-sm">Cam kết SLA 99.9%</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Hệ thống trung tâm dữ liệu tiêu chuẩn quốc tế đảm bảo máy chủ luôn online ổn định và liên tục 24/7.
-            </p>
-          </div>
+        {/* 5. Assurance Badges Grid */}
+        <section aria-label="Cam kết chất lượng dịch vụ" className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+          <Card className="rounded-3xl bg-white border-slate-200 p-6 space-y-2">
+            <CardHeader className="p-0 pb-2">
+              <div className="size-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <ShieldCheck className="size-5" />
+              </div>
+              <CardTitle className="font-bold text-slate-900 text-sm pt-2">Cam kết Uptime SLA 99.9%</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <CardDescription className="text-xs text-slate-500 leading-relaxed">
+                Hệ thống trung tâm dữ liệu tiêu chuẩn quốc tế Tier III đảm bảo máy chủ luôn online ổn định và liên tục 24/7.
+              </CardDescription>
+            </CardContent>
+          </Card>
 
-          <div className="p-6 rounded-3xl bg-white border border-slate-200 space-y-2">
-            <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-              <Zap className="size-5" />
-            </div>
-            <h4 className="font-bold text-slate-900 text-sm">Khởi tạo tức thì trong 60s</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Ngay sau khi xác nhận đơn hàng, toàn bộ thông tin quản trị IP và password sẽ được gửi tự động qua email.
-            </p>
-          </div>
+          <Card className="rounded-3xl bg-white border-slate-200 p-6 space-y-2">
+            <CardHeader className="p-0 pb-2">
+              <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                <Zap className="size-5" />
+              </div>
+              <CardTitle className="font-bold text-slate-900 text-sm pt-2">Khởi tạo tức thì trong 60s</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <CardDescription className="text-xs text-slate-500 leading-relaxed">
+                Ngay sau khi xác nhận đơn hàng, toàn bộ thông tin quản trị IP và password sẽ được gửi tự động qua email.
+              </CardDescription>
+            </CardContent>
+          </Card>
 
-          <div className="p-6 rounded-3xl bg-white border border-slate-200 space-y-2">
-            <div className="size-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <Sparkles className="size-5" />
-            </div>
-            <h4 className="font-bold text-slate-900 text-sm">Hỗ trợ kỹ thuật 24/7/365</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Đội ngũ chuyên gia kỹ sư hạ tầng luôn sẵn sàng hỗ trợ trực tuyến qua ticket, live chat và hotline.
-            </p>
-          </div>
-        </div>
-      </div>
+          <Card className="rounded-3xl bg-white border-slate-200 p-6 space-y-2">
+            <CardHeader className="p-0 pb-2">
+              <div className="size-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <Sparkles className="size-5" />
+              </div>
+              <CardTitle className="font-bold text-slate-900 text-sm pt-2">Hỗ trợ kỹ thuật 24/7/365</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <CardDescription className="text-xs text-slate-500 leading-relaxed">
+                Đội ngũ chuyên gia kỹ sư hạ tầng luôn sẵn sàng hỗ trợ trực tuyến qua ticket, live chat và hotline.
+              </CardDescription>
+            </CardContent>
+          </Card>
+        </section>
+      </section>
 
       {/* Order Service Modal */}
       <OrderServiceModal
@@ -530,6 +595,6 @@ export function PricingPageView({
         isOpen={!!orderModalPlan}
         onClose={() => setOrderModalPlan(null)}
       />
-    </div>
+    </main>
   );
 }
