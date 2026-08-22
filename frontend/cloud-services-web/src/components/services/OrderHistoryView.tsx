@@ -138,24 +138,10 @@ export function OrderHistoryView({ initialOrders, userEmail }: OrderHistoryViewP
     }
   };
 
-  // Load any locally tracked orders from localStorage if needed
+  // Dọn dẹp key my_cloud_orders cũ trong localStorage (nếu có) để tránh hiện đơn ảo
   React.useEffect(() => {
     try {
-      const localStored = localStorage.getItem("my_cloud_orders");
-      if (localStored) {
-        const localList: UserOrder[] = JSON.parse(localStored);
-        if (Array.isArray(localList) && localList.length > 0) {
-          // Merge unique by ID
-          setOrders((prev) => {
-            const map = new Map<string, UserOrder>();
-            prev.forEach((o) => map.set(o.id, o));
-            localList.forEach((o) => map.set(o.id, o));
-            return Array.from(map.values()).sort(
-              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
-          });
-        }
-      }
+      localStorage.removeItem("my_cloud_orders");
     } catch {
       // Ignore
     }

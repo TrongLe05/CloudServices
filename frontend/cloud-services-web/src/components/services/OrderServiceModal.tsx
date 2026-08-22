@@ -132,30 +132,6 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
       const resData = await res.json().catch(() => ({}));
       const orderId = resData?.id || resData?.Id || `order-${Date.now()}`;
 
-      // Save to local storage for quick access in Order History
-      try {
-        const newOrder = {
-          id: orderId,
-          servicePlanId: plan.id,
-          servicePlanName: plan.name,
-          billingCycle,
-          customerName: customerName.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          companyName: companyName.trim() || null,
-          status: 0,
-          createdAt: new Date().toISOString(),
-        };
-
-        const existing = JSON.parse(localStorage.getItem("my_cloud_orders") || "[]");
-        localStorage.setItem(
-          "my_cloud_orders",
-          JSON.stringify([newOrder, ...(Array.isArray(existing) ? existing : [])])
-        );
-      } catch {
-        // Ignore localStorage error
-      }
-
       // 💳 Gọi API tạo PayOS Payment Link & QR Code
       try {
         const payRes = await fetch("/api/payments/create-payos-link", {
