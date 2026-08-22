@@ -143,18 +143,20 @@ async function refreshAccessToken(token: any) {
       throw refreshedTokens;
     }
 
-    // Đọc thời hạn mới từ token vừa nhận (hoặc mặc định 15 phút)
-    const decoded: any = jose.decodeJwt(refreshedTokens.accessToken);
-    const exp = decoded.exp ? decoded.exp * 1000 : Date.now() + 15 * 60 * 1000;
+    const newAccessToken = refreshedTokens.accessToken || refreshedTokens.AccessToken;
+    const newRefreshToken =
+      refreshedTokens.refreshToken ||
+      refreshedTokens.RefreshToken ||
+      (res.headers.get("set-cookie") || "").match(/refreshToken=([^;]+)/)?.[1] ||
+      token.refreshToken;
 
-    // Lấy refresh token mới từ Set-Cookie (nếu có sliding window)
-    const setCookie = res.headers.get("set-cookie") || "";
-    const match = setCookie.match(/refreshToken=([^;]+)/);
-    const newRefreshToken = match ? match[1] : token.refreshToken;
+    // Đọc thời hạn mới từ token vừa nhận (hoặc mặc định 15 phút)
+    const decoded: any = jose.decodeJwt(newAccessToken);
+    const exp = decoded?.exp ? decoded.exp * 1000 : Date.now() + 15 * 60 * 1000;
 
     return {
       ...token,
-      accessToken: refreshedTokens.accessToken,
+      accessToken: newAccessToken,
       accessTokenExpires: exp,
       refreshToken: newRefreshToken,
       error: undefined,
