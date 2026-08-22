@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { blogPosts } from "@/constants/landing";
 import Image from "next/image";
 
+import { decodeHtmlEntities, stripHtml } from "@/lib/htmlUtils";
+
 export const LatestNews = () => {
   return (
     <section className="w-full py-24 md:py-32 bg-white">
@@ -65,12 +67,12 @@ export const LatestNews = () => {
 
                   <h3 className="mt-3.5 text-sm font-bold text-slate-900 leading-snug hover:text-primary transition-colors font-sans">
                     <Link href={`/blog/${index}`} className="line-clamp-2">
-                      {post.title}
+                      {decodeHtmlEntities(post.title)}
                     </Link>
                   </h3>
 
                   <p className="mt-3 text-xs text-slate-500 line-clamp-3 leading-relaxed font-sans">
-                    {post.desc}
+                    {stripHtml(post.desc)}
                   </p>
                 </div>
 
