@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getAuthAccessToken } from "@/lib/auth-token";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -7,41 +7,14 @@ if (process.env.NODE_ENV === "development") {
 
 export async function GET() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/service-categories`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const res = await fetch(`${apiUrl}/api/service-categories`, {
       cache: "no-store",
     });
 
     if (!res.ok) {
-      return NextResponse.json({ message: "Failed to fetch service categories" }, { status: res.status });
-    }
-
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message || "An error occurred" }, { status: 500 });
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("accessToken")?.value;
-
-    const payload = await req.json();
-
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/service-categories`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: accessToken ? `Bearer ${accessToken}` : "",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
       return NextResponse.json(
-        { message: errorText || "Failed to create service category" },
+        { message: "Failed to fetch service categories" },
         { status: res.status }
       );
     }
@@ -49,6 +22,42 @@ export async function POST(req: NextRequest) {
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message || "An error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { message: error.message || "An error occurred" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const accessToken = await getAuthAccessToken();
+    const payload = await req.json();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+
+    const res = await fetch(`${apiUrl}/api/service-categories`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return NextResponse.json(
+        { message: err.message || "Không thể tạo danh mục dịch vụ" },
+        { status: res.status }
+      );
+    }
+
+    const data = await res.json();
+    return NextResponse.json(data, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json(
+      { message: error.message || "An error occurred" },
+      { status: 500 }
+    );
   }
 }

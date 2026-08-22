@@ -103,6 +103,10 @@ const data = {
       isActive: true,
       items: [
         {
+          title: "Quản lý tài khoản",
+          url: "/admin/users",
+        },
+        {
           title: "Nhật ký hệ thống",
           url: "/admin/audit-logs",
         },

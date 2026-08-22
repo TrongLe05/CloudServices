@@ -53,6 +53,7 @@ import { OrderServiceModal, OrderModalPlan } from "./OrderServiceModal";
 import { PlanQrModal } from "./PlanQrModal";
 import { PlanQrThumbnail } from "./PlanQrThumbnail";
 import { toast } from "@/components/ui/toast";
+import { slugify } from "@/lib/slugUtils";
 
 export interface TestimonialItem {
   id: string;
@@ -892,7 +893,7 @@ export function PlanDetailView({
                       <Button
                         size="sm"
                         variant="outline"
-                        render={<Link href={`/dich-vu/${rPlan.categorySlug || "cloud"}/${rPlan.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} />}
+                        render={<Link href={`/dich-vu/${rPlan.categorySlug || slugify(rPlan.categoryName || "cloud")}/${slugify(rPlan.name)}`} />}
                         className="text-xs font-semibold"
                       >
                         Chi tiết

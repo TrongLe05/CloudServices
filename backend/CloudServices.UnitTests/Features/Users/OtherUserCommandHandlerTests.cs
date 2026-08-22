@@ -2,7 +2,6 @@ using CloudServices.Application.Common.Exceptions;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Application.Features.Users.Commands.CreateUser;
-using CloudServices.Application.Features.Users.Commands.CreateUserl;
 using CloudServices.Application.Features.Users.Commands.Logout;
 using CloudServices.Application.Features.Users.Commands.RefreshToken;
 using CloudServices.Domain.Entities;
@@ -19,6 +18,7 @@ public class OtherUserCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IRoleRepository> _roleRepositoryMock;
+    private readonly Mock<IPasswordHasher> _passwordHasherMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IJwtTokenGenerator> _jwtGeneratorMock;
 
@@ -26,30 +26,44 @@ public class OtherUserCommandHandlerTests
     {
         _userRepositoryMock = new Mock<IUserRepository>();
         _roleRepositoryMock = new Mock<IRoleRepository>();
+        _passwordHasherMock = new Mock<IPasswordHasher>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _jwtGeneratorMock = new Mock<IJwtTokenGenerator>();
+
+        _passwordHasherMock.Setup(h => h.HashPasswords(It.IsAny<string>()))
+            .Returns<string>(p => $"hashed_{p}");
     }
 
     [Fact]
-    public async Task CreateUser_RoleNotFound_ThrowsException()
+    public async Task CreateUser_RoleNotFound_ThrowsNotFoundException()
     {
         // Arrange
-        var handler = new CreateUserCommandHandler(_userRepositoryMock.Object, _roleRepositoryMock.Object, _unitOfWorkMock.Object);
-        var command = new CreateUserCommand { Username = "u", Password = "p", FullName = "fn", Email = "e@e.com" };
+        var handler = new CreateUserCommandHandler(
+            _userRepositoryMock.Object,
+            _roleRepositoryMock.Object,
+            _passwordHasherMock.Object,
+            _unitOfWorkMock.Object
+        );
+        var command = new CreateUserCommand("u", "p", "fn", "e@e.com");
 
         _roleRepositoryMock.Setup(repo => repo.GetByNameAsync("User", It.IsAny<CancellationToken>()))
             .ReturnsAsync((Role?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => handler.Handle(command, CancellationToken.None));
+        await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(command, CancellationToken.None));
     }
 
     [Fact]
     public async Task CreateUser_ValidRequest_CreatesUserAndSaves()
     {
         // Arrange
-        var handler = new CreateUserCommandHandler(_userRepositoryMock.Object, _roleRepositoryMock.Object, _unitOfWorkMock.Object);
-        var command = new CreateUserCommand { Username = "test", Password = "password", FullName = "fn", Email = "e@e.com" };
+        var handler = new CreateUserCommandHandler(
+            _userRepositoryMock.Object,
+            _roleRepositoryMock.Object,
+            _passwordHasherMock.Object,
+            _unitOfWorkMock.Object
+        );
+        var command = new CreateUserCommand("test", "password", "fn", "e@e.com");
         var role = new Role { Id = Guid.NewGuid(), Name = "User" };
 
         _roleRepositoryMock.Setup(repo => repo.GetByNameAsync("User", It.IsAny<CancellationToken>()))

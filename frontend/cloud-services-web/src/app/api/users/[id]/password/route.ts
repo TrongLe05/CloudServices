@@ -1,25 +1,33 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 }
 
-export async function GET() {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params;
     const accessToken = await getAuthAccessToken();
+    const body = await request.json();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
-    const res = await fetch(`${apiUrl}/api/statistics/popular-plans`, {
+    const res = await fetch(`${apiUrl}/api/users/${id}/password`, {
+      method: "PATCH",
       headers: {
+        "Content-Type": "application/json",
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      cache: "no-store",
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
       return NextResponse.json(
-        { message: "Failed to fetch popular plans stats" },
+        { message: err.message || "Không thể đặt lại mật khẩu người dùng" },
         { status: res.status }
       );
     }
