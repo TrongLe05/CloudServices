@@ -75,16 +75,10 @@ public sealed class AuthController(
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshRequestDto request)
     {
-        // ✅ Ưu tiên lấy từ Cookie, nếu không có thì lấy từ Request Body
-        string? refreshToken = null;
-        if (Request.Cookies.TryGetValue("refreshToken", out var cookieToken) && !string.IsNullOrEmpty(cookieToken))
-        {
-            refreshToken = cookieToken;
-        }
-        else if (!string.IsNullOrEmpty(request.RefreshToken))
-        {
-            refreshToken = request.RefreshToken;
-        }
+        // ✅ Ưu tiên lấy từ Request Body (nếu NextAuth hoặc SPA gửi lên), fallback sang Cookie nếu có
+        string? refreshToken = !string.IsNullOrEmpty(request.RefreshToken)
+            ? request.RefreshToken
+            : Request.Cookies.TryGetValue("refreshToken", out var cookieToken) ? cookieToken : null;
 
         if (string.IsNullOrEmpty(refreshToken))
         {

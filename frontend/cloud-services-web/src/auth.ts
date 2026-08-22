@@ -7,6 +7,9 @@ if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 }
 
+// In-flight refresh promise map to prevent race conditions during concurrent server requests
+const inFlightRefreshes = new Map<string, Promise<any>>();
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
@@ -89,11 +92,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           accessTokenExpires: (user as any).accessTokenExpires,
           role: (user as any).role,
           username: user.name,
+          error: undefined,
         };
       }
 
       // 2. Token vẫn còn hạn (trừ hao 1 phút để an toàn) -> Trả về token hiện tại
-      if (Date.now() < (token.accessTokenExpires as number) - 60 * 1000) {
+      if (
+        token.accessTokenExpires &&
+        Date.now() < (token.accessTokenExpires as number) - 60 * 1000
+      ) {
         return token;
       }
 
@@ -121,54 +128,79 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 });
 
 async function refreshAccessToken(token: any) {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Cookie: `refreshToken=${token.refreshToken}`,
-        },
-        body: JSON.stringify({
-          expiredAccessToken: token.accessToken,
-          refreshToken: token.refreshToken,
-        }),
-      },
-    );
-
-    const refreshedTokens = await res.json();
-
-    if (!res.ok) {
-      throw refreshedTokens;
-    }
-
-    const newAccessToken =
-      refreshedTokens.accessToken || refreshedTokens.AccessToken;
-    const newRefreshToken =
-      refreshedTokens.refreshToken ||
-      refreshedTokens.RefreshToken ||
-      (res.headers.get("set-cookie") || "").match(
-        /refreshToken=([^;]+)/,
-      )?.[1] ||
-      token.refreshToken;
-
-    // Đọc thời hạn mới từ token vừa nhận (hoặc mặc định 15 phút)
-    const decoded: any = jose.decodeJwt(newAccessToken);
-    const exp = decoded?.exp ? decoded.exp * 1000 : Date.now() + 15 * 60 * 1000;
-
+  if (!token.refreshToken) {
     return {
       ...token,
-      accessToken: newAccessToken,
-      accessTokenExpires: exp,
-      refreshToken: newRefreshToken,
-      error: undefined,
-    };
-  } catch (error) {
-    console.error("Lỗi khi Refresh Token qua Auth.js:", error);
-    return {
-      ...token,
-      error: "RefreshAccessTokenError", // Đánh dấu lỗi để client/middleware nhận biết và logout
+      error: "RefreshAccessTokenError",
     };
   }
+
+  const key = token.username || token.refreshToken;
+  if (inFlightRefreshes.has(key)) {
+    return await inFlightRefreshes.get(key);
+  }
+
+  const refreshPromise = (async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `refreshToken=${token.refreshToken}`,
+          },
+          body: JSON.stringify({
+            expiredAccessToken: token.accessToken,
+            refreshToken: token.refreshToken,
+          }),
+        },
+      );
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        console.error("Lỗi khi Refresh Token qua Auth.js:", res.status, errData);
+        return {
+          ...token,
+          error: "RefreshAccessTokenError",
+        };
+      }
+
+      const refreshedTokens = await res.json();
+      const newAccessToken =
+        refreshedTokens.accessToken || refreshedTokens.AccessToken;
+      const newRefreshToken =
+        refreshedTokens.refreshToken ||
+        refreshedTokens.RefreshToken ||
+        (res.headers.get("set-cookie") || "").match(
+          /refreshToken=([^;]+)/,
+        )?.[1] ||
+        token.refreshToken;
+
+      // Đọc thời hạn mới từ token vừa nhận (hoặc mặc định 15 phút)
+      const decoded: any = jose.decodeJwt(newAccessToken);
+      const exp = decoded?.exp
+        ? decoded.exp * 1000
+        : Date.now() + 15 * 60 * 1000;
+
+      return {
+        ...token,
+        accessToken: newAccessToken,
+        accessTokenExpires: exp,
+        refreshToken: newRefreshToken,
+        error: undefined,
+      };
+    } catch (error) {
+      console.error("Lỗi mạng khi Refresh Token qua Auth.js:", error);
+      return {
+        ...token,
+        error: "RefreshAccessTokenError",
+      };
+    } finally {
+      inFlightRefreshes.delete(key);
+    }
+  })();
+
+  inFlightRefreshes.set(key, refreshPromise);
+  return await refreshPromise;
 }
