@@ -51,32 +51,9 @@ export const Promotions = ({ initialPromotions = [] }: PromotionsProps) => {
 
   const icons = [Gift, Percent, RefreshCw, Tag];
 
-  // If no promotions from API, fallback to default promotions or empty state
-  const displayPromos = initialPromotions.length > 0
-    ? initialPromotions
-    : [
-        {
-          id: "1",
-          name: "Ưu Đãi Trải Nghiệm Doanh Nghiệp Mới",
-          discountPercentage: 20,
-          startDate: new Date().toISOString(),
-          endDate: new Date(Date.now() + 30 * 86400000).toISOString(),
-        },
-        {
-          id: "2",
-          name: "Chiết Khấu Thanh Toán Chu Kỳ 1 Năm",
-          discountPercentage: 25,
-          startDate: new Date().toISOString(),
-          endDate: new Date(Date.now() + 60 * 86400000).toISOString(),
-        },
-        {
-          id: "3",
-          name: "Chuyển Đổi Hạ Tầng Lên Cloud 0Đ",
-          discountPercentage: 15,
-          startDate: new Date().toISOString(),
-          endDate: new Date(Date.now() + 15 * 86400000).toISOString(),
-        },
-      ];
+  // Chỉ hiển thị tối đa 3 ưu đãi
+  const displayPromos = initialPromotions.slice(0, 3);
+
 
   return (
     <section className="w-full py-24 md:py-32 bg-slate-50 border-b border-slate-100 relative overflow-hidden">
