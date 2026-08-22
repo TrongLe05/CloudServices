@@ -174,4 +174,3 @@ export const LatestNews = ({ initialNews = [] }: LatestNewsProps) => {
     </section>
   );
 };
-
