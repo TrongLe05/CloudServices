@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Common.Interfaces.Repositories;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Domain.Entities;
 using CloudServices.Domain.Enums;
 using CloudServices.Infrastructure.Data;
@@ -25,6 +25,11 @@ public sealed class AffiliateApplicationRepository(ApplicationDbContext context)
        return await context.AffiliateApplications.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
     }
 
+    public async Task<AffiliateApplication?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+    {
+       return await context.AffiliateApplications.FirstOrDefaultAsync(a => a.Email.ToLower() == email.ToLower(), cancellationToken);
+    }
+
     public async Task<(IReadOnlyList<AffiliateApplication> item, int total)> GetPagedAsync(string? search, AffiliateStatus? status, string? sort, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = context.AffiliateApplications
@@ -43,7 +48,6 @@ public sealed class AffiliateApplicationRepository(ApplicationDbContext context)
             "oldest" => query.OrderBy(a => a.CreatedAt),
             _ => query.OrderByDescending(a => a.CreatedAt)
         };
-
 
         var items = await query
             .Skip((page - 1) * pageSize)
