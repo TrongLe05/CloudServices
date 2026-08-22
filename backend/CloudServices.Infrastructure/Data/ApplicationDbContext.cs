@@ -47,40 +47,4 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         var condition = System.Linq.Expressions.Expression.Equal(property, System.Linq.Expressions.Expression.Constant(true));
         return System.Linq.Expressions.Expression.Lambda(condition, parameter);
     }
-
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        UpdateAuditFields();
-        return base.SaveChangesAsync(cancellationToken);
-    }
-
-    public override int SaveChanges()
-    {
-        UpdateAuditFields();
-        return base.SaveChanges();
-    }
-
-    private void UpdateAuditFields()
-    {
-        var entries = ChangeTracker.Entries<BaseEntity>();
-
-        foreach (var entry in entries)
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-                entry.Entity.IsActive = true;
-            }
-            else if (entry.State == EntityState.Modified)
-            {
-                entry.Entity.LastModifiedAt = DateTime.UtcNow;
-            }
-            else if (entry.State == EntityState.Deleted)
-            {
-                entry.State = EntityState.Modified;
-                entry.Entity.IsActive = false;
-                entry.Entity.LastModifiedAt = DateTime.UtcNow;
-            }
-        }
-    }
 }
