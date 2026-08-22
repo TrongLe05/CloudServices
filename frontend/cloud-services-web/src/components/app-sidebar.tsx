@@ -7,6 +7,7 @@ import {
   Cpu,
   Tag,
   Settings2,
+  ShieldCheck,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -92,6 +93,18 @@ const data = {
         {
           title: "Tin tức & Blog",
           url: "/admin/news",
+        },
+      ],
+    },
+    {
+      title: "Bảo mật & Giám sát",
+      url: "#",
+      icon: ShieldCheck,
+      isActive: true,
+      items: [
+        {
+          title: "Nhật ký hệ thống",
+          url: "/admin/audit-logs",
         },
       ],
     },
