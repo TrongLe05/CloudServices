@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CloudServices.Domain.Entities;
 using CloudServices.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace CloudServices.API.Middleware;
 
@@ -32,13 +34,15 @@ public class AuditLoggingMiddleware
 
         var stopwatch = Stopwatch.StartNew();
 
-        // 1. Đọc Payload của request (nếu có)
+        // 1. Đọc Payload của request (nếu có và là application/json)
+        string? rawBody = null;
         string? requestPayload = null;
+
         if (context.Request.ContentLength > 0 && context.Request.ContentType?.Contains("application/json") == true)
         {
             context.Request.EnableBuffering();
             using var reader = new StreamReader(context.Request.Body, Encoding.UTF8, leaveOpen: true);
-            var rawBody = await reader.ReadToEndAsync();
+            rawBody = await reader.ReadToEndAsync();
             context.Request.Body.Position = 0;
 
             requestPayload = MaskSensitiveData(rawBody);
@@ -65,55 +69,91 @@ public class AuditLoggingMiddleware
 
             try
             {
-                // Trích xuất thông tin người dùng từ JWT Claims
-                var userIdClaim = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                Guid? userId = Guid.TryParse(userIdClaim, out var uid) ? uid : null;
-
-                var username = context.User?.FindFirst(ClaimTypes.Name)?.Value 
-                    ?? context.User?.FindFirst(ClaimTypes.Email)?.Value 
-                    ?? (context.User?.Identity?.IsAuthenticated == true ? context.User.Identity.Name : "Khách vãng lai");
-
-                var userRole = context.User?.FindFirst(ClaimTypes.Role)?.Value;
-
-                var ipAddress = context.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
-                    ?? context.Connection.RemoteIpAddress?.ToString();
-
-                var userAgent = context.Request.Headers.UserAgent.ToString();
-                if (userAgent.Length > 500) userAgent = userAgent[..500];
-
                 var statusCode = context.Response.StatusCode;
-                var isSuccess = statusCode >= 200 && statusCode < 400;
 
-                var category = ResolveCategory(path);
-                var actionName = ResolveActionName(context.Request.Method, path);
-
-                var log = new AuditLog
+                // Chỉ ghi log cho các hành động thay đổi dữ liệu (POST, PUT, PATCH, DELETE), hành động xuất dữ liệu hoặc request bị lỗi (>= 400).
+                if (ShouldAuditRequest(context.Request.Method, path, statusCode))
                 {
-                    Id = Guid.NewGuid(),
-                    UserId = userId,
-                    Username = string.IsNullOrWhiteSpace(username) ? "Khách vãng lai" : username,
-                    UserRole = userRole,
-                    Category = category,
-                    Action = actionName,
-                    HttpMethod = context.Request.Method,
-                    Path = path.Length > 500 ? path[..500] : path,
-                    StatusCode = statusCode,
-                    IsSuccess = isSuccess,
-                    ExecutionDurationMs = stopwatch.ElapsedMilliseconds,
-                    IpAddress = ipAddress,
-                    UserAgent = userAgent,
-                    Payload = requestPayload,
-                    ErrorMessage = errorMessage,
-                    Timestamp = DateTime.UtcNow
-                };
+                    // 1. Trích xuất thông tin người dùng từ JWT Claims (nếu request có Bearer Token)
+                    var userIdClaim = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    Guid? userId = Guid.TryParse(userIdClaim, out var uid) ? uid : null;
 
-                // Ghi log cấu trúc thông qua Serilog
-                _logger.LogInformation(
-                    "[Serilog AuditLog] Phân loại={Category} | Hành động={Action} | User={Username} ({UserRole}) | Method={HttpMethod} | Path={Path} | Status={StatusCode} | Duration={Duration}ms | IP={IpAddress}",
-                    category, actionName, log.Username, userRole ?? "N/A", context.Request.Method, path, statusCode, stopwatch.ElapsedMilliseconds, ipAddress);
+                    var username = context.User?.FindFirst(ClaimTypes.Name)?.Value 
+                        ?? context.User?.FindFirst(ClaimTypes.Email)?.Value 
+                        ?? (context.User?.Identity?.IsAuthenticated == true ? context.User.Identity.Name : null);
 
-                dbContext.AuditLogs.Add(log);
-                await dbContext.SaveChangesAsync();
+                    var userRole = context.User?.FindFirst(ClaimTypes.Role)?.Value;
+
+                    // 2. Nếu chưa có username (ví dụ: đang đăng nhập /auth/login, đặt lại mật khẩu /auth/reset-password, xác thực OTP /auth/verify-otp...)
+                    // thì trích xuất username / email / token trực tiếp từ Payload
+                    if (string.IsNullOrWhiteSpace(username))
+                    {
+                        username = ExtractUsernameFromPayload(rawBody);
+                    }
+
+                    // 3. Nếu đã xác định được username/email từ payload nhưng chưa có Role/UserId, tra cứu từ Database
+                    if (!string.IsNullOrWhiteSpace(username) && (userId == null || string.IsNullOrWhiteSpace(userRole)))
+                    {
+                        try
+                        {
+                            var appUser = dbContext.AppUsers
+                                .Include(u => u.Role)
+                                .AsNoTracking()
+                                .FirstOrDefault(u => u.Username == username || u.Email == username);
+
+                            if (appUser != null)
+                            {
+                                userId ??= appUser.Id;
+                                userRole ??= appUser.Role?.Name;
+                                username = appUser.Username; // Chuẩn hóa lại username chính thức của tài khoản
+                            }
+                        }
+                        catch
+                        {
+                            // Bỏ qua lỗi tra cứu DB phụ trợ để không ảnh hưởng luồng chính
+                        }
+                    }
+
+                    username = string.IsNullOrWhiteSpace(username) ? "Khách vãng lai" : username;
+
+                    var ipAddress = context.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
+                        ?? context.Connection.RemoteIpAddress?.ToString();
+
+                    var userAgent = context.Request.Headers.UserAgent.ToString();
+                    if (userAgent.Length > 500) userAgent = userAgent[..500];
+
+                    var isSuccess = statusCode >= 200 && statusCode < 400;
+                    var category = ResolveCategory(path);
+                    var actionName = ResolveActionName(context.Request.Method, path);
+
+                    var log = new AuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = userId,
+                        Username = username,
+                        UserRole = userRole,
+                        Category = category,
+                        Action = actionName,
+                        HttpMethod = context.Request.Method,
+                        Path = path.Length > 500 ? path[..500] : path,
+                        StatusCode = statusCode,
+                        IsSuccess = isSuccess,
+                        ExecutionDurationMs = stopwatch.ElapsedMilliseconds,
+                        IpAddress = ipAddress,
+                        UserAgent = userAgent,
+                        Payload = requestPayload,
+                        ErrorMessage = errorMessage,
+                        Timestamp = DateTime.UtcNow
+                    };
+
+                    // Ghi log cấu trúc qua Serilog
+                    _logger.LogInformation(
+                        "[Serilog AuditLog] Phân loại={Category} | Hành động={Action} | User={Username} ({UserRole}) | Method={HttpMethod} | Path={Path} | Status={StatusCode} | Duration={Duration}ms | IP={IpAddress}",
+                        category, actionName, log.Username, userRole ?? "N/A", context.Request.Method, path, statusCode, stopwatch.ElapsedMilliseconds, ipAddress);
+
+                    dbContext.AuditLogs.Add(log);
+                    await dbContext.SaveChangesAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -139,6 +179,108 @@ public class AuditLoggingMiddleware
                lowerPath.EndsWith(".js");
     }
 
+    private static bool ShouldAuditRequest(string method, string path, int statusCode)
+    {
+        // 1. Luôn ghi log nếu có lỗi (4xx hoặc 5xx) để theo dõi an ninh và sự cố hệ thống
+        if (statusCode >= 400)
+        {
+            return true;
+        }
+
+        var m = method.ToUpperInvariant();
+        var p = path.ToLowerInvariant();
+
+        // 2. Luôn ghi log các thao tác làm thay đổi dữ liệu hoặc tác động nghiệp vụ (POST, PUT, PATCH, DELETE)
+        if (m is "POST" or "PUT" or "PATCH" or "DELETE")
+        {
+            return true;
+        }
+
+        // 3. Ghi log các thao tác nhạy cảm đặc biệt ngay cả khi là GET (ví dụ: Xuất Excel, Export file báo cáo)
+        if (p.Contains("/export") || p.Contains("/download") || p.Contains("/backup"))
+        {
+            return true;
+        }
+
+        // 4. Bỏ qua các lệnh GET thông thường (xem trang chủ, load danh sách gói dịch vụ, tin tức, categories, statistics để render UI...)
+        return false;
+    }
+
+    private static string? ExtractUsernameFromPayload(string? rawJson)
+    {
+        if (string.IsNullOrWhiteSpace(rawJson)) return null;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(rawJson);
+            var root = doc.RootElement;
+
+            // 1. Kiểm tra các trường username (cho Login, Register, ...)
+            foreach (var prop in new[] { "username", "Username", "userName", "UserName" })
+            {
+                if (root.TryGetProperty(prop, out var u))
+                {
+                    var val = u.GetString();
+                    if (!string.IsNullOrWhiteSpace(val)) return val;
+                }
+            }
+
+            // 2. Kiểm tra các trường email (cho Forgot Password, Verify OTP, ...)
+            foreach (var prop in new[] { "email", "Email" })
+            {
+                if (root.TryGetProperty(prop, out var e))
+                {
+                    var val = e.GetString();
+                    if (!string.IsNullOrWhiteSpace(val)) return val;
+                }
+            }
+
+            // 3. Kiểm tra các trường chứa JWT Token (cho Reset Password, Refresh Token...)
+            foreach (var prop in new[] { "resetToken", "ResetToken", "expiredAccessToken", "ExpiredAccessToken", "accessToken", "AccessToken", "token", "Token" })
+            {
+                if (root.TryGetProperty(prop, out var tokenElem))
+                {
+                    var tokenStr = tokenElem.GetString();
+                    var identity = ExtractIdentityFromJwt(tokenStr);
+                    if (!string.IsNullOrWhiteSpace(identity)) return identity;
+                }
+            }
+        }
+        catch
+        {
+            // Bỏ qua lỗi parse JSON không hợp lệ
+        }
+
+        return null;
+    }
+
+    private static string? ExtractIdentityFromJwt(string? tokenStr)
+    {
+        if (string.IsNullOrWhiteSpace(tokenStr)) return null;
+
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            if (handler.CanReadToken(tokenStr))
+            {
+                var jwt = handler.ReadJwtToken(tokenStr);
+                return jwt.Claims.FirstOrDefault(c => 
+                    c.Type is ClaimTypes.Name 
+                           or ClaimTypes.Email 
+                           or "unique_name" 
+                           or "email" 
+                           or "sub" 
+                           or ClaimTypes.NameIdentifier)?.Value;
+            }
+        }
+        catch
+        {
+            // Bỏ qua lỗi token
+        }
+
+        return null;
+    }
+
     private static string MaskSensitiveData(string rawJson)
     {
         if (string.IsNullOrWhiteSpace(rawJson)) return rawJson;
@@ -146,7 +288,7 @@ public class AuditLoggingMiddleware
         try
         {
             // Thay thế các trường nhạy cảm bằng "******"
-            var pattern = @"(?i)""(password|confirmPassword|token|secretKey|accessToken|refreshToken|oldPassword|newPassword)""\s*:\s*""([^""]*)""";
+            var pattern = @"(?i)""(password|confirmPassword|token|secretKey|accessToken|refreshToken|oldPassword|newPassword|resetToken)""\s*:\s*""([^""]*)""";
             return Regex.Replace(rawJson, pattern, @"""$1"": ""******""");
         }
         catch
@@ -163,9 +305,11 @@ public class AuditLoggingMiddleware
         // 1. Auth & Người dùng
         if (p.Contains("/auth/login")) return "Đăng nhập hệ thống";
         if (p.Contains("/auth/register")) return "Đăng ký tài khoản";
+        if (p.Contains("/auth/logout")) return "Đăng xuất tài khoản";
         if (p.Contains("/auth/forgot-password")) return "Yêu cầu quên mật khẩu";
         if (p.Contains("/auth/reset-password")) return "Đặt lại mật khẩu";
         if (p.Contains("/auth/verify-otp")) return "Xác thực mã OTP";
+        if (p.Contains("/auth/refresh-token")) return "Làm mới phiên đăng nhập (Refresh Token)";
         if (p.Contains("/users/me")) return "Xem thông tin cá nhân";
 
         // 2. Yêu cầu đặt dịch vụ (Order Requests)
