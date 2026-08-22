@@ -31,14 +31,14 @@ public class PaymentsController : ApiControllerBase
         {
             var statusDto = await paymentGateway.GetPaymentStatusAsync(orderCode, cancellationToken);
             
-            // Nếu đã thanh toán thành công, tự động đồng bộ đơn hàng sang Completed
+            // Nếu đã thanh toán thành công, tự động đồng bộ đơn hàng sang Processing (Đang xử lý)
             if (statusDto.IsPaid)
             {
                 var allOrders = await orderRepository.GetAllAsync(cancellationToken);
                 var matchedOrder = allOrders.FirstOrDefault(o => o.Notes == $"PayOS:{orderCode}");
-                if (matchedOrder != null && matchedOrder.Status != Domain.Enums.OrderStatus.Completed)
+                if (matchedOrder != null && matchedOrder.Status == Domain.Enums.OrderStatus.New)
                 {
-                    matchedOrder.Status = Domain.Enums.OrderStatus.Completed;
+                    matchedOrder.Status = Domain.Enums.OrderStatus.Processing;
                     orderRepository.Update(matchedOrder);
                     await unitOfWork.SaveChangesAsync(cancellationToken);
                 }
