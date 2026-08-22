@@ -4,7 +4,6 @@ if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 }
 
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,14 +14,11 @@ import {
   ArrowLeft,
   Share2,
   Bookmark,
-  Sparkles,
   ChevronRight,
-  Eye,
-  Tag,
+  Sparkles,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -83,7 +79,7 @@ export default async function BlogDetailPage({
   return (
     <div className="min-h-screen bg-slate-50/50 pb-24">
       {/* Breadcrumb Header */}
-      <div className="border-b border-slate-200 bg-white">
+      <nav aria-label="Breadcrumb" className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-4xl px-6 py-3.5">
           <Breadcrumb>
             <BreadcrumbList>
@@ -92,119 +88,141 @@ export default async function BlogDetailPage({
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink render={<Link href="/blog" />}>Tin tức & Blog</BreadcrumbLink>
+                <BreadcrumbLink render={<Link href="/blog" />}>Tin tức &amp; Blog</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage className="line-clamp-1 max-w-xs">{decodeHtmlEntities(article.title)}</BreadcrumbPage>
+                <BreadcrumbPage className="line-clamp-1 max-w-xs text-slate-900 font-medium">
+                  {decodeHtmlEntities(article.title)}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
-      </div>
+      </nav>
 
-      <main className="mx-auto max-w-4xl px-6 pt-10 space-y-10">
+      <main className="mx-auto max-w-4xl px-6 pt-8 space-y-8">
         {/* Back Link */}
-        <Link
-          href="/blog"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary transition-colors"
-        >
-          <ArrowLeft className="size-3.5" /> Quay lại danh sách tin tức
-        </Link>
+        <nav aria-label="Quay lại">
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-primary transition-colors py-1 px-2.5 rounded-lg hover:bg-slate-100/80 -ml-2.5 w-fit"
+          >
+            <ArrowLeft className="size-3.5" /> Quay lại danh sách bài viết
+          </Link>
+        </nav>
 
-        {/* Article Masthead */}
-        <header className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Badge className="bg-primary text-white text-xs font-bold px-3 py-1">
-              {article.category || "Công nghệ"}
-            </Badge>
-            <span className="text-xs text-slate-400">•</span>
-            <span className="text-xs text-slate-500 font-sans">
-              {formatDate(article.publishedAt || article.createdAt)}
-            </span>
-          </div>
-
-          <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight font-heading">
-            {decodeHtmlEntities(article.title)}
-          </h1>
-
-          {/* Author info & Actions bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-y border-slate-200 text-xs text-slate-500">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
-                CS
-              </div>
-              <div>
-                <p className="font-bold text-slate-900">Ban Biên tập Kỹ thuật</p>
-                <p className="text-[11px] text-slate-400">CloudServices Media & Engineering</p>
-              </div>
+        {/* Main Article Container - Title & Content inside together */}
+        <article className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+          {/* Article Header (inside article container) */}
+          <header className="p-8 md:p-12 pb-6 md:pb-8 border-b border-slate-100 space-y-6">
+            {/* Category & Date badge */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Badge className="bg-primary/10 hover:bg-primary/15 text-primary border border-primary/20 text-xs font-bold px-3 py-1">
+                {article.category || "Tin tức"}
+              </Badge>
+              <span className="text-xs text-slate-300">•</span>
+              <time
+                dateTime={article.publishedAt || article.createdAt}
+                className="flex items-center gap-1.5 text-xs text-slate-500 font-medium"
+              >
+                <Calendar className="size-3.5 text-slate-400" />
+                {formatDate(article.publishedAt || article.createdAt)}
+              </time>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 border-slate-200">
-                <Share2 className="size-3.5" /> Chia sẻ
-              </Button>
-              <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 border-slate-200">
-                <Bookmark className="size-3.5" /> Lưu bài
-              </Button>
-            </div>
-          </div>
-        </header>
+            {/* Article Title */}
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight font-heading">
+              {decodeHtmlEntities(article.title)}
+            </h1>
 
-        {/* Featured Image */}
-        {article.thumbnailUrl && (
-          <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden bg-slate-100 border border-slate-200 shadow-md">
-            <Image
-              src={article.thumbnailUrl}
-              alt={article.title}
-              fill
-              className="object-cover"
-              priority
+            {/* Author info & Actions bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100 text-xs text-slate-500">
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold font-mono text-xs shadow-xs">
+                  CS
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 text-xs">Ban Biên tập Kỹ thuật</p>
+                  <p className="text-[11px] text-slate-400">CloudServices Media &amp; Engineering</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl text-xs gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50 h-8.5"
+                >
+                  <Share2 className="size-3.5" /> Chia sẻ
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl text-xs gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50 h-8.5"
+                >
+                  <Bookmark className="size-3.5" /> Lưu bài
+                </Button>
+              </div>
+            </div>
+          </header>
+
+          {/* Article Body Content */}
+          <div className="p-8 md:p-12 pt-8 md:pt-10">
+            <div
+              className="prose prose-slate max-w-none text-slate-800 leading-relaxed text-sm md:text-base prose-headings:font-bold prose-headings:text-slate-900 prose-headings:tracking-tight prose-a:text-primary prose-a:underline hover:prose-a:text-primary/80 prose-img:rounded-2xl prose-img:border prose-img:border-slate-200 prose-table:border prose-table:border-slate-200 prose-th:bg-slate-50 prose-th:p-3 prose-td:p-3 prose-blockquote:border-l-primary prose-blockquote:bg-slate-50 prose-blockquote:p-4 prose-blockquote:rounded-r-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:rounded-2xl"
+              dangerouslySetInnerHTML={{ __html: formatHtmlContent(article.content) }}
             />
           </div>
-        )}
+        </article>
 
-        {/* Article Body Content (Typography phong cách báo chí chuẩn HTML) */}
-        <article
-          className="prose prose-slate max-w-none bg-white p-8 md:p-12 rounded-3xl border border-slate-200/80 shadow-xs text-slate-800 leading-relaxed text-sm md:text-base prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-primary prose-a:underline hover:prose-a:text-primary/80 prose-img:rounded-2xl prose-img:border prose-img:border-slate-200 prose-table:border prose-table:border-slate-200 prose-th:bg-slate-50 prose-th:p-3 prose-td:p-3 prose-blockquote:border-l-primary prose-blockquote:bg-slate-50 prose-blockquote:p-4 prose-blockquote:rounded-r-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:rounded-2xl"
-          dangerouslySetInnerHTML={{ __html: formatHtmlContent(article.content) }}
-        />
-
-        {/* Related Articles */}
+        {/* Related Articles Section */}
         {related.length > 0 && (
-          <section className="space-y-6 pt-10 border-t border-slate-200">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-slate-900 font-heading">
+          <section className="space-y-6 pt-6">
+            <header className="flex items-center justify-between border-b border-slate-200/80 pb-4">
+              <h3 className="text-lg md:text-xl font-bold text-slate-900 font-heading">
                 Bài viết liên quan
               </h3>
-              <Button variant="ghost" size="sm" render={<Link href="/blog" />} className="text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                render={<Link href="/blog" />}
+                className="text-xs text-primary hover:text-primary hover:bg-primary/10 font-semibold"
+              >
                 Xem tất cả <ChevronRight className="size-3.5 ml-1" />
               </Button>
-            </div>
+            </header>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {related.map((item) => (
                 <Link
                   key={item.id}
                   href={`/blog/${item.slug || item.id}`}
-                  className="group bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all space-y-3"
+                  className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-primary/20 transition-all space-y-3 flex flex-col justify-between"
                 >
-                  {item.thumbnailUrl && (
-                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-slate-100">
-                      <Image
-                        src={item.thumbnailUrl}
-                        alt={item.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform"
-                      />
-                    </div>
-                  )}
-                  <Badge variant="secondary" className="text-[10px]">
-                    {item.category}
-                  </Badge>
-                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-                    {decodeHtmlEntities(item.title)}
-                  </h4>
+                  <div className="space-y-2.5">
+                    {item.thumbnailUrl && (
+                      <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 border border-slate-100">
+                        <Image
+                          src={item.thumbnailUrl}
+                          alt={item.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <Badge variant="secondary" className="text-[10px] font-semibold text-primary bg-primary/10">
+                      {item.category || "Tin tức"}
+                    </Badge>
+                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-2 leading-snug font-sans">
+                      {decodeHtmlEntities(item.title)}
+                    </h4>
+                  </div>
+
+                  <div className="pt-2 text-[11px] text-slate-400 font-medium flex items-center justify-between border-t border-slate-50">
+                    <span>Đọc tiếp</span>
+                    <ChevronRight className="size-3 group-hover:translate-x-0.5 transition-transform text-primary" />
+                  </div>
                 </Link>
               ))}
             </div>

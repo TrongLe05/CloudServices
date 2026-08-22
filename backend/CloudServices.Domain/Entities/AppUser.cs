@@ -16,6 +16,9 @@ public class AppUser : BaseEntity
     [SensitiveAuditData]
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiryTime { get; set; }
+    [SensitiveAuditData]
+    public string? PreviousRefreshToken { get; set; }
+    public DateTime? PreviousRefreshTokenExpiryTime { get; set; }
 
     // Navigation properties
     public virtual Role Role { get; set; } = null!;
