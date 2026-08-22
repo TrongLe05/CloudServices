@@ -75,6 +75,10 @@ namespace CloudServices.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AvatarUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -198,7 +202,7 @@ namespace CloudServices.Infrastructure.Data.Migrations
                         .HasColumnType("varchar(250)");
 
                     b.Property<string>("ThumbnailUrl")
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()

@@ -4,7 +4,7 @@ export interface Feature {
   children?: Feature[];
 }
 
-export const features = [
+export const features: Feature[] = [
   {
     title: "Trang chủ",
     href: "/",

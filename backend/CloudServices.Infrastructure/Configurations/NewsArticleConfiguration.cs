@@ -34,7 +34,7 @@ public class NewsArticleConfiguration : IEntityTypeConfiguration<NewsArticle>
             .IsRequired();
 
         builder.Property(n => n.ThumbnailUrl)
-            .HasColumnType("varchar(500)");
+            .HasColumnType("nvarchar(max)");
 
         builder.Property(n => n.PublishedAt);
 

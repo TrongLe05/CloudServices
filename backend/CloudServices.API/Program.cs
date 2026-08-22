@@ -1,16 +1,20 @@
 using CloudServices.API.Middleware;
 using CloudServices.Application;
+using CloudServices.Application.Common.Interfaces;
 using CloudServices.Infrastructure;
 using CloudServices.Infrastructure.Data;
+using CloudServices.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Net.payOS;
 using Scalar.AspNetCore;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddAuthorization();
 
 // Exception handling
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
@@ -81,6 +85,33 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+var corsPolicyName = "AllowFrontendPolicy";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: corsPolicyName,
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000") // Địa chỉ chính xác của Frontend React/Next.js
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // 🔴 BẮT BUỘC: Cho phép gửi/nhận Cookie chéo domain
+        });
+});
+
+builder.Services.AddHttpClient<IEmailSender, ResendEmailSender>();
+
+builder.Services.AddMemoryCache();
+
+var payOsClientId = builder.Configuration["PayOS:ClientId"] ?? builder.Configuration["PayOs:ClientId"]
+    ?? throw new InvalidOperationException("Chưa cấu hình PayOS ClientId");
+var payOsApiKey = builder.Configuration["PayOS:ApiKey"] ?? builder.Configuration["PayOs:ApiKey"]
+    ?? throw new InvalidOperationException("Chưa cấu hình PayOS ApiKey");
+var payOsChecksumKey = builder.Configuration["PayOS:ChecksumKey"] ?? builder.Configuration["PayOs:ChecksumKey"]
+    ?? throw new InvalidOperationException("Chưa cấu hình PayOS ChecksumKey");
+
+builder.Services.AddSingleton(new PayOS(payOsClientId, payOsApiKey, payOsChecksumKey));
+
 var app = builder.Build();
 
 // Global Exception Handler
@@ -108,6 +139,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontendPolicy");
 
 app.UseAuthentication();
 

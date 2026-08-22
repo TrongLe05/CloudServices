@@ -1,4 +1,4 @@
-﻿using CloudServices.Domain.Entities;
+using CloudServices.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CloudServices.Infrastructure.Data.Interfaces;

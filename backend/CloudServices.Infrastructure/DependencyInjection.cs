@@ -34,6 +34,7 @@ public static class DependencyInjection
         // 4. Đăng ký Repositories & UnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IPromotionRepository, PromotionRepository>(); // <-- Đã thêm ở đây
         services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
@@ -49,6 +50,11 @@ public static class DependencyInjection
 
         // Đăng ký QR Code Generator
         services.AddSingleton<IQrCodeGenerator, QrCodeGenerator>();
+
+        services.AddTransient<IExcelExporter, ExcelExporter>();
+
+        // Đăng ký PayOS Payment Gateway
+        services.AddScoped<IPaymentGateway, PayOSPaymentGateway>();
 
         return services;
     }

@@ -15,6 +15,11 @@ public sealed class AffiliateApplicationRepository(ApplicationDbContext context)
 
     public void Delete(AffiliateApplication application) => context.AffiliateApplications.Remove(application);
 
+    public async Task<IReadOnlyList<AffiliateApplication>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        return await context.AffiliateApplications.ToListAsync(cancellationToken);
+    }
+
     public async Task<AffiliateApplication?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
        return await context.AffiliateApplications.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
@@ -43,7 +48,6 @@ public sealed class AffiliateApplicationRepository(ApplicationDbContext context)
             "oldest" => query.OrderBy(a => a.CreatedAt),
             _ => query.OrderByDescending(a => a.CreatedAt)
         };
-
 
         var items = await query
             .Skip((page - 1) * pageSize)

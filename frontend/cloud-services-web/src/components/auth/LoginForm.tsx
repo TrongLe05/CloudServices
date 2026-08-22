@@ -15,13 +15,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { LoginFormValues } from "@/schema/auth.schema";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth.store";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { toast } from "@/components/ui/toast";
 
 export function LoginForm() {
   const router = useRouter();
-  const loginState = useAuthStore((state) => state.loginState);
-
   const {
     register,
     handleSubmit,
@@ -36,29 +35,35 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+      const result = await signIn("credentials", {
+        username: data.username,
+        password: data.password,
+        redirect: false,
       });
 
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.message || "Đăng nhập thất bại");
+      if (result?.error) {
+        alert("Tên đăng nhập hoặc mật khẩu không chính xác.");
+        return;
       }
-
-      alert("Đăng nhập thành công!");
-      loginState(result.username);
 
       // Chuyển hướng người dùng sang trang chính hoặc dashboard
       router.push("/");
+      toast.add({
+        title: "Đăng nhập thành công",
+        description: "Chào mừng bạn quay trở lại hệ thống.",
+        type: "success",
+      });
+
+      router.push("/admin/dashboard");
+
       router.refresh();
     } catch (error: any) {
       console.error(error);
-      alert(error.message);
+      toast.add({
+        title: "Đăng nhập thất bại",
+        description: error.message || "Tài khoản hoặc mật khẩu không chính xác",
+        type: "error",
+      });
     }
   };
   return (
@@ -96,7 +101,7 @@ export function LoginForm() {
           <div className="flex items-center">
             <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
             <a
-              href="#"
+              href="/quen-mat-khau"
               className="ml-auto text-sm underline-offset-2 hover:underline"
             >
               Quên mật khẩu?
@@ -105,7 +110,7 @@ export function LoginForm() {
           <Input
             id="password"
             type="password"
-            placeholder="******"
+            placeholder="••••••••"
             {...register("password")}
             required
           />
