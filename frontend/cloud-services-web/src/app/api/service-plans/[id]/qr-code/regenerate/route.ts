@@ -10,12 +10,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = await params;
     const accessToken = await getAuthAccessToken();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    
+    let body = {};
+    try {
+      body = await request.json();
+    } catch {
+      body = {};
+    }
 
     const res = await fetch(`${apiUrl}/api/service-plans/${id}/qr-code/regenerate`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) {

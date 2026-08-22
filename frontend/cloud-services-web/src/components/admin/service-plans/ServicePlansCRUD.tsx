@@ -352,12 +352,14 @@ export function ServicePlansCRUD({
     }
   };
 
-  const handleRegenerateQr = async () => {
+  const handleRegenerateQr = async (customDomain?: string) => {
     if (!selectedPlan) return;
     setLoadingQr(true);
     try {
       const res = await fetch(`/api/service-plans/${selectedPlan.id}/qr-code/regenerate`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customDomain }),
       });
 
       if (!res.ok) {
@@ -370,7 +372,7 @@ export function ServicePlansCRUD({
 
       toast.add({
         title: "Tạo mã QR thành công",
-        description: "Đã tạo mới mã QR cho gói dịch vụ.",
+        description: `Đã tạo mới mã QR cho gói dịch vụ (${qrData.targetUrl}).`,
         type: "success",
       });
     } catch (err: any) {
