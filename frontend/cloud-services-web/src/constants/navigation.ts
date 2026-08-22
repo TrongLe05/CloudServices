@@ -1,11 +1,13 @@
-export const features = [
+export interface Feature {
+  title: string;
+  href?: string;
+  children?: Feature[];
+}
+
+export const features: Feature[] = [
   {
     title: "Trang chủ",
     href: "/",
-  },
-  {
-    title: "Giới thiệu",
-    href: "/gioi-thieu",
   },
   {
     title: "Dịch vụ",
@@ -16,19 +18,25 @@ export const features = [
     href: "/bang-gia",
   },
   {
-    title: "Khách hàng",
-    href: "/khach-hang",
-  },
-  {
     title: "Blog",
     href: "/blog",
   },
   {
-    title: "Liên hệ",
-    href: "/lien-he",
-  },
-  {
-    title: "Đối tác",
-    href: "/doi-tac",
+    title: "Về chúng tôi",
+    href: "",
+    children: [
+      {
+        title: "Giới thiệu",
+        href: "/gioi-thieu",
+      },
+      {
+        title: "Liên hệ",
+        href: "/lien-he",
+      },
+      {
+        title: "Đối tác",
+        href: "/doi-tac",
+      },
+    ],
   },
 ];

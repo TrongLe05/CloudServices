@@ -17,7 +17,7 @@ namespace CloudServices.API.Controllers
         public async Task<IActionResult> CreateAffiliateApplication([FromBody] CreateAffiliateCommand command)
         {
             var id = await Mediator.Send(command);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            return StatusCode(201, new { id, success = true, message = "Tạo đơn đăng ký Affiliate thành công." });
         }
 
         [HttpGet]
@@ -49,7 +49,6 @@ namespace CloudServices.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
-
             await Mediator.Send(new DeleteAffiliateCommand(id), cancellationToken);
             return NoContent();
         }

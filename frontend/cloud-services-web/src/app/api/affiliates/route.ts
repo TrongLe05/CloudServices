@@ -45,3 +45,32 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+
+    const res = await fetch(`${apiUrl}/api/affiliates`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      return NextResponse.json(
+        { message: errText || "Không thể gửi đơn đăng ký Affiliate" },
+        { status: res.status }
+      );
+    }
+
+    const data = await res.json().catch(() => ({ success: true }));
+    return NextResponse.json(data);
+  } catch (error: any) {
+    console.error("Error in BFF POST affiliates:", error);
+    return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
+  }
+}
