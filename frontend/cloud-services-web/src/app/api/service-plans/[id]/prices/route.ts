@@ -1,10 +1,16 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthAccessToken } from "@/lib/auth-token";
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+if (process.env.NODE_ENV === "development") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/service-plans/${id}/prices`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+
+    const res = await fetch(`${apiUrl}/api/service-plans/${id}/prices`, {
       cache: "no-store",
     });
 
@@ -19,28 +25,31 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("accessToken")?.value;
+    const accessToken = await getAuthAccessToken();
     const body = await request.json();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/service-plans/${id}/prices`, {
+    const res = await fetch(`${apiUrl}/api/service-plans/${id}/prices`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify(body),
     });
 
     if (!res.ok) {
       const errText = await res.text();
-      return NextResponse.json(
-        { message: errText || "Failed to create plan price" },
-        { status: res.status }
-      );
+      let errorJson;
+      try {
+        errorJson = JSON.parse(errText);
+      } catch {
+        errorJson = { message: errText || "Failed to create plan price" };
+      }
+      return NextResponse.json(errorJson, { status: res.status });
     }
 
     const data = await res.json();
