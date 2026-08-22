@@ -1,8 +1,9 @@
-﻿using CloudServices.Application.Common.Exceptions;
+using CloudServices.Application.Common.Exceptions;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using MediatR;
 using System.Security.Claims;
+
 namespace CloudServices.Application.Features.Users.Commands.RefreshToken;
 
 public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, RefreshTokenCommandResponse>
@@ -43,29 +44,43 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             throw new UnauthorizedException("Token không chứa thông tin User hợp lệ.");
         }
 
-        // 3. Tìm User trong database (Nhớ Include Role vì hàm GenerateToken cần nạp Role của User)
+        // 3. Tìm User trong database (Đã Include Role để generate JWT đầy đủ quyền)
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user == null)
         {
             throw new UnauthorizedException("User không tồn tại.");
         }
 
-        // 4. Kiểm tra xem Refresh Token gửi lên có khớp với Refresh Token trong DB và đã hết hạn chưa
-        if (user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+        // 4. Kiểm tra Refresh Token
+        // Trường hợp A: Khớp với RefreshToken hiện tại và chưa hết hạn -> Tiến hành Rotate Token
+        if (user.RefreshToken == request.RefreshToken && user.RefreshTokenExpiryTime > DateTime.UtcNow)
         {
-            throw new UnauthorizedException("Refresh Token không hợp lệ hoặc đã hết hạn.");
+            var newAccessToken = _jwtTokenGenerator.GenerateToken(user);
+            var newRefreshToken = _jwtTokenGenerator.GenerateRefreshToken();
+
+            // Lưu lại token cũ vào PreviousRefreshToken với thời gian ân hạn 2 phút cho các request song song từ frontend
+            user.PreviousRefreshToken = user.RefreshToken;
+            user.PreviousRefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
+
+            user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Gia hạn 7 ngày
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return new RefreshTokenCommandResponse(newAccessToken, newRefreshToken, user.Username);
         }
 
-        // 5. Tạo cặp Access Token và Refresh Token mới
-        var newAccessToken = _jwtTokenGenerator.GenerateToken(user);
-        var newRefreshToken = _jwtTokenGenerator.GenerateRefreshToken();
+        // Trường hợp B: Khớp với PreviousRefreshToken và vẫn nằm trong thời gian ân hạn (do các request đồng thời từ Next.js)
+        if (!string.IsNullOrEmpty(user.PreviousRefreshToken) &&
+            user.PreviousRefreshToken == request.RefreshToken &&
+            user.PreviousRefreshTokenExpiryTime > DateTime.UtcNow)
+        {
+            // Trả về AccessToken mới cùng RefreshToken đang hoạt động để client đồng bộ lại
+            var newAccessToken = _jwtTokenGenerator.GenerateToken(user);
+            return new RefreshTokenCommandResponse(newAccessToken, user.RefreshToken ?? request.RefreshToken, user.Username);
+        }
 
-        // 6. Cập nhật Refresh Token mới vào database
-        user.RefreshToken = newRefreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // gia hạn thêm 7 ngày
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return new RefreshTokenCommandResponse(newAccessToken, newRefreshToken, user.Username);
+        // Trường hợp C: Refresh Token không hợp lệ hoặc đã quá hạn
+        throw new UnauthorizedException("Refresh Token không hợp lệ hoặc đã hết hạn.");
     }
 }

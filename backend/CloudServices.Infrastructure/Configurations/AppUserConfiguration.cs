@@ -38,5 +38,10 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .HasColumnType("varchar(255)");
 
         builder.Property(u => u.RefreshTokenExpiryTime);
+
+        builder.Property(u => u.PreviousRefreshToken)
+            .HasColumnType("varchar(255)");
+
+        builder.Property(u => u.PreviousRefreshTokenExpiryTime);
     }
 }
