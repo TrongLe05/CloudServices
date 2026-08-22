@@ -49,6 +49,9 @@ public static class DependencyInjection
 
         services.AddTransient<IExcelExporter, ExcelExporter>();
 
+        // Đăng ký PayOS Payment Gateway
+        services.AddScoped<IPaymentGateway, PayOSPaymentGateway>();
+
         return services;
     }
 }
