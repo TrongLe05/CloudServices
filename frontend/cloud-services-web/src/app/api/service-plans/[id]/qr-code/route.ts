@@ -1,9 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+if (process.env.NODE_ENV === "development") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/service-plans/${id}/qr-code`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+
+    const res = await fetch(`${apiUrl}/api/service-plans/${id}/qr-code`, {
       cache: "no-store",
     });
 
