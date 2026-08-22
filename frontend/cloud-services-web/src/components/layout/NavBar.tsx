@@ -16,6 +16,7 @@ export const NavBar = () => {
     <nav>
       <NavigationMenu>
         <NavigationMenuList>
+<<<<<<< Updated upstream
           <NavigationMenuItem>
             <NavigationMenuLink
               className={navigationMenuTriggerStyle()}
@@ -93,6 +94,36 @@ export const NavBar = () => {
               render={<Link href="/docs">Docs</Link>}
             />
           </NavigationMenuItem>
+=======
+          {features.map((feature, index) =>
+            feature.children ? (
+              <NavigationMenuItem key={index}>
+                <NavigationMenuTrigger>
+                  {feature.title}
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid gap-2 md:w-[100px]">
+                    {feature.children.map((child, childIndex) => (
+                      <li key={childIndex}>
+                        <NavigationMenuLink
+                          className={navigationMenuTriggerStyle()}
+                          render={<Link href={child.href || "#"}>{child.title}</Link>}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            ) : (
+              <NavigationMenuItem key={index}>
+                <NavigationMenuLink
+                  className={navigationMenuTriggerStyle()}
+                  render={<Link href={feature.href || "#"}>{feature.title}</Link>}
+                />
+              </NavigationMenuItem>
+            )
+          )}
+>>>>>>> Stashed changes
         </NavigationMenuList>
       </NavigationMenu>
     </nav>

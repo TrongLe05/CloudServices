@@ -16,9 +16,13 @@ public static class DependencyInjection
     {
         // 1. Đăng ký ApplicationDbContext với SqlServer provider
         services.AddDbContext<ApplicationDbContext>(options =>
+        {
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
-                builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+                builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
+            options.ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
 
         // 2. Đăng ký Interface IApplicationDbContext
         services.AddScoped<IApplicationDbContext>(provider =>
