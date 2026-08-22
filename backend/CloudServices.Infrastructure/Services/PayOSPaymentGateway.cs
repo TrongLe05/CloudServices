@@ -34,7 +34,29 @@ public class PayOSPaymentGateway : IPaymentGateway
         );
 
         CreatePaymentResult result = await _payOS.createPaymentLink(paymentData);
-        return new PaymentLinkDto(result.checkoutUrl, orderCode, result.qrCode);
+
+        return new PaymentLinkDto(
+            CheckoutUrl: result.checkoutUrl,
+            OrderCode: orderCode,
+            QrCode: result.qrCode,
+            AccountNumber: result.accountNumber,
+            AccountName: result.accountNumber != null ? "CONG TY CLOUD SERVICES" : null,
+            Bin: result.bin
+        );
+    }
+
+    public async Task<PaymentStatusDto> GetPaymentStatusAsync(long orderCode, CancellationToken cancellationToken = default)
+    {
+        PaymentLinkInformation info = await _payOS.getPaymentLinkInformation(orderCode);
+        bool isPaid = string.Equals(info.status, "PAID", StringComparison.OrdinalIgnoreCase);
+
+        return new PaymentStatusDto(
+            OrderCode: info.orderCode,
+            Amount: info.amount,
+            AmountPaid: info.amountPaid,
+            Status: info.status,
+            IsPaid: isPaid
+        );
     }
 
     public WebhookVerificationResult VerifyWebhook(object webhookBody)

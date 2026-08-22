@@ -7,7 +7,8 @@ namespace CloudServices.Application.Features.Payments.Commands.CreatePayOSLink;
 
 public sealed class CreatePayOSLinkCommandHandler (
     IOrderRequestRepository orderRepository,
-    IPaymentGateway paymentGateway
+    IPaymentGateway paymentGateway,
+    IUnitOfWork unitOfWork
     ) : IRequestHandler<CreatePayOSLinkCommand, CreatePayOSLinkResponse>
 {
 
@@ -25,6 +26,11 @@ public sealed class CreatePayOSLinkCommandHandler (
         string planName = order.PlanPrice?.Plan?.Name ?? "Gói Cloud Service";
         string description = $"DH{orderCode % 1000000}".Trim();
 
+        // Lưu orderCode vào trường Notes của đơn hàng để tiện tra cứu trạng thái
+        order.Notes = $"PayOS:{orderCode}";
+        orderRepository.Update(order);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         // 4. Gọi Gateway tạo link
         var paymentResult = await paymentGateway.CreatePaymentLinkAsync(
             orderCode,
@@ -36,10 +42,21 @@ public sealed class CreatePayOSLinkCommandHandler (
             cancellationToken
         );
 
+        // Tạo VietQR template compact2 (có logo VietQR, NAPAS247 và ngân hàng)
+        string? vietQrUrl = null;
+        if (!string.IsNullOrEmpty(paymentResult.Bin) && !string.IsNullOrEmpty(paymentResult.AccountNumber))
+        {
+            vietQrUrl = $"https://img.vietqr.io/image/{paymentResult.Bin}-{paymentResult.AccountNumber}-compact2.png?amount={amount}&addInfo={Uri.EscapeDataString(description)}&accountName={Uri.EscapeDataString(paymentResult.AccountName ?? "")}";
+        }
+
         return new CreatePayOSLinkResponse(
             paymentResult.CheckoutUrl,
             paymentResult.OrderCode,
-            paymentResult.QrCode
+            paymentResult.QrCode,
+            paymentResult.AccountNumber,
+            paymentResult.AccountName,
+            paymentResult.Bin,
+            vietQrUrl
         );
     }
 }
