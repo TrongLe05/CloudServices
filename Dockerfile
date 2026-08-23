@@ -1,4 +1,4 @@
- # Stage 1: Build .NET Backend
+# Stage 1: Build .NET Backend
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
