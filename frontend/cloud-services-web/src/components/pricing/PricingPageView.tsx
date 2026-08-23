@@ -20,6 +20,7 @@ import {
   Database,
   FolderKanban,
   QrCode,
+  Headphones,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -456,25 +457,29 @@ export function PricingPageView({
 
                             {/* Order Button */}
                             <CardFooter className="p-6 pt-0 flex flex-col gap-2">
-                              <Button
-                                onClick={() =>
-                                  setOrderModalPlan({
-                                    ...plan,
-                                    prices: plan.prices.map((p) => ({
-                                      ...p,
-                                      price: p.price,
-                                      promotionDiscountPercentage: promoDiscount,
-                                    })),
-                                  })
-                                }
-                                className={`w-full rounded-2xl font-bold text-xs py-4.5 gap-2 shadow-sm ${
-                                  isFeatured
-                                    ? "bg-primary hover:bg-primary/95 text-white shadow-primary/20"
-                                    : "bg-slate-900 hover:bg-slate-800 text-white"
-                                }`}
-                              >
-                                <ShoppingCart className="size-3.5" /> Đặt mua gói này
-                              </Button>
+                              {finalPrice > 0 ? (
+                                <Button
+                                  render={
+                                    <Link href={`/dat-hang?planId=${plan.id}&cycle=${billingCycle}`} />
+                                  }
+                                  className={`w-full rounded-2xl font-bold text-xs py-4.5 gap-2 shadow-sm ${
+                                    isFeatured
+                                      ? "bg-primary hover:bg-primary/95 text-white shadow-primary/20"
+                                      : "bg-slate-900 hover:bg-slate-800 text-white"
+                                  }`}
+                                >
+                                  <ShoppingCart className="size-3.5" /> Đặt mua gói này
+                                </Button>
+                              ) : (
+                                <Button
+                                  render={
+                                    <Link href={`/lien-he?service=${encodeURIComponent(plan.name)}`} />
+                                  }
+                                  className="w-full rounded-2xl font-bold text-xs py-4.5 gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-sm"
+                                >
+                                  <Headphones className="size-3.5" /> Liên hệ báo giá
+                                </Button>
+                              )}
                             </CardFooter>
                           </article>
                         </Card>
@@ -534,22 +539,28 @@ export function PricingPageView({
                             )}
                           </td>
                           <td className="py-3 px-4 text-right">
-                            <Button
-                              onClick={() =>
-                                setOrderModalPlan({
-                                  ...plan,
-                                  prices: plan.prices.map((p) => ({
-                                    ...p,
-                                    price: p.price,
-                                    promotionDiscountPercentage: promoDiscount,
-                                  })),
-                                })
-                              }
-                              size="sm"
-                              className="bg-primary hover:bg-primary/95 text-white font-semibold text-xs rounded-xl px-3 h-8 gap-1 shadow-xs"
-                            >
-                              <ShoppingCart className="size-3" /> Đặt mua
-                            </Button>
+                            {finalPrice > 0 ? (
+                              <Button
+                                render={
+                                  <Link href={`/dat-hang?planId=${plan.id}&cycle=${billingCycle}`} />
+                                }
+                                size="sm"
+                                className="bg-primary hover:bg-primary/95 text-white font-semibold text-xs rounded-xl px-3 h-8 gap-1 shadow-xs"
+                              >
+                                <ShoppingCart className="size-3" /> Đặt mua
+                              </Button>
+                            ) : (
+                              <Button
+                                render={
+                                  <Link href={`/lien-he?service=${encodeURIComponent(plan.name)}`} />
+                                }
+                                size="sm"
+                                variant="outline"
+                                className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs rounded-xl px-3 h-8 gap-1 shadow-2xs"
+                              >
+                                <Headphones className="size-3" /> Báo giá
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       );

@@ -70,6 +70,7 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
     bin?: string | null;
     checkoutUrl?: string;
     description: string;
+    createdAt?: string;
   } | null>(null);
 
   React.useEffect(() => {
@@ -158,6 +159,7 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
             bin: payData.bin,
             checkoutUrl: payData.checkoutUrl,
             description: `DH${payData.orderCode % 1000000}`,
+            createdAt: new Date().toISOString(),
           });
           setShowPaymentQr(true);
           return;
@@ -266,11 +268,10 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
               {/* Billing Cycle Picker */}
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-slate-700">Chu kỳ thanh toán dự kiến</Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: "monthly", label: "1 Tháng" },
-                    { id: "quarterly", label: "3 Tháng" },
-                    { id: "yearly", label: "1 Năm (Tiết kiệm)" },
+                    { id: "monthly", label: "Hàng tháng (1 Tháng)" },
+                    { id: "yearly", label: "Hàng năm (1 Năm)" },
                   ].map((cycle) => (
                     <button
                       key={cycle.id}
@@ -432,6 +433,7 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
           bin={paymentModalData.bin}
           checkoutUrl={paymentModalData.checkoutUrl}
           description={paymentModalData.description}
+          createdAt={paymentModalData.createdAt}
           onPaymentSuccess={() => {
             toast.add({
               title: "Thanh toán thành công!",

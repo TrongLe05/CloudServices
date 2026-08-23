@@ -306,7 +306,7 @@ export function ServicesPageView({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredPlans.map((plan) => {
               // Find matching price based on cycle
-              const priceObj = plan.prices?.find((p) => p.billingCycle === billingCycle) || plan.prices?.[0];
+              const priceObj = plan.prices?.find((p) => p.billingCycle.toLowerCase() === billingCycle.toLowerCase()) || plan.prices?.[0];
               const basePrice = priceObj?.price ?? 0;
               const discount = priceObj?.promotionDiscountPercentage ?? 0;
               const displayPrice = discount > 0 ? Math.round(basePrice * (1 - discount / 100)) : basePrice;
@@ -451,13 +451,27 @@ export function ServicesPageView({
                     >
                       Chi tiết
                     </Button>
-                    <Button
-                      onClick={() => setOrderModalPlan(plan)}
-                      className="flex-1 bg-primary hover:bg-primary/95 text-white font-semibold text-xs py-5 rounded-xl shadow-sm flex items-center justify-center gap-2"
-                    >
-                      <ShoppingCart className="size-4" />
-                      Đăng ký
-                    </Button>
+                    {displayPrice > 0 ? (
+                      <Button
+                        render={
+                          <Link href={`/dat-hang?planId=${plan.id}&cycle=${billingCycle}`} />
+                        }
+                        className="flex-1 bg-primary hover:bg-primary/95 text-white font-semibold text-xs py-5 rounded-xl shadow-sm flex items-center justify-center gap-2"
+                      >
+                        <ShoppingCart className="size-4" />
+                        Đăng ký
+                      </Button>
+                    ) : (
+                      <Button
+                        render={
+                          <Link href={`/lien-he?service=${encodeURIComponent(plan.name)}`} />
+                        }
+                        className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-5 rounded-xl shadow-sm flex items-center justify-center gap-2"
+                      >
+                        <Headphones className="size-4" />
+                        Báo giá
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               );

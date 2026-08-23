@@ -67,6 +67,9 @@ public static class DependencyInjection
         // Đăng ký PayOS Payment Gateway
         services.AddScoped<IPaymentGateway, PayOSPaymentGateway>();
 
+        // Đăng ký Background Service tự động hủy đơn sau 5 phút nếu chưa thanh toán
+        services.AddHostedService<OrderExpirationBackgroundService>();
+
         return services;
     }
 }

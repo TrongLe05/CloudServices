@@ -34,6 +34,10 @@ export const features: Feature[] = [
         href: "/lien-he",
       },
       {
+        title: "Khách hàng",
+        href: "/khach-hang",
+      },
+      {
         title: "Đối tác",
         href: "/doi-tac",
       },

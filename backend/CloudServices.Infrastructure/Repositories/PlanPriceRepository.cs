@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Domain.Entities;
-using CloudServices.Infrastructure.Data; // kiểm tra namespace DbContext nếu có gạch đỏ
+using CloudServices.Infrastructure.Data;
 
 namespace CloudServices.Infrastructure.Repositories;
 
@@ -17,6 +17,7 @@ public class PlanPriceRepository : IPlanPriceRepository
     public async Task<List<PlanPrice>> GetByPlanIdAsync(Guid planId, CancellationToken cancellationToken = default)
     {
         return await _context.PlanPrices
+            .Include(p => p.Promotion)
             .Where(p => p.PlanId == planId)
             .ToListAsync(cancellationToken);
     }
@@ -24,6 +25,7 @@ public class PlanPriceRepository : IPlanPriceRepository
     public async Task<PlanPrice?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.PlanPrices
+            .Include(p => p.Promotion)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 

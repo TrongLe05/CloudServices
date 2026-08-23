@@ -30,6 +30,7 @@ import {
   ThumbsUp,
   MessageCircle,
   QrCode,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -112,17 +113,17 @@ export function PlanDetailView({
   };
 
   // Find price for selected cycle
-  const currentPriceObj = plan.prices?.find((p) => p.billingCycle === selectedCycle) || plan.prices?.[0];
-  const basePrice = currentPriceObj?.price ?? 0;
-  const discountPercent = currentPriceObj?.promotionDiscountPercentage ?? 0;
+  const currentPriceObj = plan.prices?.find((p) => p.billingCycle.toLowerCase() === selectedCycle.toLowerCase()) || plan.prices?.[0];
+  const rawPriceNum = Number(currentPriceObj?.price ?? 0);
+  const isContactPrice = !currentPriceObj || isNaN(rawPriceNum) || rawPriceNum <= 0;
+  const basePrice = isContactPrice ? 0 : rawPriceNum;
+  const discountPercent = isContactPrice ? 0 : (currentPriceObj?.promotionDiscountPercentage ?? 0);
   const discountedPrice = discountPercent > 0 ? Math.round(basePrice * (1 - discountPercent / 100)) : basePrice;
 
   // Available billing cycles with label
   const billingCycles = [
-    { id: "monthly", label: "1 Tháng", badge: null },
-    { id: "quarterly", label: "3 Tháng", badge: "Phổ biến" },
-    { id: "semi-annual", label: "6 Tháng", badge: "Tiết kiệm 10%" },
-    { id: "yearly", label: "1 Năm (Khuyên dùng)", badge: "Ưu đãi 20%" },
+    { id: "monthly", label: "Hàng tháng (1 Tháng)", badge: null },
+    { id: "yearly", label: "Hàng năm (1 Năm)", badge: "Ưu đãi 20%" },
   ];
 
   // Calculate real average rating from API testimonials
@@ -364,7 +365,7 @@ export function PlanDetailView({
                     <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
                       Chi phí đầu tư:
                     </span>
-                    {basePrice > 0 ? (
+                    {!isContactPrice ? (
                       <div className="flex items-baseline gap-2 mt-1">
                         <span className="text-3xl sm:text-4xl font-extrabold text-primary tracking-tight">
                           {formatVND(discountedPrice)}
@@ -374,10 +375,10 @@ export function PlanDetailView({
                         </span>
                       </div>
                     ) : (
-                      <span className="text-2xl font-bold text-slate-900 mt-1 block">Liên hệ báo giá</span>
+                      <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 block">Liên hệ báo giá</span>
                     )}
 
-                    {discountPercent > 0 && (
+                    {!isContactPrice && discountPercent > 0 && (
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-slate-400 line-through">
                           {formatVND(basePrice)}
@@ -401,43 +402,55 @@ export function PlanDetailView({
 
               <CardContent className="p-8 space-y-6">
                 {/* 1. Choose Billing Cycle */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                      Chọn chu kỳ thanh toán:
-                    </label>
-                    <span className="text-xs text-slate-400">Thanh toán dài hạn để nhận thêm ưu đãi</span>
-                  </div>
+                {!isContactPrice ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                        Chọn chu kỳ thanh toán:
+                      </label>
+                      <span className="text-xs text-slate-400">Thanh toán dài hạn để nhận thêm ưu đãi</span>
+                    </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {billingCycles.map((cycle) => {
-                      const isSelected = selectedCycle === cycle.id;
-                      return (
-                        <button
-                          key={cycle.id}
-                          type="button"
-                          onClick={() => setSelectedCycle(cycle.id)}
-                          className={`relative p-3.5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between min-h-[72px] ${
-                            isSelected
-                              ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-xs"
-                              : "border-slate-200 hover:border-slate-300 bg-white"
-                          }`}
-                        >
-                          <span className={`text-xs font-bold ${isSelected ? "text-primary" : "text-slate-800"}`}>
-                            {cycle.label}
-                          </span>
-                          {cycle.badge ? (
-                            <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md w-fit mt-1">
-                              {cycle.badge}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {billingCycles.map((cycle) => {
+                        const isSelected = selectedCycle === cycle.id;
+                        return (
+                          <button
+                            key={cycle.id}
+                            type="button"
+                            onClick={() => setSelectedCycle(cycle.id)}
+                            className={`relative p-3.5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between min-h-[72px] ${
+                              isSelected
+                                ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-xs"
+                                : "border-slate-200 hover:border-slate-300 bg-white"
+                            }`}
+                          >
+                            <span className={`text-xs font-bold ${isSelected ? "text-primary" : "text-slate-800"}`}>
+                              {cycle.label}
                             </span>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 mt-1">Chu kỳ chuẩn</span>
-                          )}
-                        </button>
-                      );
-                    })}
+                            {cycle.badge ? (
+                              <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md w-fit mt-1">
+                                {cycle.badge}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-400 mt-1">Chu kỳ chuẩn</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-3">
+                    <Info className="size-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <span className="text-xs font-bold text-amber-900 block">Dịch vụ cấu hình tùy biến / Báo giá theo yêu cầu</span>
+                      <p className="text-xs text-amber-700 leading-relaxed">
+                        Gói dịch vụ này thuộc nhóm giải pháp linh hoạt không niêm yết mức giá cố định. Quý khách vui lòng gửi yêu cầu liên hệ để đội ngũ kỹ sư tư vấn cấu hình và báo mức giá tốt nhất.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* 2. Technical Specifications Summary Table */}
                 <div className="space-y-3 pt-2">
@@ -521,14 +534,29 @@ export function PlanDetailView({
 
               {/* 4. Action Buttons */}
               <CardFooter className="p-8 pt-0 flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={() => setIsOrderModalOpen(true)}
-                  size="lg"
-                  className="flex-1 bg-primary hover:bg-primary/95 text-white font-bold py-6 text-sm rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
-                >
-                  <ShoppingCart className="size-4" />
-                  Đăng ký ngay gói này
-                </Button>
+                {!isContactPrice ? (
+                  <Button
+                    render={
+                      <Link href={`/dat-hang?planId=${plan.id}&cycle=${selectedCycle}`} />
+                    }
+                    size="lg"
+                    className="flex-1 bg-primary hover:bg-primary/95 text-white font-bold py-6 text-sm rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="size-4" />
+                    Đăng ký ngay gói này
+                  </Button>
+                ) : (
+                  <Button
+                    render={
+                      <Link href={`/lien-he?service=${encodeURIComponent(plan.name)}`} />
+                    }
+                    size="lg"
+                    className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-6 text-sm rounded-2xl shadow-lg flex items-center justify-center gap-2"
+                  >
+                    <Headphones className="size-4" />
+                    Liên hệ nhận báo giá riêng
+                  </Button>
+                )}
 
                 <Button
                   variant="outline"
@@ -832,13 +860,23 @@ export function PlanDetailView({
                       Gói dịch vụ này hiện chưa có phản hồi từ khách hàng. Bạn có thể là người đầu tiên trải nghiệm!
                     </p>
                   </div>
-                  <Button
-                    onClick={() => setIsOrderModalOpen(true)}
-                    size="sm"
-                    className="mt-2"
-                  >
-                    Đăng ký trải nghiệm ngay
-                  </Button>
+                  {!isContactPrice ? (
+                    <Button
+                      render={<Link href={`/dat-hang?planId=${plan.id}&cycle=${selectedCycle}`} />}
+                      size="sm"
+                      className="mt-2"
+                    >
+                      Đăng ký trải nghiệm ngay
+                    </Button>
+                  ) : (
+                    <Button
+                      render={<Link href={`/lien-he?service=${encodeURIComponent(plan.name)}`} />}
+                      size="sm"
+                      className="mt-2"
+                    >
+                      Liên hệ nhận báo giá
+                    </Button>
+                  )}
                 </div>
               )}
             </div>

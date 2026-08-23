@@ -53,7 +53,7 @@ const layout = ({ children }: LayoutProps<"/admin">) => {
       )}
     >
       <body className="min-h-full flex flex-col">
-        <SessionProvider>
+        <SessionProvider refetchInterval={4 * 60} refetchOnWindowFocus={true}>
           <SidebarProvider>
             <AppSidebar />
             <SidebarInset>

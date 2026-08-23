@@ -96,27 +96,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         };
       }
 
-      // 2. Token vẫn còn hạn (trừ hao 1 phút để an toàn) -> Trả về token hiện tại
-      if (
-        token.accessTokenExpires &&
-        Date.now() < (token.accessTokenExpires as number) - 60 * 1000
-      ) {
+      // 2. Token vẫn còn hạn (trừ hao 2 phút để an toàn) -> Trả về token hiện tại
+      const expiresAt = Number(token.accessTokenExpires || 0);
+      if (expiresAt > 0 && Date.now() < expiresAt - 2 * 60 * 1000) {
         return token;
       }
 
-      // 3. Token đã hết hạn -> Tự động gọi backend để lấy AccessToken mới
+      // 3. Token đã hết hạn hoặc sắp hết hạn trong 2 phút -> Tự động gọi backend để lấy AccessToken mới
       return await refreshAccessToken(token);
     },
     async session({ session, token }) {
       // Đính kèm thông tin token vào session để React components truy cập
       session.user = {
         ...session.user,
-        name: token.username as string,
+        name: (token.username || session.user?.name) as string,
         // @ts-ignore
         role: token.role as string,
       };
       // @ts-ignore
       session.accessToken = token.accessToken;
+      // @ts-ignore
+      session.refreshToken = token.refreshToken;
+      // @ts-ignore
+      session.accessTokenExpires = token.accessTokenExpires;
       // @ts-ignore
       session.error = token.error;
       return session;
@@ -159,9 +161,15 @@ async function refreshAccessToken(token: any) {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        console.error("Lỗi khi Refresh Token qua Auth.js:", res.status, errData);
+        if (res.status === 401) {
+          console.warn("Phiên làm việc đã hết hạn (Refresh Token expired). Cần đăng nhập lại.");
+        } else {
+          console.error("Lỗi khi Refresh Token qua Auth.js:", res.status, errData);
+        }
         return {
           ...token,
+          accessToken: undefined,
+          refreshToken: undefined,
           error: "RefreshAccessTokenError",
         };
       }

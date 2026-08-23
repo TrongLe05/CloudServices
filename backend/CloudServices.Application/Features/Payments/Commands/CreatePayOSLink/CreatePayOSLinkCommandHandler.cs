@@ -1,17 +1,20 @@
 using CloudServices.Application.Common.Exceptions;
+using CloudServices.Application.Common.Exceptions.BadRequestException;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using MediatR;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CloudServices.Application.Features.Payments.Commands.CreatePayOSLink;
 
-public sealed class CreatePayOSLinkCommandHandler (
+public sealed class CreatePayOSLinkCommandHandler(
     IOrderRequestRepository orderRepository,
     IPaymentGateway paymentGateway,
     IUnitOfWork unitOfWork
     ) : IRequestHandler<CreatePayOSLinkCommand, CreatePayOSLinkResponse>
 {
-
     public async Task<CreatePayOSLinkResponse> Handle(CreatePayOSLinkCommand request, CancellationToken cancellationToken)
     {
         // 1. Kiểm tra đơn hàng trong DB
@@ -21,13 +24,28 @@ public sealed class CreatePayOSLinkCommandHandler (
         // 2. Tạo mã orderCode số nguyên duy nhất (VD: Timestamp)
         long orderCode = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        // 3. Tính số tiền và tên gói
-        int amount = (int)(order.PlanPrice?.Price ?? 0);
+        // 3. Tính số tiền sau khi áp dụng giảm giá (nếu có)
+        decimal rawPrice = order.PlanPrice?.Price ?? 0;
+        int discount = 0;
+        if (order.PlanPrice?.Promotion != null && order.PlanPrice.Promotion.IsActive)
+        {
+            discount = order.PlanPrice.Promotion.DiscountPercentage;
+        }
+
+        decimal finalAmount = discount > 0 ? rawPrice * (100 - discount) / 100m : rawPrice;
+        int amount = (int)Math.Round(finalAmount);
+
+        if (amount <= 0)
+        {
+            throw new BadRequestException("Gói dịch vụ này yêu cầu liên hệ trực tiếp để nhận báo giá riêng và không hỗ trợ thanh toán trực tuyến.");
+        }
+
         string planName = order.PlanPrice?.Plan?.Name ?? "Gói Cloud Service";
         string description = $"DH{orderCode % 1000000}".Trim();
 
-        // Lưu orderCode vào trường Notes của đơn hàng để tiện tra cứu trạng thái
+        // Lưu orderCode và thời gian bắt đầu thanh toán vào đơn hàng
         order.Notes = $"PayOS:{orderCode}";
+        order.LastModifiedAt = DateTime.UtcNow;
         orderRepository.Update(order);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

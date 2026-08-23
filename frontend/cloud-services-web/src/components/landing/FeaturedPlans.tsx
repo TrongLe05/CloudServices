@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Check, ShoppingCart, Award, QrCode } from "lucide-react";
+import { Check, ShoppingCart, Award, QrCode, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -192,27 +192,29 @@ export const FeaturedPlans = ({ initialPlans = [] }: FeaturedPlansProps) => {
                   </div>
 
                   <CardFooter className="pt-4 pb-6 px-6 border-t border-slate-50 flex flex-col gap-2">
-                    <Button
-                      onClick={() =>
-                        setOrderModalPlan({
-                          id: plan.id,
-                          name: plan.name,
-                          description: plan.description || "",
-                          cpu: plan.cpu || "",
-                          ram: plan.ram || "",
-                          storage: plan.storage || "",
-                          bandwidth: plan.bandwidth || "",
-                          prices: plan.prices || [{ id: "p", billingCycle: "Monthly", price: finalPrice }],
-                        })
-                      }
-                      className={`w-full font-bold text-xs py-5 rounded-xl shadow-xs gap-2 ${
-                        isPopular
-                          ? "bg-primary hover:bg-primary/95 text-white"
-                          : "bg-slate-900 hover:bg-slate-800 text-white"
-                      }`}
-                    >
-                      <ShoppingCart className="size-3.5" /> Đặt mua ngay
-                    </Button>
+                    {finalPrice > 0 ? (
+                      <Button
+                        render={
+                          <Link href={`/dat-hang?planId=${plan.id}&cycle=Monthly`} />
+                        }
+                        className={`w-full font-bold text-xs py-5 rounded-xl shadow-xs gap-2 ${
+                          isPopular
+                            ? "bg-primary hover:bg-primary/95 text-white"
+                            : "bg-slate-900 hover:bg-slate-800 text-white"
+                        }`}
+                      >
+                        <ShoppingCart className="size-3.5" /> Đặt mua ngay
+                      </Button>
+                    ) : (
+                      <Button
+                        render={
+                          <Link href={`/lien-he?service=${encodeURIComponent(plan.name)}`} />
+                        }
+                        className="w-full font-bold text-xs py-5 rounded-xl shadow-xs gap-2 bg-slate-900 hover:bg-slate-800 text-white"
+                      >
+                        <Headphones className="size-3.5" /> Liên hệ báo giá
+                      </Button>
+                    )}
                   </CardFooter>
                 </article>
               </Card>

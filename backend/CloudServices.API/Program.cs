@@ -2,6 +2,8 @@ using System.Security.Claims;
 using System.Text;
 using CloudServices.API.Middleware;
 using CloudServices.Application;
+using CloudServices.Application.Common.Exceptions;
+using CloudServices.Application.Common.Exceptions.BadRequestException;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Infrastructure;
 using CloudServices.Infrastructure.Data;
@@ -12,6 +14,7 @@ using Microsoft.OpenApi;
 using Net.payOS;
 using Scalar.AspNetCore;
 using Serilog;
+using Serilog.Events;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -140,6 +143,19 @@ try
     // Serilog Request Logging (đặt sớm trong pipeline để đo chính xác thời gian request)
     app.UseSerilogRequestLogging(options =>
     {
+        options.GetLevel = (httpContext, elapsed, ex) =>
+        {
+            if (ex is UnauthorizedException || ex is NotFoundException || ex is BadRequestException || ex is FluentValidation.ValidationException)
+                return LogEventLevel.Warning;
+
+            if (httpContext.Response.StatusCode == 401 || httpContext.Response.StatusCode == 404 || httpContext.Response.StatusCode == 400 || httpContext.Response.StatusCode == 403)
+                return LogEventLevel.Warning;
+
+            if (httpContext.Response.StatusCode >= 500 || ex != null)
+                return LogEventLevel.Error;
+
+            return LogEventLevel.Information;
+        };
         options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
         options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
         {

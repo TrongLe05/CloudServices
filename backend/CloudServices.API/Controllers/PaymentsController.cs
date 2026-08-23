@@ -31,16 +31,28 @@ public class PaymentsController : ApiControllerBase
         {
             var statusDto = await paymentGateway.GetPaymentStatusAsync(orderCode, cancellationToken);
             
-            // Nếu đã thanh toán thành công, tự động đồng bộ đơn hàng sang Processing (Đang xử lý)
-            if (statusDto.IsPaid)
+            var matchedOrder = await orderRepository.GetByPayOsOrderCodeAsync(orderCode, cancellationToken);
+
+            if (matchedOrder != null)
             {
-                var allOrders = await orderRepository.GetAllAsync(cancellationToken);
-                var matchedOrder = allOrders.FirstOrDefault(o => o.Notes == $"PayOS:{orderCode}");
-                if (matchedOrder != null && matchedOrder.Status == Domain.Enums.OrderStatus.New)
+                // Nếu đã thanh toán thành công, tự động đồng bộ đơn hàng sang Processing (Đang xử lý)
+                if (statusDto.IsPaid && matchedOrder.Status == Domain.Enums.OrderStatus.New)
                 {
                     matchedOrder.Status = Domain.Enums.OrderStatus.Processing;
                     orderRepository.Update(matchedOrder);
                     await unitOfWork.SaveChangesAsync(cancellationToken);
+                }
+                // Nếu chưa thanh toán và đã quá 5 phút -> Chuyển sang Rejected (Từ chối)
+                else if (!statusDto.IsPaid && matchedOrder.Status == Domain.Enums.OrderStatus.New)
+                {
+                    var baseTime = matchedOrder.LastModifiedAt ?? matchedOrder.CreatedAt;
+                    if (DateTime.UtcNow - baseTime > TimeSpan.FromMinutes(5))
+                    {
+                        matchedOrder.Status = Domain.Enums.OrderStatus.Rejected;
+                        matchedOrder.Notes = $"{matchedOrder.Notes} [Hết hạn thanh toán 5p]";
+                        orderRepository.Update(matchedOrder);
+                        await unitOfWork.SaveChangesAsync(cancellationToken);
+                    }
                 }
             }
 
