@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || "";
     const page = searchParams.get("page") || "1";
     const pageSize = searchParams.get("pageSize") || "10";
-    const customerEmail = searchParams.get("customerEmail") || "";
+    const customerEmail = searchParams.get("customerEmail") || searchParams.get("email") || "";
 
     const token = await getAuthAccessToken();
 

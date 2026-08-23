@@ -2,22 +2,22 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   Server,
   Search,
   Calendar,
   Clock,
-  RotateCcw,
   Building2,
   RefreshCw,
   Eye,
   Filter,
   CreditCard,
   ShoppingBag,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -46,10 +46,14 @@ interface OrderHistoryViewProps {
 }
 
 export function OrderHistoryView({
-  initialOrders,
+  initialOrders = [],
   userEmail,
 }: OrderHistoryViewProps) {
+  const { data: session } = useSession();
+  const effectiveEmail = userEmail || session?.user?.email;
+
   const [orders, setOrders] = React.useState<UserOrder[]>(initialOrders);
+  const [isLoadingInitial, setIsLoadingInitial] = React.useState(initialOrders.length === 0);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
   const [selectedOrder, setSelectedOrder] = React.useState<UserOrder | null>(null);
@@ -59,6 +63,56 @@ export function OrderHistoryView({
   const [paymentModalData, setPaymentModalData] = React.useState<PaymentModalData | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // Sync initialOrders if server props change
+  React.useEffect(() => {
+    if (initialOrders && initialOrders.length > 0) {
+      setOrders(initialOrders);
+      setIsLoadingInitial(false);
+    }
+  }, [initialOrders]);
+
+  // Core API Fetch Function
+  const fetchOrders = React.useCallback(
+    async (showToast = false) => {
+      try {
+        setIsRefreshing(true);
+        const emailParam = effectiveEmail
+          ? `&customerEmail=${encodeURIComponent(effectiveEmail)}`
+          : "";
+        const res = await fetch(`/api/order-requests?pageSize=100${emailParam}`);
+        if (res.ok) {
+          const data = await res.json();
+          const items: UserOrder[] = data.items || data.Items || [];
+          setOrders(items);
+          if (showToast) {
+            toast.add({
+              title: "Đã làm mới danh sách",
+              description: "Thông tin các đơn dịch vụ đã được cập nhật mới nhất.",
+              type: "success",
+            });
+          }
+        }
+      } catch {
+        if (showToast) {
+          toast.add({
+            title: "Lỗi kết nối",
+            description: "Không thể làm mới danh sách đơn hàng.",
+            type: "error",
+          });
+        }
+      } finally {
+        setIsRefreshing(false);
+        setIsLoadingInitial(false);
+      }
+    },
+    [effectiveEmail]
+  );
+
+  // Auto-fetch on client mount & when session resolves to ensure instant load
+  React.useEffect(() => {
+    fetchOrders(false);
+  }, [fetchOrders]);
 
   const handleOpenPayOSQr = async (order: UserOrder) => {
     const remaining = getRemainingPaymentSeconds(order.createdAt);
@@ -110,34 +164,6 @@ export function OrderHistoryView({
       });
     } finally {
       setPayingOrderId(null);
-    }
-  };
-
-  const handleRefresh = async () => {
-    try {
-      setIsRefreshing(true);
-      const emailQuery = userEmail
-        ? `&email=${encodeURIComponent(userEmail)}`
-        : "";
-      const res = await fetch(`/api/order-requests?pageSize=100${emailQuery}`);
-      if (res.ok) {
-        const data = await res.json();
-        const items: UserOrder[] = data.items || data.Items || [];
-        setOrders(items);
-        toast.add({
-          title: "Đã làm mới danh sách",
-          description: "Thông tin các đơn dịch vụ đã được cập nhật mới nhất.",
-          type: "success",
-        });
-      }
-    } catch {
-      toast.add({
-        title: "Lỗi kết nối",
-        description: "Không thể làm mới danh sách đơn hàng.",
-        type: "error",
-      });
-    } finally {
-      setIsRefreshing(false);
     }
   };
 
@@ -220,7 +246,7 @@ export function OrderHistoryView({
             <Button
               variant="outline"
               size="sm"
-              onClick={handleRefresh}
+              onClick={() => fetchOrders(true)}
               disabled={isRefreshing}
               className="rounded-xl border-slate-200 bg-white shadow-2xs text-xs font-semibold gap-1.5"
             >
@@ -285,7 +311,14 @@ export function OrderHistoryView({
 
         {/* 3. Orders List */}
         <section aria-label="Danh sách đơn hàng">
-          {filteredOrders.length === 0 ? (
+          {isLoadingInitial ? (
+            <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
+              <Loader2 className="size-8 text-primary animate-spin mx-auto" />
+              <p className="text-xs text-slate-500 font-medium">
+                Đang tải dữ liệu đơn dịch vụ của bạn...
+              </p>
+            </div>
+          ) : filteredOrders.length === 0 ? (
             <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-300 space-y-4">
               <div className="size-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
                 <Server className="size-8" />
@@ -442,10 +475,10 @@ export function OrderHistoryView({
           createdAt={paymentModalData.createdAt}
           onPaymentSuccess={() => {
             setShowPaymentQr(false);
-            handleRefresh();
+            fetchOrders(false);
           }}
           onPaymentExpired={() => {
-            handleRefresh();
+            fetchOrders(false);
           }}
         />
       )}
