@@ -21,9 +21,6 @@ public class AffiliateApplicationConfiguration : IEntityTypeConfiguration<Affili
             .HasColumnType("varchar(100)")
             .IsRequired();
 
-        builder.HasIndex(a => a.Email)
-            .IsUnique();
-
         builder.Property(a => a.Phone)
             .HasColumnType("varchar(20)")
             .IsRequired();

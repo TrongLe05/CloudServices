@@ -2,6 +2,8 @@ using CloudServices.Domain.Entities;
 using CloudServices.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
 
 namespace CloudServices.Infrastructure.Data;
 
@@ -48,75 +50,124 @@ public class ApplicationDbContextInitialiser
     private async Task TrySeedAsync()
     {
         // 1. Seed Roles
-        var adminRole = new Role { Name = "Admin", Description = "Quản trị viên hệ thống" };
-        var userRole = new Role { Name = "User", Description = "Khách hàng thành viên" };
-
-        if (!await _context.Roles.AnyAsync())
+        var adminRole = await _context.Roles.IgnoreQueryFilters().FirstOrDefaultAsync(r => r.Name == "Admin");
+        if (adminRole == null)
         {
-            _context.Roles.AddRange(adminRole, userRole);
+            adminRole = new Role { Name = "Admin", Description = "Quản trị viên hệ thống", IsActive = true };
+            _context.Roles.Add(adminRole);
             await _context.SaveChangesAsync();
         }
-        else
+        else if (!adminRole.IsActive)
         {
-            adminRole = await _context.Roles.FirstAsync(r => r.Name == "Admin");
+            adminRole.IsActive = true;
+            _context.Roles.Update(adminRole);
+            await _context.SaveChangesAsync();
+        }
+
+        var userRole = await _context.Roles.IgnoreQueryFilters().FirstOrDefaultAsync(r => r.Name == "User");
+        if (userRole == null)
+        {
+            userRole = new Role { Name = "User", Description = "Khách hàng thành viên", IsActive = true };
+            _context.Roles.Add(userRole);
+            await _context.SaveChangesAsync();
+        }
+        else if (!userRole.IsActive)
+        {
+            userRole.IsActive = true;
+            _context.Roles.Update(userRole);
+            await _context.SaveChangesAsync();
+        }
+
+        var editorRole = await _context.Roles.IgnoreQueryFilters().FirstOrDefaultAsync(r => r.Name == "Editor");
+        if (editorRole == null)
+        {
+            editorRole = new Role { Name = "Editor", Description = "Biên tập viên & Quản lý yêu cầu", IsActive = true };
+            _context.Roles.Add(editorRole);
+            await _context.SaveChangesAsync();
+        }
+        else if (!editorRole.IsActive)
+        {
+            editorRole.IsActive = true;
+            _context.Roles.Update(editorRole);
+            await _context.SaveChangesAsync();
         }
 
         // 2. Seed AppUsers (Tài khoản Admin)
-        var systemAdmin = new AppUser
+        var systemAdmin = await _context.AppUsers.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Username == "admin");
+        if (systemAdmin == null)
         {
-            Username = "admin",
-            FullName = "Hệ Thống Admin",
-            Email = "admin@cloudservice.com",
-            PasswordHash = "admin_hashed_password", // Password mặc định (nên được băm trong thực tế)
-            RoleId = adminRole.Id
-        };
-
-        if (!await _context.AppUsers.AnyAsync())
-        {
+            systemAdmin = new AppUser
+            {
+                Username = "admin",
+                FullName = "Hệ Thống Admin",
+                Email = "admin@cloudservice.com",
+                PasswordHash = "admin_hashed_password",
+                RoleId = adminRole.Id,
+                IsActive = true
+            };
             _context.AppUsers.Add(systemAdmin);
             await _context.SaveChangesAsync();
         }
-        else
+        else if (!systemAdmin.IsActive)
         {
-            systemAdmin = await _context.AppUsers.FirstAsync(u => u.Username == "admin");
+            systemAdmin.IsActive = true;
+            _context.AppUsers.Update(systemAdmin);
+            await _context.SaveChangesAsync();
         }
 
         // 3. Seed Service Categories
-        var vpsCategory = new ServiceCategory { Name = "VPS", Slug = "vps", Description = "Máy chủ ảo đám mây hiệu năng cao" };
-        var hostingCategory = new ServiceCategory { Name = "Hosting", Slug = "hosting", Description = "Lưu trữ website tốc độ cao" };
-
-        if (!await _context.ServiceCategories.AnyAsync())
+        var vpsCategory = await _context.ServiceCategories.IgnoreQueryFilters().FirstOrDefaultAsync(c => c.Slug == "vps");
+        if (vpsCategory == null)
         {
-            _context.ServiceCategories.AddRange(vpsCategory, hostingCategory);
+            vpsCategory = new ServiceCategory { Name = "VPS", Slug = "vps", Description = "Máy chủ ảo đám mây hiệu năng cao", IsActive = true };
+            _context.ServiceCategories.Add(vpsCategory);
             await _context.SaveChangesAsync();
         }
-        else
+        else if (!vpsCategory.IsActive)
         {
-            vpsCategory = await _context.ServiceCategories.FirstAsync(c => c.Slug == "vps");
-            hostingCategory = await _context.ServiceCategories.FirstAsync(c => c.Slug == "hosting");
+            vpsCategory.IsActive = true;
+            _context.ServiceCategories.Update(vpsCategory);
+            await _context.SaveChangesAsync();
+        }
+
+        var hostingCategory = await _context.ServiceCategories.IgnoreQueryFilters().FirstOrDefaultAsync(c => c.Slug == "hosting");
+        if (hostingCategory == null)
+        {
+            hostingCategory = new ServiceCategory { Name = "Hosting", Slug = "hosting", Description = "Lưu trữ website tốc độ cao", IsActive = true };
+            _context.ServiceCategories.Add(hostingCategory);
+            await _context.SaveChangesAsync();
+        }
+        else if (!hostingCategory.IsActive)
+        {
+            hostingCategory.IsActive = true;
+            _context.ServiceCategories.Update(hostingCategory);
+            await _context.SaveChangesAsync();
         }
 
         // 4. Seed Promotions
-        var grandOpeningPromo = new Promotion
+        var grandOpeningPromo = await _context.Promotions.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Name == "Mừng Khai Trương");
+        if (grandOpeningPromo == null)
         {
-            Name = "Mừng Khai Trương",
-            DiscountPercentage = 10,
-            StartDate = DateTime.UtcNow.AddDays(-5),
-            EndDate = DateTime.UtcNow.AddMonths(1)
-        };
-
-        if (!await _context.Promotions.AnyAsync())
-        {
+            grandOpeningPromo = new Promotion
+            {
+                Name = "Mừng Khai Trương",
+                DiscountPercentage = 10,
+                StartDate = DateTime.UtcNow.AddDays(-5),
+                EndDate = DateTime.UtcNow.AddMonths(1),
+                IsActive = true
+            };
             _context.Promotions.Add(grandOpeningPromo);
             await _context.SaveChangesAsync();
         }
-        else
+        else if (!grandOpeningPromo.IsActive)
         {
-            grandOpeningPromo = await _context.Promotions.FirstAsync(p => p.Name == "Mừng Khai Trương");
+            grandOpeningPromo.IsActive = true;
+            _context.Promotions.Update(grandOpeningPromo);
+            await _context.SaveChangesAsync();
         }
 
         // 5. Seed ServicePlans & PlanPrices
-        if (!await _context.ServicePlans.AnyAsync())
+        if (!await _context.ServicePlans.IgnoreQueryFilters().AnyAsync())
         {
             var vpsStarter = new ServicePlan
             {
@@ -127,7 +178,8 @@ public class ApplicationDbContextInitialiser
                 Ram = "2 GB",
                 Storage = "30 GB SSD",
                 Bandwidth = "100 Mbps",
-                QrCodeUrl = "https://images.example.com/qr-vps-starter.png"
+                QrCodeUrl = "https://images.example.com/qr-vps-starter.png",
+                IsActive = true
             };
 
             var vpsPro = new ServicePlan
@@ -139,23 +191,24 @@ public class ApplicationDbContextInitialiser
                 Ram = "4 GB",
                 Storage = "60 GB SSD NVMe",
                 Bandwidth = "200 Mbps",
-                QrCodeUrl = "https://images.example.com/qr-vps-pro.png"
+                QrCodeUrl = "https://images.example.com/qr-vps-pro.png",
+                IsActive = true
             };
 
             _context.ServicePlans.AddRange(vpsStarter, vpsPro);
             await _context.SaveChangesAsync();
 
             _context.PlanPrices.AddRange(
-                new PlanPrice { PlanId = vpsStarter.Id, BillingCycle = "Monthly", Price = 150000, PromotionId = grandOpeningPromo.Id },
-                new PlanPrice { PlanId = vpsStarter.Id, BillingCycle = "Annually", Price = 1500000, PromotionId = null },
-                new PlanPrice { PlanId = vpsPro.Id, BillingCycle = "Monthly", Price = 300000, PromotionId = grandOpeningPromo.Id },
-                new PlanPrice { PlanId = vpsPro.Id, BillingCycle = "Annually", Price = 3000000, PromotionId = null }
+                new PlanPrice { PlanId = vpsStarter.Id, BillingCycle = "Monthly", Price = 150000, PromotionId = grandOpeningPromo.Id, IsActive = true },
+                new PlanPrice { PlanId = vpsStarter.Id, BillingCycle = "Yearly", Price = 1500000, PromotionId = null, IsActive = true },
+                new PlanPrice { PlanId = vpsPro.Id, BillingCycle = "Monthly", Price = 300000, PromotionId = grandOpeningPromo.Id, IsActive = true },
+                new PlanPrice { PlanId = vpsPro.Id, BillingCycle = "Yearly", Price = 3000000, PromotionId = null, IsActive = true }
             );
             await _context.SaveChangesAsync();
         }
 
         // 6. Seed NewsArticles
-        if (!await _context.NewsArticles.AnyAsync())
+        if (!await _context.NewsArticles.IgnoreQueryFilters().AnyAsync())
         {
             _context.NewsArticles.Add(new NewsArticle
             {
@@ -164,7 +217,22 @@ public class ApplicationDbContextInitialiser
                 Content = "<p>Chúng tôi chính thức ra mắt dịch vụ Cloud VPS mới sử dụng ổ cứng NVMe...</p>",
                 ThumbnailUrl = "https://images.example.com/vps-launch.png",
                 PublishedAt = DateTime.UtcNow,
-                AuthorId = systemAdmin.Id
+                AuthorId = systemAdmin.Id,
+                IsActive = true
+            });
+            await _context.SaveChangesAsync();
+        }
+
+        // 7. Seed AffiliateApplications
+        if (!await _context.AffiliateApplications.IgnoreQueryFilters().AnyAsync())
+        {
+            _context.AffiliateApplications.Add(new AffiliateApplication
+            {
+                FullName = "John Doe",
+                Email = "john.doe@example.com",
+                Phone = "0123456789",
+                Status = AffiliateStatus.Pending,
+                IsActive = true
             });
             await _context.SaveChangesAsync();
         }
