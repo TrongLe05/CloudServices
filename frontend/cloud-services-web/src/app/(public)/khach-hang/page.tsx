@@ -8,11 +8,30 @@ import { Metadata } from "next";
 import { CustomersPageView } from "@/components/customers/CustomersPageView";
 import { TestimonialItem } from "@/components/customers/CustomerTestimonials";
 import { ServicePlanItem } from "@/components/customers/CustomerServiceQRs";
+import { siteConfig } from "@/config/site";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
-  title: "Khách hàng & Đánh giá dịch vụ - CloudServices",
+  title: "Khách hàng & Đánh giá Dịch vụ Máy chủ Đám mây",
   description:
-    "Cảm nhận khách hàng thực tế, danh sách đối tác tiêu biểu và mã QR tra cứu thông số kỹ thuật từng gói dịch vụ máy chủ đám mây CloudServices.",
+    "Khám phá cảm nhận từ hơn 10.000+ doanh nghiệp tin dùng, đối tác tiêu biểu và mã QR tra cứu chi tiết thông số kỹ thuật từng gói dịch vụ hạ tầng CloudServices.",
+  alternates: {
+    canonical: `${siteConfig.url}/khach-hang`,
+  },
+  openGraph: {
+    title: "Khách hàng & Đánh giá Dịch vụ | CloudServices",
+    description:
+      "Hơn 10.000+ khách hàng doanh nghiệp và lập trình viên tin tưởng lựa chọn hạ tầng máy chủ đám mây tốc độ cao CloudServices.",
+    url: `${siteConfig.url}/khach-hang`,
+    type: "website",
+    images: [{ url: siteConfig.ogImage, width: 1200, height: 630, alt: "Khách hàng CloudServices" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Khách hàng & Đánh giá Dịch vụ | CloudServices",
+    description: "Cảm nhận từ 10.000+ khách hàng tin dùng máy chủ đám mây CloudServices.",
+    images: [siteConfig.ogImage],
+  },
 };
 
 async function getInitialTestimonials(): Promise<TestimonialItem[]> {
@@ -67,15 +86,23 @@ async function getInitialServicePlans(): Promise<ServicePlanItem[]> {
 }
 
 export default async function CustomersPage() {
-  const [testimonials, servicePlans] = await Promise.all([
+  const [testimonials, plans] = await Promise.all([
     getInitialTestimonials(),
     getInitialServicePlans(),
   ]);
 
   return (
-    <CustomersPageView
-      initialTestimonials={testimonials}
-      initialPlans={servicePlans}
-    />
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Trang chủ", url: "/" },
+          { name: "Khách hàng & Đánh giá", url: "/khach-hang" },
+        ]}
+      />
+      <CustomersPageView
+        initialTestimonials={testimonials}
+        initialPlans={plans}
+      />
+    </>
   );
 }

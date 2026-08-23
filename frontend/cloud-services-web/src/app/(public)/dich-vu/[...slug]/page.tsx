@@ -6,6 +6,7 @@ if (process.env.NODE_ENV === "development") {
 
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
 import {
   PlanDetailView,
   TestimonialItem,
@@ -13,6 +14,8 @@ import {
 import { ServicePlanItem } from "@/types/plans.types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { slugify } from "@/lib/slugUtils";
+import { siteConfig } from "@/config/site";
+import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 
 async function getPlanDetail(categorySlugOrId: string, planSlugOrId: string) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
@@ -93,6 +96,76 @@ async function getPlanDetail(categorySlugOrId: string, planSlugOrId: string) {
   }
 }
 
+// 🚀 Dynamic SEO Metadata Generation for Service Plans
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string[] }>;
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const slugArray = resolvedParams.slug || [];
+
+  if (slugArray.length < 2) {
+    return { title: "Chi tiết dịch vụ" };
+  }
+
+  const categorySlug = slugArray[0];
+  const planSlug = slugArray[1];
+  const data = await getPlanDetail(categorySlug, planSlug);
+
+  if (!data || !data.plan) {
+    return {
+      title: "Không tìm thấy gói dịch vụ",
+      description: "Gói cấu hình máy chủ không tồn tại hoặc đã ngừng cung cấp.",
+    };
+  }
+
+  const plan = data.plan;
+  const pageTitle = `${plan.name} - ${plan.categoryName || "Máy chủ Đám mây"} Tốc độ cao`;
+  const specsDesc = [
+    plan.cpu ? `CPU: ${plan.cpu}` : null,
+    plan.ram ? `RAM: ${plan.ram}` : null,
+    plan.storage ? `Ổ cứng: ${plan.storage}` : null,
+    plan.bandwidth ? `Băng thông: ${plan.bandwidth}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
+  const pageDescription = plan.description
+    ? `${plan.description}. Cấu hình: ${specsDesc}. Cam kết SLA 99.99% Uptime.`
+    : `Đăng ký gói ${plan.name} với hạ tầng ${specsDesc}. Bàn giao tự động dưới 60 giây.`;
+
+  const canonicalUrl = `${siteConfig.url}/dich-vu/${categorySlug}/${planSlug}`;
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: pageTitle,
+      description: pageDescription,
+      url: canonicalUrl,
+      type: "article",
+      images: [
+        {
+          url: siteConfig.ogImage,
+          width: 1200,
+          height: 630,
+          alt: plan.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: pageTitle,
+      description: pageDescription,
+      images: [siteConfig.ogImage],
+    },
+  };
+}
+
 export default async function ServicePlanDetailPage({
   params,
 }: {
@@ -114,14 +187,36 @@ export default async function ServicePlanDetailPage({
     notFound();
   }
 
+  const currentPrice = data.plan.prices?.[0]?.price || 0;
+  const detailUrl = `${siteConfig.url}/dich-vu/${categorySlug}/${planSlug}`;
+
   return (
-    <Suspense fallback={<PlanDetailSkeleton />}>
-      <PlanDetailView
-        plan={data.plan}
-        relatedPlans={data.relatedPlans}
-        testimonials={data.testimonials}
+    <>
+      {/* 🚀 SEO Rich Structured Data */}
+      <ProductJsonLd
+        name={data.plan.name}
+        description={data.plan.description}
+        price={currentPrice}
+        url={detailUrl}
+        sku={data.plan.id}
       />
-    </Suspense>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Trang chủ", url: "/" },
+          { name: "Dịch vụ đám mây", url: "/dich-vu" },
+          { name: data.plan.categoryName || "Danh mục", url: `/dich-vu/${categorySlug}` },
+          { name: data.plan.name, url: `/dich-vu/${categorySlug}/${planSlug}` },
+        ]}
+      />
+
+      <Suspense fallback={<PlanDetailSkeleton />}>
+        <PlanDetailView
+          plan={data.plan}
+          relatedPlans={data.relatedPlans}
+          testimonials={data.testimonials}
+        />
+      </Suspense>
+    </>
   );
 }
 
