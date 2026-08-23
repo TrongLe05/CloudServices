@@ -34,6 +34,7 @@ import {
 import { OrderServiceModal, OrderModalPlan } from "./OrderServiceModal";
 import { PlanQrModal } from "./PlanQrModal";
 import { PlanQrThumbnail } from "./PlanQrThumbnail";
+import { formatVND } from "@/lib/formatUtils";
 
 export interface ServiceCategory {
   id: string;
@@ -86,13 +87,6 @@ export function ServicesPageView({
       setActiveCategory(selectedCategorySlug);
     }
   }, [selectedCategorySlug]);
-
-  const formatVND = (value: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(value);
-  };
 
   // Filter plans based on activeCategory and searchTerm
   const filteredPlans = React.useMemo(() => {

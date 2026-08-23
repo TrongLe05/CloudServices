@@ -42,6 +42,7 @@ import {
 import { OrderServiceModal, OrderModalPlan } from "@/components/services/OrderServiceModal";
 import { PlanQrModal } from "@/components/services/PlanQrModal";
 import { PlanQrThumbnail } from "@/components/services/PlanQrThumbnail";
+import { formatVND } from "@/lib/formatUtils";
 
 export interface CategoryData {
   id: string;
@@ -127,13 +128,6 @@ export function PricingPageView({
       })
       .filter((group) => group.plans.length > 0);
   }, [categories, plans, selectedCategory]);
-
-  const formatVND = (value: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(value);
-  };
 
   // Helper to calculate price and promo details for each plan based on billingCycle
   const getPlanPriceInfo = (plan: PricingPlan) => {

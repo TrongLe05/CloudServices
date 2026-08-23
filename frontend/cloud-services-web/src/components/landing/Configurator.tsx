@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatVND } from "@/lib/formatUtils";
 
 export const Configurator = () => {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
@@ -29,13 +30,6 @@ export const Configurator = () => {
     }
     return baseCost;
   }, [config.cpu, config.ram, config.storage, config.hasIp, billingCycle]);
-
-  const formatVND = (value: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(value);
-  };
 
   return (
     <section

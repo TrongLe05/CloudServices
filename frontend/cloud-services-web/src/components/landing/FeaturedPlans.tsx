@@ -16,6 +16,8 @@ import {
 import { OrderServiceModal, OrderModalPlan } from "@/components/services/OrderServiceModal";
 import { PlanQrModal } from "@/components/services/PlanQrModal";
 import { PlanQrThumbnail } from "@/components/services/PlanQrThumbnail";
+import { formatVND } from "@/lib/formatUtils";
+import { PlanSpecsList } from "@/components/common/PlanSpecsList";
 
 export interface FeaturedPlanItem {
   id: string;
@@ -44,13 +46,6 @@ interface FeaturedPlansProps {
 export const FeaturedPlans = ({ initialPlans = [] }: FeaturedPlansProps) => {
   const [orderModalPlan, setOrderModalPlan] = React.useState<OrderModalPlan | null>(null);
   const [qrModalPlan, setQrModalPlan] = React.useState<{ id: string; name: string; categoryName?: string } | null>(null);
-
-  const formatVND = (value: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(value);
-  };
 
   const displayPlans = initialPlans.slice(0, 3);
 
@@ -152,42 +147,14 @@ export const FeaturedPlans = ({ initialPlans = [] }: FeaturedPlansProps) => {
                       )}
 
                       {/* Specs List */}
-                      {(plan.cpu || plan.ram || plan.storage || plan.bandwidth) && (
-                        <ul className="space-y-3 text-xs mt-6 flex-1 text-slate-700">
-                          {plan.cpu && (
-                            <li className="flex items-center gap-2.5">
-                              <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
-                                <Check className="size-3" />
-                              </div>
-                              <span>Vi xử lý: <strong>{plan.cpu}</strong></span>
-                            </li>
-                          )}
-                          {plan.ram && (
-                            <li className="flex items-center gap-2.5">
-                              <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
-                                <Check className="size-3" />
-                              </div>
-                              <span>Bộ nhớ RAM: <strong>{plan.ram}</strong></span>
-                            </li>
-                          )}
-                          {plan.storage && (
-                            <li className="flex items-center gap-2.5">
-                              <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
-                                <Check className="size-3" />
-                              </div>
-                              <span>Lưu trữ: <strong>{plan.storage}</strong></span>
-                            </li>
-                          )}
-                          {plan.bandwidth && (
-                            <li className="flex items-center gap-2.5">
-                              <div className="p-0.5 bg-emerald-50 rounded-full text-emerald-600 shrink-0">
-                                <Check className="size-3" />
-                              </div>
-                              <span>Băng thông: <strong>{plan.bandwidth}</strong></span>
-                            </li>
-                          )}
-                        </ul>
-                      )}
+                      <PlanSpecsList
+                        cpu={plan.cpu}
+                        ram={plan.ram}
+                        storage={plan.storage}
+                        bandwidth={plan.bandwidth}
+                        variant="list"
+                        className="mt-6 flex-1 text-slate-700"
+                      />
                     </CardContent>
                   </div>
 

@@ -6,7 +6,8 @@ if (process.env.NODE_ENV === "development") {
 
 import { Suspense } from "react";
 import { auth } from "@/auth";
-import { OrderHistoryView, UserOrder } from "@/components/services/OrderHistoryView";
+import { OrderHistoryView } from "@/components/services/OrderHistoryView";
+import { UserOrder } from "@/types/orders.types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAuthAccessToken } from "@/lib/auth-token";
 

@@ -22,6 +22,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  formatVND,
+  formatTimer,
+  parseDateToMs,
+  getBankName,
+} from "@/lib/formatUtils";
+import { BankTransferInfoCard } from "@/components/common/BankTransferInfoCard";
 
 export interface PaymentQrModalProps {
   isOpen: boolean;
@@ -41,37 +48,6 @@ export interface PaymentQrModalProps {
   onPaymentSuccess?: () => void;
   onPaymentExpired?: () => void;
 }
-
-const BANK_NAMES: Record<string, string> = {
-  "970422": "MBBank (Quân Đội)",
-  "970415": "VietinBank (Công Thương)",
-  "970436": "Vietcombank (Ngoại Thương)",
-  "970407": "Techcombank",
-  "970418": "BIDV (Đầu Tư & Phát Triển)",
-  "970423": "TPBank (Tiên Phong)",
-  "970432": "VPBank (Việt Nam Thịnh Vượng)",
-  "970454": "VietCapitalBank (Bản Việt)",
-  "970416": "ACB (Á Châu)",
-  "970441": "VIB (Quốc Tế)",
-  "970403": "Sacombank (Sài Gòn Thương Tín)",
-  "970405": "Agribank (Nông Nghiệp)",
-  "970448": "OCB (Phương Đông)",
-  "970443": "SHB (Sài Gòn - Hà Nội)",
-  "970437": "HDBank (Phát Triển TP.HCM)",
-  "970428": "Nam A Bank (Nam Á)",
-  "970452": "Kienlongbank (Kiên Long)",
-  "970449": "LPBank (Bưu Điện Liên Việt)",
-  "970438": "BaoVietBank (Bảo Việt)",
-  "970431": "Eximbank (Xuất Nhập Khẩu)",
-  "970429": "SCB (Sài Gòn)",
-  "970426": "MSB (Hàng Hải)",
-  "970406": "DongABank (Đông Á)",
-  "970440": "SeABank (Đông Nam Á)",
-  "970425": "ABBANK (An Bình)",
-  "970427": "VietABank (Việt Á)",
-  "970433": "VietBank (Việt Nam Thương Tín)",
-  "970430": "PGBank (Xăng Dầu Petrolimex)",
-};
 
 export function PaymentQrModal({
   isOpen,
@@ -97,16 +73,6 @@ export function PaymentQrModal({
   const [isCheckingManual, setIsCheckingManual] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"qr" | "manual">("qr");
 
-  // Chuẩn hóa chuỗi thời gian từ server về UTC timestamp (tránh lệch múi giờ local GMT+7)
-  const parseDateToMs = (dateStr: string) => {
-    if (!dateStr) return Date.now();
-    const trimmed = dateStr.trim();
-    const hasTimezone = trimmed.endsWith("Z") || /[+-]\d{2}(:\d{2})?$/.test(trimmed);
-    const normalizedStr = hasTimezone ? trimmed : `${trimmed}Z`;
-    const parsedTime = new Date(normalizedStr).getTime();
-    return isNaN(parsedTime) ? new Date(trimmed).getTime() : parsedTime;
-  };
-
   // Tính số giây còn lại đồng bộ theo thời điểm tạo đơn gốc
   const calculateRemaining = React.useCallback(() => {
     if (!createdAt) return 300;
@@ -129,19 +95,12 @@ export function PaymentQrModal({
           qrCodeString
         )}`);
 
-  const bankDisplayName = (bin && BANK_NAMES[bin]) || "Ngân hàng liên kết Napas 24/7";
+  const bankDisplayName = getBankName(bin);
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
-  };
-
-  const formatVND = (value: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(value);
   };
 
   const formatTimer = (seconds: number) => {
@@ -490,112 +449,18 @@ export function PaymentQrModal({
               ) : (
                 /* Tab 2: Thông tin chuyển khoản thủ công chi tiết */
                 <div className="space-y-3">
-                  <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200/80 space-y-3 text-xs">
-                    {/* Ngân hàng */}
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
-                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                        <Building className="size-3.5 text-slate-400" />
-                        Ngân hàng:
-                      </span>
-                      <span className="font-bold text-slate-900 text-right">{bankDisplayName}</span>
-                    </div>
-
-                    {/* Số tài khoản */}
-                    {accountNumber && (
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
-                        <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                          <CreditCard className="size-3.5 text-slate-400" />
-                          Số tài khoản:
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-extrabold text-sm text-slate-900">
-                            {accountNumber}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(accountNumber, "acc")}
-                            className="p-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 shadow-2xs transition-colors"
-                            title="Sao chép số tài khoản"
-                          >
-                            {copiedField === "acc" ? (
-                              <Check className="size-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="size-3.5" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Chủ tài khoản */}
-                    {accountName && (
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
-                        <span className="text-slate-500 font-medium">Chủ tài khoản:</span>
-                        <span className="font-bold text-slate-900 uppercase text-[11px]">
-                          {accountName}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Số tiền */}
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
-                      <span className="text-slate-500 font-medium">Số tiền chính xác:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-primary text-sm">
-                          {formatVND(amount)}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(amount.toString(), "amount")}
-                          className="p-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 shadow-2xs transition-colors"
-                          title="Sao chép số tiền"
-                        >
-                          {copiedField === "amount" ? (
-                            <Check className="size-3.5 text-emerald-600" />
-                          ) : (
-                            <Copy className="size-3.5" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Nội dung chuyển khoản (QUAN TRỌNG NHẤT) */}
-                    <div className="pt-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-amber-800 font-bold flex items-center gap-1 text-[11px]">
-                          <AlertCircle className="size-3.5 text-amber-600" />
-                          Nội dung chuyển khoản (Bắt buộc):
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 border border-amber-200">
-                        <span className="font-mono font-black text-amber-950 text-sm tracking-wider">
-                          {description}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(description, "desc")}
-                          className="px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 font-bold text-xs shadow-2xs flex items-center gap-1 transition-colors"
-                        >
-                          {copiedField === "desc" ? (
-                            <>
-                              <Check className="size-3 text-emerald-600" />
-                              <span className="text-emerald-600">Đã chép</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="size-3 text-amber-700" />
-                              <span>Sao chép</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  <BankTransferInfoCard
+                    accountNumber={accountNumber}
+                    accountName={accountName}
+                    bin={bin}
+                    amount={amount}
+                    description={description}
+                  />
 
                   <div className="p-3 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-[11px] text-indigo-900 flex items-start gap-2">
                     <Info className="size-4 text-indigo-600 shrink-0 mt-0.5" />
                     <p className="leading-relaxed">
-                      Quý khách vui lòng nhập <strong>chính xác nội dung chuyển khoản</strong> để hệ thống tự động ghi nhận đơn hàng sau 1-3 giây.
+                      Quý khách vui lòng nhập <strong>chính xác nội dung chuyển khoản</strong> để hệ thống tự động kích hoạt dịch vụ sau 1-3 giây.
                     </p>
                   </div>
                 </div>

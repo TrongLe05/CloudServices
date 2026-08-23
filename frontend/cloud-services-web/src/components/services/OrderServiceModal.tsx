@@ -21,6 +21,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PaymentQrModal } from "./PaymentQrModal";
+import { formatVND } from "@/lib/formatUtils";
 
 export interface OrderModalPlan {
   id: string;
@@ -32,7 +33,7 @@ export interface OrderModalPlan {
   bandwidth?: string | null;
   description?: string | null;
   prices?: {
-    id: string;
+    id?: string;
     billingCycle: string;
     price: number;
     promotionDiscountPercentage?: number;
@@ -85,13 +86,6 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
   }, [isOpen, plan, session]);
 
   if (!isOpen || !plan) return null;
-
-  const formatVND = (value: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(value);
-  };
 
   const selectedPriceObj = plan.prices?.find((p) => p.billingCycle === billingCycle);
   const rawPrice = selectedPriceObj?.price ?? 0;

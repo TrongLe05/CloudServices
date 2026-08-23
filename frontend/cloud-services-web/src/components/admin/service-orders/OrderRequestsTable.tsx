@@ -23,6 +23,8 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import * as React from "react";
+import { OrderStatusBadge } from "@/components/common/OrderStatusBadge";
+import { formatDateVN } from "@/lib/formatUtils";
 
 export interface OrderRequest {
   id: string;
@@ -50,52 +52,6 @@ export function OrderRequestsTable({
 }: OrderRequestsTableProps) {
   const [selectedOrder, setSelectedOrder] = React.useState<OrderRequest | null>(null);
   const [actionLoadingId, setActionLoadingId] = React.useState<string | null>(null);
-
-  const getStatusBadge = (status: number | string) => {
-    const s = String(status);
-    if (s === "0" || s === "New") {
-      return (
-        <Badge
-          variant="outline"
-          className="gap-1 border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
-        >
-          <span className="size-1.5 rounded-full bg-blue-600 animate-pulse" />
-          Mới nhận
-        </Badge>
-      );
-    }
-    if (s === "1" || s === "Processing") {
-      return (
-        <Badge
-          variant="outline"
-          className="gap-1 border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
-        >
-          <Clock className="size-3 text-amber-600" />
-          Đang xử lý
-        </Badge>
-      );
-    }
-    if (s === "2" || s === "Completed") {
-      return (
-        <Badge
-          variant="outline"
-          className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-        >
-          <CheckCircle2 className="size-3 text-emerald-600" />
-          Hoàn tất
-        </Badge>
-      );
-    }
-    return (
-      <Badge
-        variant="outline"
-        className="gap-1 border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
-      >
-        <XCircle className="size-3 text-rose-600" />
-        Từ chối
-      </Badge>
-    );
-  };
 
   const mapStatusToInt = (status: number | string): number => {
     const s = String(status);
@@ -159,11 +115,13 @@ export function OrderRequestsTable({
                     </span>
                   </div>
                 </td>
-                <td className="py-3 px-4">{getStatusBadge(order.status)}</td>
+                <td className="py-3 px-4">
+                  <OrderStatusBadge status={order.status} showCountdown={false} />
+                </td>
                 <td className="py-3 px-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="size-3" />
-                    {new Date(order.createdAt).toLocaleString("vi-VN")}
+                    {formatDateVN(order.createdAt, true)}
                   </div>
                 </td>
                 <td className="py-3 px-4 text-right">
@@ -310,7 +268,7 @@ export function OrderRequestsTable({
                   </div>
                   <div>
                     <span className="text-xs text-muted-foreground block">Thời gian gửi</span>
-                    <span>{new Date(selectedOrder.createdAt).toLocaleString("vi-VN")}</span>
+                    <span>{formatDateVN(selectedOrder.createdAt, true)}</span>
                   </div>
                 </div>
               </div>

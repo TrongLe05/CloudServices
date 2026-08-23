@@ -8,9 +8,9 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import {
   PlanDetailView,
-  PlanDetailData,
   TestimonialItem,
 } from "@/components/services/PlanDetailView";
+import { ServicePlanItem } from "@/types/plans.types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { slugify } from "@/lib/slugUtils";
 
@@ -65,7 +65,7 @@ async function getPlanDetail(categorySlugOrId: string, planSlugOrId: string) {
       prices = [];
     }
 
-    const planData: PlanDetailData = {
+    const planData: ServicePlanItem = {
       ...targetPlan,
       categoryName: currentCat?.name || "Dịch vụ Đám mây",
       categorySlug: currentCat?.slug || slugify(currentCat?.name || "cloud"),

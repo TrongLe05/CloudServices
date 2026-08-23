@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
+import { formatVND } from "@/lib/formatUtils";
+import { PlanSpecsList } from "@/components/common/PlanSpecsList";
 
 export interface ServicePlanItem {
   id: string;
@@ -113,14 +115,6 @@ const SAMPLE_PLANS: ServicePlanItem[] = [
     prices: [{ billingCycle: "monthly", price: 0 }],
   },
 ];
-
-function formatVND(value?: number | null) {
-  if (!value || value <= 0) return "Liên hệ báo giá";
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(value);
-}
 
 // Subcomponent cho từng thẻ gói dịch vụ & QR Code lấy trực tiếp từ Backend API
 function ServicePlanQrCard({ plan }: { plan: ServicePlanItem }) {
@@ -239,55 +233,14 @@ function ServicePlanQrCard({ plan }: { plan: ServicePlanItem }) {
         </figure>
 
         {/* Specifications Definition List */}
-        <dl className="space-y-2 text-xs border-t border-slate-100 pt-4">
-          {plan.cpu && (
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-500 flex items-center gap-1.5 font-medium">
-                <Cpu className="size-3.5 text-slate-400" />
-                CPU:
-              </dt>
-              <dd className="font-semibold text-slate-800 text-right truncate max-w-[170px]">
-                {plan.cpu}
-              </dd>
-            </div>
-          )}
-
-          {plan.ram && (
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-500 flex items-center gap-1.5 font-medium">
-                <Layers className="size-3.5 text-slate-400" />
-                RAM:
-              </dt>
-              <dd className="font-semibold text-slate-800 text-right truncate max-w-[170px]">
-                {plan.ram}
-              </dd>
-            </div>
-          )}
-
-          {plan.storage && (
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-500 flex items-center gap-1.5 font-medium">
-                <HardDrive className="size-3.5 text-slate-400" />
-                Ổ cứng:
-              </dt>
-              <dd className="font-semibold text-slate-800 text-right truncate max-w-[170px]">
-                {plan.storage}
-              </dd>
-            </div>
-          )}
-
-          {plan.bandwidth && (
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-500 flex items-center gap-1.5 font-medium">
-                <Activity className="size-3.5 text-slate-400" />
-                Băng thông:
-              </dt>
-              <dd className="font-semibold text-slate-800 text-right truncate max-w-[170px]">
-                {plan.bandwidth}
-              </dd>
-            </div>
-          )}
-        </dl>
+        <PlanSpecsList
+          cpu={plan.cpu}
+          ram={plan.ram}
+          storage={plan.storage}
+          bandwidth={plan.bandwidth}
+          variant="dl"
+          className="border-t border-slate-100 pt-4"
+        />
 
         {/* Footer Actions */}
         <footer className="pt-2 flex items-center gap-2">
