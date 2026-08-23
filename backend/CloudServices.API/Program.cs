@@ -116,7 +116,10 @@ try
         options.AddPolicy(name: corsPolicyName,
             policy =>
             {
-                policy.WithOrigins("http://localhost:3000")
+                var frontendUrl = builder.Configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
+                var allowedOrigins = frontendUrl.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                policy.WithOrigins(allowedOrigins)
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();
@@ -189,22 +192,21 @@ try
         };
     });
 
-    if (app.Environment.IsDevelopment())
+    // OpenAPI + Scalar - bật ở mọi môi trường để hỗ trợ kiểm thử trên Render/Production
+    app.MapOpenApi();
+
+    app.MapScalarApiReference(options =>
     {
-        app.MapOpenApi();
+        options.WithTitle("Cloud Services Document API")
+               .WithTheme(ScalarTheme.Default);
+    });
 
-        app.MapScalarApiReference(options =>
-        {
-            options.WithTitle("Cloud Services Document API")
-                   .WithTheme(ScalarTheme.Default);
-        });
-
-        using (var scope = app.Services.CreateScope())
-        {
-            var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
-            await initialiser.InitialiseAsync();
-            await initialiser.SeedAsync();
-        }
+    // Khởi tạo và seed Database (chạy ở mọi môi trường để Render có dữ liệu ban đầu)
+    using (var scope = app.Services.CreateScope())
+    {
+        var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
+        await initialiser.InitialiseAsync();
+        await initialiser.SeedAsync();
     }
 
     app.UseHttpsRedirection();
