@@ -1,0 +1,36 @@
+services:
+  # ----------------------------------------------------
+  # Backend API (.NET 10 Web API)
+  # ----------------------------------------------------
+  - type: web
+    name: cloudservices-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: Dockerfile
+    plan: free
+    region: singapore
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_HTTP_PORTS
+        value: 8080
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: JwtSettings__Secret
+        sync: false
+      - key: JwtSettings__Issuer
+        value: CloudServicesAPI
+      - key: JwtSettings__Audience
+        value: CloudServicesClient
+      - key: AppSettings__FrontendUrl
+        sync: false
+      - key: PayOS__ClientId
+        sync: false
+      - key: PayOS__ApiKey
+        sync: false
+      - key: PayOS__ChecksumKey
+        sync: false
+      - key: Resend__ApiKey
+        sync: false
+      - key: Resend__Sender
+        value: onboarding@resend.dev
