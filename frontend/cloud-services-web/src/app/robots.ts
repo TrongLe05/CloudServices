@@ -11,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/admin/",
+          "/editor/",
           "/api/",
           "/don-hang/",
           "/quen-mat-khau",
@@ -23,6 +24,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/admin/",
+          "/editor/",
           "/api/",
           "/don-hang/",
         ],

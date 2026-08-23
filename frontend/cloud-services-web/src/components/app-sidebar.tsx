@@ -8,7 +8,12 @@ import {
   Tag,
   Settings2,
   ShieldCheck,
+  FileText,
+  ShoppingCart,
+  Users,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
@@ -22,20 +27,23 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-const data = {
-  user: {
-    name: "Admin",
-    email: "admin@cloudservices.com",
-    avatar: "/avatars/admin.jpg",
-  },
-  teams: [
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session } = useSession();
+  const pathname = usePathname();
+  const userRole = (session?.user as any)?.role || "Admin";
+  const isEditor = pathname?.startsWith("/editor") || String(userRole).toLowerCase() === "editor";
+
+  // Dynamic teams title based on role
+  const teams = [
     {
-      name: "CloudServices Admin",
+      name: isEditor ? "CloudServices Editor" : "CloudServices Admin",
       logo: GalleryVerticalEnd,
-      plan: "Enterprise Control",
+      plan: isEditor ? "Biên tập viên & Quản lý yêu cầu" : "Enterprise Control",
     },
-  ],
-  navMain: [
+  ];
+
+  // Full Admin Navigation Items
+  const adminNav = [
     {
       title: "Hệ thống tổng quan",
       url: "#",
@@ -112,22 +120,67 @@ const data = {
         },
       ],
     },
-  ],
-  projects: [],
-};
+  ];
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // Dedicated Editor Navigation Items (Only Blog CRUD & Service Orders / Affiliates)
+  const basePath = pathname?.startsWith("/editor") ? "/editor" : "/admin";
+
+  const editorNav = [
+    {
+      title: "Hệ thống tổng quan",
+      url: "#",
+      icon: Home,
+      isActive: true,
+      items: [
+        {
+          title: "Bảng điều khiển",
+          url: `${basePath}/dashboard`,
+        },
+      ],
+    },
+    {
+      title: "Truyền thông & Blog",
+      url: "#",
+      icon: FileText,
+      isActive: true,
+      items: [
+        {
+          title: "Tin tức & Blog",
+          url: `${basePath}/news`,
+        },
+      ],
+    },
+    {
+      title: "Yêu cầu & Đối tác",
+      url: "#",
+      icon: ShoppingCart,
+      isActive: true,
+      items: [
+        {
+          title: "Yêu cầu đặt dịch vụ",
+          url: `${basePath}/service-orders`,
+        },
+        {
+          title: "Đăng ký Affiliate",
+          url: `${basePath}/affiliates`,
+        },
+      ],
+    },
+  ];
+
+  const visibleNav = isEditor ? editorNav : adminNav;
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={visibleNav} />
+        <NavProjects projects={[]} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

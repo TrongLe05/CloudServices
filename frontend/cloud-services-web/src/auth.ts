@@ -57,10 +57,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             decoded["Role"] ||
             "User";
 
-          // Chuẩn hóa role (VD: "admin", "ADMIN" -> "Admin")
+          // Chuẩn hóa role (VD: "admin" -> "Admin", "editor" -> "Editor")
+          const lowerRole = String(roleClaim).toLowerCase();
           const role =
-            String(roleClaim).toLowerCase() === "admin"
+            lowerRole === "admin"
               ? "Admin"
+              : lowerRole === "editor"
+              ? "Editor"
               : String(roleClaim);
 
           return {

@@ -259,15 +259,36 @@ export function UserSheet({
                 onChange={(e) => setRoleId(e.target.value)}
                 disabled={loading || isSelf || isDefaultAdmin}
                 className={`w-full h-9 rounded-md border border-input px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
-                  isSelf || isDefaultAdmin ? "bg-muted cursor-not-allowed text-muted-foreground" : "bg-background"
+                  isSelf || isDefaultAdmin ? "bg-muted cursor-not-allowed text-muted-foreground" : "bg-background font-medium"
                 }`}
               >
-                {roles.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name} {r.description ? `(${r.description})` : ""}
-                  </option>
-                ))}
+                {roles.map((r) => {
+                  const roleNameLower = (r.name || "").toLowerCase();
+                  let displayDesc = r.description;
+                  if (!displayDesc) {
+                    if (roleNameLower === "admin") displayDesc = "Toàn quyền quản trị hệ thống";
+                    else if (roleNameLower === "editor") displayDesc = "Biên tập tin tức & Quản lý yêu cầu/Affiliate";
+                    else if (roleNameLower === "user") displayDesc = "Khách hàng thành viên";
+                  }
+                  return (
+                    <option key={r.id} value={r.id}>
+                      {r.name} {displayDesc ? `— (${displayDesc})` : ""}
+                    </option>
+                  );
+                })}
               </select>
+
+              {/* Role Help Text */}
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600 space-y-1 mt-1.5">
+                <div className="font-semibold text-slate-800 text-[11px] flex items-center gap-1">
+                  <span>ℹ️ Quyền hạn của các vai trò:</span>
+                </div>
+                <ul className="space-y-0.5 text-[11px] pl-3 list-disc text-slate-500">
+                  <li><strong className="text-rose-600">Admin:</strong> Toàn quyền quản trị, cấu hình giá, gói, tài khoản &amp; logs.</li>
+                  <li><strong className="text-indigo-600">Editor:</strong> Quản lý bài viết tin tức/blog, duyệt yêu cầu đặt dịch vụ và CTV affiliate.</li>
+                  <li><strong className="text-slate-700">User:</strong> Khách hàng thành viên trên website.</li>
+                </ul>
+              </div>
             </div>
 
             {/* Trạng thái hoạt động (chỉ khi sửa) */}

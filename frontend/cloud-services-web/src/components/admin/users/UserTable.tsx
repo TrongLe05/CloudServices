@@ -7,6 +7,7 @@ import {
   Trash2,
   Shield,
   User as UserIcon,
+  UserCheck,
   CheckCircle2,
   XCircle,
   Lock,
@@ -44,12 +45,20 @@ export function UserTable({
   togglingUserId,
 }: UserTableProps) {
   const getRoleBadge = (roleName: string) => {
-    const r = roleName.toLowerCase();
+    const r = (roleName || "").toLowerCase();
     if (r === "admin") {
       return (
         <Badge variant="destructive" className="font-semibold gap-1 text-xs">
           <Shield className="h-3 w-3" />
           Admin
+        </Badge>
+      );
+    }
+    if (r === "editor") {
+      return (
+        <Badge className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium gap-1 text-xs">
+          <UserCheck className="h-3 w-3" />
+          Biên tập viên (Editor)
         </Badge>
       );
     }
@@ -63,7 +72,7 @@ export function UserTable({
     return (
       <Badge variant="secondary" className="font-medium gap-1 text-xs">
         <UserIcon className="h-3 w-3" />
-        {roleName}
+        {roleName === "User" ? "Khách hàng" : roleName}
       </Badge>
     );
   };

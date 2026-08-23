@@ -67,11 +67,18 @@ export function UserHeader({
             className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="">Tất cả vai trò</option>
-            {roles.map((role) => (
-              <option key={role.id} value={role.id}>
-                Vai trò: {role.name}
-              </option>
-            ))}
+            {roles.map((role) => {
+              const roleNameLower = (role.name || "").toLowerCase();
+              let label = role.name;
+              if (roleNameLower === "admin") label = "Quản trị viên (Admin)";
+              else if (roleNameLower === "editor") label = "Biên tập viên (Editor)";
+              else if (roleNameLower === "user") label = "Khách hàng (User)";
+              return (
+                <option key={role.id} value={role.id}>
+                  Vai trò: {label}
+                </option>
+              );
+            })}
           </select>
         </div>
       </div>

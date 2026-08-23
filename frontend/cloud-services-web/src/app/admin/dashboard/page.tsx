@@ -137,8 +137,13 @@ export default async function AdminDashboardPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
-      <AdminDashboardView initialData={dashboardData} />
+    <div className="flex flex-1 flex-col gap-6">
+      <AdminDashboardView
+        initialData={dashboardData}
+        orderRequests={orderRequests}
+        affiliates={affiliates}
+        news={news}
+      />
     </div>
   );
 }

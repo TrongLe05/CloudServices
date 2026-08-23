@@ -78,6 +78,20 @@ public class ApplicationDbContextInitialiser
             await _context.SaveChangesAsync();
         }
 
+        var editorRole = await _context.Roles.IgnoreQueryFilters().FirstOrDefaultAsync(r => r.Name == "Editor");
+        if (editorRole == null)
+        {
+            editorRole = new Role { Name = "Editor", Description = "Biên tập viên & Quản lý yêu cầu", IsActive = true };
+            _context.Roles.Add(editorRole);
+            await _context.SaveChangesAsync();
+        }
+        else if (!editorRole.IsActive)
+        {
+            editorRole.IsActive = true;
+            _context.Roles.Update(editorRole);
+            await _context.SaveChangesAsync();
+        }
+
         // 2. Seed AppUsers (Tài khoản Admin)
         var systemAdmin = await _context.AppUsers.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Username == "admin");
         if (systemAdmin == null)
