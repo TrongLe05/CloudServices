@@ -1,3 +1,4 @@
+using CloudServices.Application.Common.Interfaces;
 using CloudServices.Domain.Entities;
 using CloudServices.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -11,11 +12,16 @@ public class ApplicationDbContextInitialiser
 {
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, ApplicationDbContext context)
+    public ApplicationDbContextInitialiser(
+        ILogger<ApplicationDbContextInitialiser> logger,
+        ApplicationDbContext context,
+        IPasswordHasher passwordHasher)
     {
         _logger = logger;
         _context = context;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task InitialiseAsync()
@@ -94,6 +100,8 @@ public class ApplicationDbContextInitialiser
 
         // 2. Seed AppUsers (Tài khoản Admin)
         var systemAdmin = await _context.AppUsers.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Username == "admin");
+        var adminHash = _passwordHasher.HashPasswords("Admin@123");
+
         if (systemAdmin == null)
         {
             systemAdmin = new AppUser
@@ -101,15 +109,17 @@ public class ApplicationDbContextInitialiser
                 Username = "admin",
                 FullName = "Hệ Thống Admin",
                 Email = "admin@cloudservice.com",
-                PasswordHash = "admin_hashed_password",
+                PasswordHash = adminHash,
                 RoleId = adminRole.Id,
                 IsActive = true
             };
             _context.AppUsers.Add(systemAdmin);
             await _context.SaveChangesAsync();
         }
-        else if (!systemAdmin.IsActive)
+        else
         {
+            // Cập nhật lại hash hợp lệ nếu hash cũ bị lỗi
+            systemAdmin.PasswordHash = adminHash;
             systemAdmin.IsActive = true;
             _context.AppUsers.Update(systemAdmin);
             await _context.SaveChangesAsync();
