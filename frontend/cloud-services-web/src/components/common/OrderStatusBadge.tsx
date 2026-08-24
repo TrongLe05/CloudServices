@@ -81,21 +81,40 @@ export function OrderStatusBadge({
     );
   }
 
-  // 2. Đã duyệt / Thanh toán thành công (Status = 1 hoặc "approved")
-  if (normalizedStatus === 1 || normalizedStatus === "approved") {
+  // 2. Đang xử lý / Tiếp nhận (Status = 1 hoặc "processing" / "approved")
+  if (normalizedStatus === 1 || normalizedStatus === "1" || normalizedStatus === "processing" || normalizedStatus === "approved") {
+    return (
+      <Badge
+        variant="outline"
+        className={`bg-blue-50 text-blue-700 border-blue-200 gap-1 text-[11px] font-semibold ${className}`}
+      >
+        <Activity className="size-3 text-blue-600 animate-pulse" />
+        <span>Đang xử lý</span>
+      </Badge>
+    );
+  }
+
+  // 3. Hoàn tất / Đang hoạt động (Status = 2 hoặc "completed" / "active")
+  if (normalizedStatus === 2 || normalizedStatus === "2" || normalizedStatus === "completed" || normalizedStatus === "active") {
     return (
       <Badge
         variant="outline"
         className={`bg-emerald-50 text-emerald-700 border-emerald-300 gap-1 text-[11px] font-semibold ${className}`}
       >
         <CheckCircle2 className="size-3 text-emerald-600" />
-        <span>Đã duyệt (Đã thanh toán)</span>
+        <span>Hoàn tất / Hoạt động</span>
       </Badge>
     );
   }
 
-  // 3. Từ chối / Đã hủy (Status = 2 hoặc "rejected" / "cancelled")
-  if (normalizedStatus === 2 || normalizedStatus === "rejected" || normalizedStatus === "cancelled") {
+  // 4. Từ chối / Đã hủy / Hết hạn thanh toán (Status = 3 hoặc "rejected" / "cancelled" / "expired")
+  if (
+    normalizedStatus === 3 ||
+    normalizedStatus === "3" ||
+    normalizedStatus === "rejected" ||
+    normalizedStatus === "cancelled" ||
+    normalizedStatus === "expired"
+  ) {
     return (
       <Badge
         variant="outline"
@@ -103,32 +122,6 @@ export function OrderStatusBadge({
       >
         <XCircle className="size-3 text-rose-600" />
         <span>Đã từ chối / Hủy</span>
-      </Badge>
-    );
-  }
-
-  // 4. Đang hoạt động / Đang cung cấp (Status = 3 hoặc "active" / "provisioning")
-  if (normalizedStatus === 3 || normalizedStatus === "active" || normalizedStatus === "provisioning") {
-    return (
-      <Badge
-        variant="outline"
-        className={`bg-blue-50 text-blue-700 border-blue-200 gap-1 text-[11px] font-semibold ${className}`}
-      >
-        <Activity className="size-3 text-blue-600 animate-pulse" />
-        <span>Đang hoạt động</span>
-      </Badge>
-    );
-  }
-
-  // 5. Hoàn thành (Status = 4 hoặc "completed")
-  if (normalizedStatus === 4 || normalizedStatus === "completed") {
-    return (
-      <Badge
-        variant="outline"
-        className={`bg-slate-100 text-slate-700 border-slate-300 gap-1 text-[11px] font-semibold ${className}`}
-      >
-        <Sparkles className="size-3 text-slate-500" />
-        <span>Đã hoàn thành</span>
       </Badge>
     );
   }
