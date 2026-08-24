@@ -4,10 +4,11 @@ if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 }
 
-import * as React from "react";
+import { Suspense } from "react";
 import { getNews } from "@/app/admin/news/page";
 import { EditorWorkspaceView } from "@/components/admin/dashboard/EditorWorkspaceView";
 import { getAuthAccessToken } from "@/lib/auth-token";
+import { EditorWorkspaceSkeleton } from "@/components/admin/AdminSkeletons";
 
 async function getOrderRequests(): Promise<any[]> {
   try {
@@ -49,7 +50,7 @@ async function getAffiliates(): Promise<any[]> {
   }
 }
 
-export default async function EditorDashboardPage() {
+async function EditorDashboardContent() {
   const [orderRequests, affiliates, news] = await Promise.all([
     getOrderRequests(),
     getAffiliates(),
@@ -76,5 +77,13 @@ export default async function EditorDashboardPage() {
         initialNews={news}
       />
     </div>
+  );
+}
+
+export default function EditorDashboardPage() {
+  return (
+    <Suspense fallback={<EditorWorkspaceSkeleton />}>
+      <EditorDashboardContent />
+    </Suspense>
   );
 }

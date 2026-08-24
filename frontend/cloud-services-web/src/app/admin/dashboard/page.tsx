@@ -4,7 +4,7 @@ if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 }
 
-import * as React from "react";
+import { Suspense } from "react";
 import { getPromotions } from "@/components/admin/promotions/PromotionsSection";
 import { getCategories, getServicePlans } from "@/components/admin/service-plans/ServicePlansSection";
 import { getNews } from "@/app/admin/news/page";
@@ -12,6 +12,7 @@ import { AdminDashboardView, DashboardData } from "@/components/admin/dashboard/
 import { MonthlyOrderData } from "@/components/admin/dashboard/MonthlyOrdersChart";
 import { PopularPlanItem } from "@/components/admin/dashboard/PopularPlansBarChart";
 import { getAuthAccessToken } from "@/lib/auth-token";
+import { AdminDashboardSkeleton } from "@/components/admin/AdminSkeletons";
 
 async function getDashboardStatistics(): Promise<{
   totalOrders: number;
@@ -100,7 +101,7 @@ async function getAffiliates(): Promise<any[]> {
   }
 }
 
-export default async function AdminDashboardPage() {
+async function AdminDashboardContent() {
   const [
     stats,
     monthlyOrders,
@@ -145,5 +146,13 @@ export default async function AdminDashboardPage() {
         news={news}
       />
     </div>
+  );
+}
+
+export default function AdminDashboardPage() {
+  return (
+    <Suspense fallback={<AdminDashboardSkeleton />}>
+      <AdminDashboardContent />
+    </Suspense>
   );
 }
