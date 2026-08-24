@@ -1,4 +1,4 @@
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -15,7 +15,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { siteConfig } from "@/config/site";
 import { BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/JsonLd";
-import { CACHE_TAGS } from "@/constants/cache-tags";
 
 export const metadata: Metadata = {
   title: "Bảng giá Dịch vụ Máy chủ Đám mây & Cloud VPS NVMe",
@@ -58,20 +57,14 @@ const pricingFaqs = [
   },
 ];
 
-async function getPricingData() {
+async function PricingContent() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
   try {
     const [categoriesRes, plansRes, promotionsRes] = await Promise.all([
-      fetch(`${apiUrl}/api/service-categories`, {
-        next: { revalidate: 60, tags: [CACHE_TAGS.CATEGORIES] },
-      }).catch(() => null),
-      fetch(`${apiUrl}/api/service-plans?pageSize=100`, {
-        next: { revalidate: 60, tags: [CACHE_TAGS.SERVICE_PLANS] },
-      }).catch(() => null),
-      fetch(`${apiUrl}/api/promotions?pageSize=100`, {
-        next: { revalidate: 60, tags: [CACHE_TAGS.PROMOTIONS] },
-      }).catch(() => null),
+      fetch(`${apiUrl}/api/service-categories`, { cache: "no-store" }).catch(() => null),
+      fetch(`${apiUrl}/api/service-plans?pageSize=100`, { cache: "no-store" }).catch(() => null),
+      fetch(`${apiUrl}/api/promotions?pageSize=100`, { cache: "no-store" }).catch(() => null),
     ]);
 
     const categories: CategoryData[] = (categoriesRes && categoriesRes.ok) ? await categoriesRes.json() : [];
@@ -96,24 +89,20 @@ async function getPricingData() {
       };
     });
 
-    return {
-      categories,
-      plans: plansWithPrices,
-      promotions,
-    };
+    return (
+      <PricingPageView
+        categories={categories}
+        plans={plansWithPrices}
+        promotions={promotions}
+      />
+    );
   } catch (error) {
     console.error("Lỗi khi tải dữ liệu bảng giá:", error);
-    return {
-      categories: [],
-      plans: [],
-      promotions: [],
-    };
+    return <PricingPageView categories={[]} plans={[]} promotions={[]} />;
   }
 }
 
-export default async function PricingPage() {
-  const { categories, plans, promotions } = await getPricingData();
-
+export default function PricingPage() {
   return (
     <>
       <BreadcrumbJsonLd
@@ -125,11 +114,7 @@ export default async function PricingPage() {
       <FaqJsonLd items={pricingFaqs} />
 
       <Suspense fallback={<PricingSkeleton />}>
-        <PricingPageView
-          categories={categories}
-          plans={plans}
-          promotions={promotions}
-        />
+        <PricingContent />
       </Suspense>
     </>
   );

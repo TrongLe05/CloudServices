@@ -40,10 +40,10 @@ async function getNavigationData(): Promise<CategoryWithPlans[]> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
     const [categoriesRes, plansRes] = await Promise.all([
       fetch(`${apiUrl}/api/service-categories`, {
-        next: { revalidate: 60 },
+        cache: "no-store",
       }),
       fetch(`${apiUrl}/api/service-plans?pageSize=100`, {
-        next: { revalidate: 60 },
+        cache: "no-store",
       }),
     ]);
 

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
-import { revalidatePlans } from "@/lib/revalidate";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -59,7 +58,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorJson, { status: res.status });
     }
 
-    revalidatePlans();
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error: any) {

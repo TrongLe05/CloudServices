@@ -1,4 +1,4 @@
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -7,19 +7,14 @@ if (process.env.NODE_ENV === "development") {
 import { Suspense } from "react";
 import { ServicesPageView, ServiceCategory, ServicePlan } from "@/components/services/ServicesPageView";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CACHE_TAGS } from "@/constants/cache-tags";
 
-async function getServicesData() {
+async function ServicesCategoryContent({ slug }: { slug: string }) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
   try {
     const [categoriesRes, plansRes] = await Promise.all([
-      fetch(`${apiUrl}/api/service-categories`, {
-        next: { revalidate: 60, tags: [CACHE_TAGS.CATEGORIES] },
-      }),
-      fetch(`${apiUrl}/api/service-plans?pageSize=100`, {
-        next: { revalidate: 60, tags: [CACHE_TAGS.SERVICE_PLANS] },
-      }),
+      fetch(`${apiUrl}/api/service-categories`, { cache: "no-store" }),
+      fetch(`${apiUrl}/api/service-plans?pageSize=100`, { cache: "no-store" }),
     ]);
 
     const categories: ServiceCategory[] = categoriesRes.ok ? await categoriesRes.json() : [];
@@ -36,16 +31,16 @@ async function getServicesData() {
       };
     });
 
-    return {
-      categories,
-      plans: plansWithPrices,
-    };
+    return (
+      <ServicesPageView
+        categories={categories}
+        plans={plansWithPrices}
+        selectedCategorySlug={slug}
+      />
+    );
   } catch (error) {
     console.error("Lỗi khi tải dữ liệu dịch vụ:", error);
-    return {
-      categories: [],
-      plans: [],
-    };
+    return <ServicesPageView categories={[]} plans={[]} selectedCategorySlug={slug} />;
   }
 }
 
@@ -54,17 +49,11 @@ export default async function ServicesCategoryPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const resolvedParams = await params;
-  const { slug } = resolvedParams;
-  const { categories, plans } = await getServicesData();
+  const { slug } = await params;
 
   return (
     <Suspense fallback={<ServicesPageSkeleton />}>
-      <ServicesPageView
-        categories={categories}
-        plans={plans}
-        selectedCategorySlug={slug}
-      />
+      <ServicesCategoryContent slug={slug} />
     </Suspense>
   );
 }

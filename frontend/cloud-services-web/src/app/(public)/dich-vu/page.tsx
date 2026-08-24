@@ -1,4 +1,4 @@
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -11,19 +11,14 @@ import {
   ServicePlan,
 } from "@/components/services/ServicesOverviewView";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CACHE_TAGS } from "@/constants/cache-tags";
 
-async function getServicesData() {
+async function ServicesOverviewContent() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
   try {
     const [categoriesRes, plansRes] = await Promise.all([
-      fetch(`${apiUrl}/api/service-categories`, {
-        next: { revalidate: 60, tags: [CACHE_TAGS.CATEGORIES] },
-      }),
-      fetch(`${apiUrl}/api/service-plans?pageSize=100`, {
-        next: { revalidate: 60, tags: [CACHE_TAGS.SERVICE_PLANS] },
-      }),
+      fetch(`${apiUrl}/api/service-categories`, { cache: "no-store" }),
+      fetch(`${apiUrl}/api/service-plans?pageSize=100`, { cache: "no-store" }),
     ]);
 
     const categories: ServiceCategory[] = categoriesRes.ok
@@ -44,25 +39,17 @@ async function getServicesData() {
       };
     });
 
-    return {
-      categories,
-      plans: plansWithPrices,
-    };
+    return <ServicesOverviewView categories={categories} plans={plansWithPrices} />;
   } catch (error) {
     console.error("Lỗi khi tải dữ liệu dịch vụ:", error);
-    return {
-      categories: [],
-      plans: [],
-    };
+    return <ServicesOverviewView categories={[]} plans={[]} />;
   }
 }
 
-export default async function ServicesPage() {
-  const { categories, plans } = await getServicesData();
-
+export default function ServicesPage() {
   return (
     <Suspense fallback={<ServicesOverviewSkeleton />}>
-      <ServicesOverviewView categories={categories} plans={plans} />
+      <ServicesOverviewContent />
     </Suspense>
   );
 }

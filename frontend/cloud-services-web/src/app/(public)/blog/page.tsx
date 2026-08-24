@@ -1,4 +1,4 @@
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -7,30 +7,25 @@ if (process.env.NODE_ENV === "development") {
 import { Suspense } from "react";
 import { BlogPageView, BlogPostItem } from "@/components/blog/BlogPageView";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CACHE_TAGS } from "@/constants/cache-tags";
 
-async function getBlogArticles(): Promise<BlogPostItem[]> {
+async function BlogContent() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
-    const res = await fetch(`${apiUrl}/api/news?pageSize=100`, {
-      next: { revalidate: 60, tags: [CACHE_TAGS.NEWS] },
-    });
-
-    if (!res.ok) return [];
+    const res = await fetch(`${apiUrl}/api/news?pageSize=100`, { cache: "no-store" });
+    if (!res.ok) return <BlogPageView initialNews={[]} />;
     const data = await res.json();
-    return data.items || data.Items || [];
+    const articles: BlogPostItem[] = data.items || data.Items || [];
+    return <BlogPageView initialNews={articles} />;
   } catch (error) {
     console.error("Lỗi khi tải danh sách tin tức & blog:", error);
-    return [];
+    return <BlogPageView initialNews={[]} />;
   }
 }
 
-export default async function BlogPage() {
-  const articles = await getBlogArticles();
-
+export default function BlogPage() {
   return (
     <Suspense fallback={<BlogPageSkeleton />}>
-      <BlogPageView initialNews={articles} />
+      <BlogContent />
     </Suspense>
   );
 }
