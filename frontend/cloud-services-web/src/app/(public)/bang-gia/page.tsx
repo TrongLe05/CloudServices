@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -62,13 +62,13 @@ async function getPricingData() {
 
   try {
     const [categoriesRes, plansRes, promotionsRes] = await Promise.all([
-      fetch(`${apiUrl}/api/service-categories`, { cache: "no-store" }),
-      fetch(`${apiUrl}/api/service-plans?pageSize=100`, { cache: "no-store" }),
-      fetch(`${apiUrl}/api/promotions?pageSize=100`, { cache: "no-store" }).catch(() => null),
+      fetch(`${apiUrl}/api/service-categories`, { next: { revalidate: 60 } }).catch(() => null),
+      fetch(`${apiUrl}/api/service-plans?pageSize=100`, { next: { revalidate: 60 } }).catch(() => null),
+      fetch(`${apiUrl}/api/promotions?pageSize=100`, { next: { revalidate: 60 } }).catch(() => null),
     ]);
 
-    const categories: CategoryData[] = categoriesRes.ok ? await categoriesRes.json() : [];
-    const plansData = plansRes.ok ? await plansRes.json() : { items: [] };
+    const categories: CategoryData[] = (categoriesRes && categoriesRes.ok) ? await categoriesRes.json() : [];
+    const plansData = (plansRes && plansRes.ok) ? await plansRes.json() : { items: [] };
     const rawPlans = Array.isArray(plansData) ? plansData : plansData.items || [];
 
     let promotions: PromotionData[] = [];
@@ -77,31 +77,17 @@ async function getPricingData() {
       promotions = Array.isArray(pData) ? pData : pData.items || [];
     }
 
-    const plansWithPrices: PricingPlan[] = await Promise.all(
-      rawPlans.map(async (plan: any) => {
-        const cat = categories.find((c) => c.id === plan.categoryId);
-        let prices = [];
-        try {
-          const priceRes = await fetch(`${apiUrl}/api/service-plans/${plan.id}/prices`, {
-            cache: "no-store",
-          });
-          if (priceRes.ok) {
-            prices = await priceRes.json();
-          }
-        } catch {
-          prices = [];
-        }
+    const promo = promotions.find((p) => p.isActive);
 
-        const promo = promotions.find((p) => p.isActive);
-
-        return {
-          ...plan,
-          categoryName: cat?.name || "Dịch vụ Đám mây",
-          prices,
-          promotion: promo || null,
-        };
-      })
-    );
+    const plansWithPrices: PricingPlan[] = rawPlans.map((plan: any) => {
+      const cat = categories.find((c) => c.id === plan.categoryId);
+      return {
+        ...plan,
+        categoryName: plan.categoryName || cat?.name || "Dịch vụ Đám mây",
+        prices: plan.prices || [],
+        promotion: promo || null,
+      };
+    });
 
     return {
       categories,

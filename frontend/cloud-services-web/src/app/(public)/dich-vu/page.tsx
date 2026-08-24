@@ -1,11 +1,15 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 }
 
 import { Suspense } from "react";
-import { ServicesOverviewView, ServiceCategory, ServicePlan } from "@/components/services/ServicesOverviewView";
+import {
+  ServicesOverviewView,
+  ServiceCategory,
+  ServicePlan,
+} from "@/components/services/ServicesOverviewView";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function getServicesData() {
@@ -14,40 +18,30 @@ async function getServicesData() {
   try {
     const [categoriesRes, plansRes] = await Promise.all([
       fetch(`${apiUrl}/api/service-categories`, {
-        cache: "no-store",
+        next: { revalidate: 60 },
       }),
       fetch(`${apiUrl}/api/service-plans?pageSize=100`, {
-        cache: "no-store",
+        next: { revalidate: 60 },
       }),
     ]);
 
-    const categories: ServiceCategory[] = categoriesRes.ok ? await categoriesRes.json() : [];
+    const categories: ServiceCategory[] = categoriesRes.ok
+      ? await categoriesRes.json()
+      : [];
     const plansData = plansRes.ok ? await plansRes.json() : { items: [] };
-    const rawPlans = Array.isArray(plansData) ? plansData : (plansData.items || []);
+    const rawPlans = Array.isArray(plansData)
+      ? plansData
+      : plansData.items || [];
 
-    const plansWithPrices: ServicePlan[] = await Promise.all(
-      rawPlans.map(async (plan: any) => {
-        const cat = categories.find((c) => c.id === plan.categoryId);
-        let prices = [];
-        try {
-          const priceRes = await fetch(`${apiUrl}/api/service-plans/${plan.id}/prices`, {
-            cache: "no-store",
-          });
-          if (priceRes.ok) {
-            prices = await priceRes.json();
-          }
-        } catch {
-          prices = [];
-        }
-
-        return {
-          ...plan,
-          categoryName: cat?.name || "Dịch vụ Đám mây",
-          categorySlug: cat?.slug || "",
-          prices,
-        };
-      })
-    );
+    const plansWithPrices: ServicePlan[] = rawPlans.map((plan: any) => {
+      const cat = categories.find((c) => c.id === plan.categoryId);
+      return {
+        ...plan,
+        categoryName: plan.categoryName || cat?.name || "Dịch vụ Đám mây",
+        categorySlug: cat?.slug || "",
+        prices: plan.prices || [],
+      };
+    });
 
     return {
       categories,

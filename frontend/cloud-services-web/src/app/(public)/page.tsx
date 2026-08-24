@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -19,10 +19,10 @@ async function getHomePageData() {
 
   try {
     const [promotionsRes, plansRes, categoriesRes, newsRes] = await Promise.all([
-      fetch(`${apiUrl}/api/promotions?pageSize=10`, { cache: "no-store" }).catch(() => null),
-      fetch(`${apiUrl}/api/service-plans?pageSize=6`, { cache: "no-store" }).catch(() => null),
-      fetch(`${apiUrl}/api/service-categories`, { cache: "no-store" }).catch(() => null),
-      fetch(`${apiUrl}/api/news?pageSize=3`, { cache: "no-store" }).catch(() => null),
+      fetch(`${apiUrl}/api/promotions?pageSize=10`, { next: { revalidate: 60 } }).catch(() => null),
+      fetch(`${apiUrl}/api/service-plans?pageSize=6`, { next: { revalidate: 60 } }).catch(() => null),
+      fetch(`${apiUrl}/api/service-categories`, { next: { revalidate: 60 } }).catch(() => null),
+      fetch(`${apiUrl}/api/news?pageSize=3`, { next: { revalidate: 60 } }).catch(() => null),
     ]);
 
     let promotions: PromotionItem[] = [];
@@ -41,29 +41,15 @@ async function getHomePageData() {
       const plData = await plansRes.json();
       const rawPlans = Array.isArray(plData) ? plData : plData.items || [];
 
-      // Fetch prices for plans
-      plans = await Promise.all(
-        rawPlans.slice(0, 3).map(async (plan: any) => {
-          const cat = categories.find((c) => c.id === plan.categoryId);
-          let prices = [];
-          try {
-            const prRes = await fetch(`${apiUrl}/api/service-plans/${plan.id}/prices`, {
-              cache: "no-store",
-            });
-            if (prRes.ok) {
-              prices = await prRes.json();
-            }
-          } catch {
-            prices = [];
-          }
-
-          return {
-            ...plan,
-            categoryName: cat?.name || "Cloud Service",
-            prices,
-          };
-        })
-      );
+      // Dữ liệu ServicePlans đã có sẵn Prices và CategoryName từ Backend, không cần waterfall fetch
+      plans = rawPlans.slice(0, 3).map((plan: any) => {
+        const cat = categories.find((c) => c.id === plan.categoryId);
+        return {
+          ...plan,
+          categoryName: plan.categoryName || cat?.name || "Cloud Service",
+          prices: plan.prices || [],
+        };
+      });
     }
 
     let news: BlogPostItem[] = [];
