@@ -100,7 +100,7 @@ public class ApplicationDbContextInitialiser
 
         // 2. Seed AppUsers (Tài khoản Admin)
         var systemAdmin = await _context.AppUsers.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Username == "admin");
-        var adminHash = _passwordHasher.HashPasswords("Admin@123");
+        var adminHash = _passwordHasher.HashPasswords("123123");
 
         if (systemAdmin == null)
         {
