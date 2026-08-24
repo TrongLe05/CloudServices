@@ -9,17 +9,22 @@ public sealed class RoleRepository(IApplicationDbContext context) : IRoleReposit
 {
     public async Task<Role?> GetByNameAsync(string name, CancellationToken cancellationToken)
     {
-        return await context.Roles.FirstOrDefaultAsync(r => r.Name == name, cancellationToken);
+        return await context.Roles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Name == name, cancellationToken);
     }
 
     public async Task<Role?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await context.Roles.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+        return await context.Roles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
     public async Task<List<Role>> GetAllAsync(CancellationToken cancellationToken)
     {
         return await context.Roles
+            .AsNoTracking()
             .OrderBy(r => r.Name)
             .ToListAsync(cancellationToken);
     }

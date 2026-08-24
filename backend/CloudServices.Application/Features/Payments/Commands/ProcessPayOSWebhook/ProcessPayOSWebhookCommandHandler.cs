@@ -34,8 +34,7 @@ public class ProcessPayOSWebhookCommandHandler : IRequestHandler<ProcessPayOSWeb
         if (verification.Code == "00")
         {
             // Cập nhật trạng thái đơn hàng sang Processing (Đang xử lý để kỹ thuật/admin triển khai)
-            var allOrders = await _orderRepository.GetAllAsync(cancellationToken);
-            var matchedOrder = allOrders.FirstOrDefault(o => o.Notes == $"PayOS:{verification.OrderCode}");
+            var matchedOrder = await _orderRepository.GetByPayOsOrderCodeAsync(verification.OrderCode, cancellationToken);
             
             if (matchedOrder != null && matchedOrder.Status == OrderStatus.New)
             {

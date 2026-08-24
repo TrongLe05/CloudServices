@@ -38,8 +38,10 @@ public sealed class OrderRequestRepository(ApplicationDbContext context) : IOrde
         CancellationToken cancellationToken = default)
     {
         var query = context.OrderRequests
+            .AsNoTracking()
             .Include(x => x.PlanPrice)
                 .ThenInclude(x => x.Plan)
+                    .ThenInclude(x => x.Category)
             .Include(x => x.PlanPrice)
                 .ThenInclude(x => x.Promotion)
             .AsQueryable();
@@ -94,6 +96,7 @@ public sealed class OrderRequestRepository(ApplicationDbContext context) : IOrde
             .AsNoTracking()
             .Include(x => x.PlanPrice)
                 .ThenInclude(x => x.Plan)
+                    .ThenInclude(x => x.Category)
             .Include(x => x.PlanPrice)
                 .ThenInclude(x => x.Promotion)
             .OrderByDescending(x => x.CreatedAt)

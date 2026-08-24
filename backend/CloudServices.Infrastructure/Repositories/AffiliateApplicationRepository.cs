@@ -17,27 +17,34 @@ public sealed class AffiliateApplicationRepository(ApplicationDbContext context)
 
     public async Task<IReadOnlyList<AffiliateApplication>> GetAllAsync(CancellationToken cancellationToken)
     {
-        return await context.AffiliateApplications.ToListAsync(cancellationToken);
+        return await context.AffiliateApplications
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<AffiliateApplication?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-       return await context.AffiliateApplications.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+       return await context.AffiliateApplications
+           .AsNoTracking()
+           .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
     }
 
     public async Task<AffiliateApplication?> GetByEmailAsync(string email, CancellationToken cancellationToken)
     {
-       return await context.AffiliateApplications.FirstOrDefaultAsync(a => a.Email.ToLower() == email.ToLower(), cancellationToken);
+       return await context.AffiliateApplications
+           .AsNoTracking()
+           .FirstOrDefaultAsync(a => a.Email.ToLower() == email.ToLower(), cancellationToken);
     }
 
     public async Task<(IReadOnlyList<AffiliateApplication> item, int total)> GetPagedAsync(string? search, AffiliateStatus? status, string? sort, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = context.AffiliateApplications
-        .Where(a =>
-            (string.IsNullOrEmpty(search) ||
-             a.FullName.Contains(search) ||
-             a.Email.Contains(search)) &&
-            (!status.HasValue || a.Status == status.Value));
+            .AsNoTracking()
+            .Where(a =>
+                (string.IsNullOrEmpty(search) ||
+                 a.FullName.Contains(search) ||
+                 a.Email.Contains(search)) &&
+                (!status.HasValue || a.Status == status.Value));
 
         var total = await query.CountAsync(cancellationToken);
 
