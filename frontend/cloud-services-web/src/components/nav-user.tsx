@@ -117,7 +117,7 @@ export function NavUser({
                 >
                   <div className="relative">
                     <Avatar className="size-8 rounded-full border border-primary/30 bg-primary/10">
-                      <AvatarImage src={avatarUrl} alt={displayName} />
+                      {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName} /> : null}
                       <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
                         {getInitials(displayName)}
                       </AvatarFallback>
@@ -146,7 +146,7 @@ export function NavUser({
               <div className="p-2 font-normal">
                 <div className="flex items-center gap-3 text-left text-sm">
                   <Avatar className="size-10 rounded-full border border-primary/30 bg-primary/10">
-                    <AvatarImage src={avatarUrl} alt={displayName} />
+                    {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName} /> : null}
                     <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
                       {getInitials(displayName)}
                     </AvatarFallback>
