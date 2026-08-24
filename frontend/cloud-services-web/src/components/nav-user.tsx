@@ -51,8 +51,31 @@ export function NavUser({
 
   const [avatarUrl, setAvatarUrl] = React.useState(initialUser?.avatar || "");
   const [profileSheetOpen, setProfileSheetOpen] = React.useState(false);
+  const [fullName, setFullName] = React.useState(session?.user?.name || initialUser?.name || "Admin");
 
-  const displayName = session?.user?.name || initialUser?.name || "Admin";
+  React.useEffect(() => {
+    let isMounted = true;
+    async function loadUserData() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
+            if (data.fullName || data.username) setFullName(data.fullName || data.username);
+          }
+        }
+      } catch {
+        // keep fallback
+      }
+    }
+    loadUserData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const displayName = fullName;
   const displayEmail = session?.user?.email || initialUser?.email || "";
 
   const getInitials = (name: string) => {

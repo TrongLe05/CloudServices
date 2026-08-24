@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,9 +27,42 @@ export function AvatarDropdown({
   const { data: session } = useSession();
   const user = session?.user || initialUser;
 
-  // Lấy 2 chữ cái đầu của Username làm fallback avatar
-  const initials = user?.name
-    ? user.name.substring(0, 2).toUpperCase()
+  const [avatarUrl, setAvatarUrl] = useState(user?.image || initialUser?.image || "");
+  const [displayName, setDisplayName] = useState(user?.name || initialUser?.name || "Tài khoản");
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadUserAvatar() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
+            if (data.fullName || data.username) setDisplayName(data.fullName || data.username);
+          }
+        }
+      } catch {
+        // keep fallback
+      }
+    }
+    if (session?.user || initialUser) {
+      loadUserAvatar();
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [session?.user, initialUser]);
+
+  // Lấy 2 chữ cái đầu của Username / FullName làm fallback avatar
+  const initials = displayName
+    ? displayName
+        .trim()
+        .split(" ")
+        .map((p) => p[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
     : "US";
 
   const handleLogout = async () => {
@@ -41,20 +75,32 @@ export function AvatarDropdown({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Avatar>
-              <AvatarImage src={user?.image || "https://github.com/shadcn.png"} alt="User Avatar" />
-              <AvatarFallback>{initials}</AvatarFallback>
+          <Button variant="ghost" size="icon" className="rounded-full size-9 p-0 hover:opacity-90">
+            <Avatar className="size-9 border border-border/80 shadow-2xs">
+              {avatarUrl ? (
+                <AvatarImage src={avatarUrl} alt={displayName} />
+              ) : null}
+              <AvatarFallback className="bg-primary text-white font-bold text-xs">
+                {initials}
+              </AvatarFallback>
             </Avatar>
           </Button>
         }
       />
-      <DropdownMenuContent className="w-48" align="end">
-        <div className="flex items-center gap-2 p-2 border-b border-border/50">
-          <div className="flex flex-col space-y-0.5 leading-none">
-            <p className="font-semibold text-sm">{user?.name || "Tài khoản"}</p>
+      <DropdownMenuContent className="w-52" align="end">
+        <div className="flex items-center gap-2.5 p-2.5 border-b border-border/50">
+          <Avatar className="size-8 border border-border/60">
+            {avatarUrl ? (
+              <AvatarImage src={avatarUrl} alt={displayName} />
+            ) : null}
+            <AvatarFallback className="bg-primary text-white font-bold text-[10px]">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col space-y-0.5 leading-none overflow-hidden">
+            <p className="font-semibold text-xs text-slate-900 truncate">{displayName}</p>
             {user?.email && (
-              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
             )}
           </div>
         </div>

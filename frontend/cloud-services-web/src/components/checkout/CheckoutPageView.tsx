@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -44,6 +46,12 @@ export function CheckoutPageView({
   userEmail,
   userName,
 }: CheckoutPageViewProps) {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const effectiveEmail = userEmail || session?.user?.email;
+  const effectiveName = userName || session?.user?.name;
+  const isLoggedIn = !!effectiveEmail || !!session?.user;
+
   const [plans] = React.useState<ServicePlanItem[]>(initialPlans);
   const [selectedPlan, setSelectedPlan] = React.useState<ServicePlanItem | null>(() => {
     if (preselectedPlanId) {
@@ -62,13 +70,23 @@ export function CheckoutPageView({
   const form = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
-      fullName: userName || "",
-      email: userEmail || "",
+      fullName: effectiveName || "",
+      email: effectiveEmail || "",
       phone: "",
       companyName: "",
       notes: "",
     },
   });
+
+  // Đồng bộ lại form khi session load xong
+  React.useEffect(() => {
+    if (effectiveName && !form.getValues("fullName")) {
+      form.setValue("fullName", effectiveName);
+    }
+    if (effectiveEmail && !form.getValues("email")) {
+      form.setValue("email", effectiveEmail);
+    }
+  }, [effectiveName, effectiveEmail, form]);
 
   const handleStep1Next = () => {
     if (!selectedPlan) {
@@ -85,6 +103,18 @@ export function CheckoutPageView({
   };
 
   const handleStep2Submit = async () => {
+    // 1. Kiểm tra đăng nhập trước khi tạo đơn
+    if (!isLoggedIn) {
+      toast.add({
+        title: "Yêu cầu đăng nhập",
+        description: "Vui lòng đăng nhập tài khoản trước khi tạo đơn để hệ thống tự động gán dịch vụ vào tài khoản của bạn.",
+        type: "error",
+      });
+      const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      router.push(`/dang-nhap?callbackUrl=${currentUrl}`);
+      return;
+    }
+
     const isValid = await form.trigger();
     if (!isValid) {
       toast.add({
@@ -102,7 +132,7 @@ export function CheckoutPageView({
     try {
       setIsSubmitting(true);
 
-      // 1. Tạo đơn hàng dịch vụ qua API
+      // 2. Tạo đơn hàng dịch vụ qua API
       const orderPayload = {
         servicePlanId: selectedPlan.id,
         billingCycle: selectedCycle,
@@ -120,13 +150,24 @@ export function CheckoutPageView({
       });
 
       if (!orderRes.ok) {
-        throw new Error("Không thể khởi tạo đơn hàng. Vui lòng thử lại.");
+        const errJson = await orderRes.json().catch(() => ({}));
+        if (orderRes.status === 401) {
+          toast.add({
+            title: "Yêu cầu đăng nhập",
+            description: errJson.message || "Vui lòng đăng nhập tài khoản trước khi đặt dịch vụ.",
+            type: "error",
+          });
+          const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+          router.push(`/dang-nhap?callbackUrl=${currentUrl}`);
+          return;
+        }
+        throw new Error(errJson.message || "Không thể khởi tạo đơn hàng. Vui lòng thử lại.");
       }
 
       const orderData = await orderRes.json();
       const orderId = orderData.id || orderData.Id;
 
-      // 2. Tạo link & mã QR VietQR PayOS
+      // 3. Tạo link & mã QR VietQR PayOS
       const paymentRes = await fetch("/api/payments/create-payos-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -139,6 +180,16 @@ export function CheckoutPageView({
 
       if (!paymentRes.ok) {
         const errJson = await paymentRes.json().catch(() => ({}));
+        if (paymentRes.status === 401) {
+          toast.add({
+            title: "Yêu cầu đăng nhập",
+            description: errJson.message || "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+            type: "error",
+          });
+          const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+          router.push(`/dang-nhap?callbackUrl=${currentUrl}`);
+          return;
+        }
         throw new Error(errJson.message || "Không thể khởi tạo cổng thanh toán PayOS.");
       }
 
@@ -251,6 +302,7 @@ export function CheckoutPageView({
                   onBack={() => setCurrentStep(1)}
                   onSubmit={handleStep2Submit}
                   isSubmitting={isSubmitting}
+                  isLoggedIn={isLoggedIn}
                 />
               )}
             </section>
