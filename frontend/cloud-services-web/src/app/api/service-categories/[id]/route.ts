@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -31,6 +32,8 @@ export async function PUT(
         { status: res.status }
       );
     }
+
+    revalidatePublicPages();
 
     // Lấy lại dữ liệu danh mục vừa cập nhật để phản hồi
     const getRes = await fetch(`${apiUrl}/api/service-categories/${id}`, {
@@ -75,6 +78,7 @@ export async function DELETE(
       );
     }
 
+    revalidatePublicPages();
     return new Response(null, { status: 204 });
   } catch (error: any) {
     return NextResponse.json(

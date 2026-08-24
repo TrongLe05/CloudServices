@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
+import { revalidatePublicPages } from "@/lib/revalidate";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -61,6 +62,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(errorJson, { status: res.status });
     }
 
+    revalidatePublicPages();
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error: any) {
