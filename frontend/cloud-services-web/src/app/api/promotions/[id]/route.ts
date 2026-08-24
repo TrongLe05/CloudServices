@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
-import { revalidatePublicPages } from "@/lib/revalidate";
+import { revalidatePromotions } from "@/lib/revalidate";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json(errorJson, { status: res.status });
     }
 
-    revalidatePublicPages();
+    revalidatePromotions();
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error: any) {
@@ -84,7 +84,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json(errorJson, { status: res.status });
     }
 
-    revalidatePublicPages();
+    revalidatePromotions();
     return new Response(null, { status: 204 });
   } catch (error: any) {
     return NextResponse.json({ message: error.message || "An error occurred" }, { status: 500 });

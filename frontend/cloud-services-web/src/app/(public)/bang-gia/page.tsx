@@ -15,6 +15,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { siteConfig } from "@/config/site";
 import { BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/JsonLd";
+import { CACHE_TAGS } from "@/constants/cache-tags";
 
 export const metadata: Metadata = {
   title: "Bảng giá Dịch vụ Máy chủ Đám mây & Cloud VPS NVMe",
@@ -62,9 +63,15 @@ async function getPricingData() {
 
   try {
     const [categoriesRes, plansRes, promotionsRes] = await Promise.all([
-      fetch(`${apiUrl}/api/service-categories`, { next: { revalidate: 60 } }).catch(() => null),
-      fetch(`${apiUrl}/api/service-plans?pageSize=100`, { next: { revalidate: 60 } }).catch(() => null),
-      fetch(`${apiUrl}/api/promotions?pageSize=100`, { next: { revalidate: 60 } }).catch(() => null),
+      fetch(`${apiUrl}/api/service-categories`, {
+        next: { revalidate: 60, tags: [CACHE_TAGS.CATEGORIES] },
+      }).catch(() => null),
+      fetch(`${apiUrl}/api/service-plans?pageSize=100`, {
+        next: { revalidate: 60, tags: [CACHE_TAGS.SERVICE_PLANS] },
+      }).catch(() => null),
+      fetch(`${apiUrl}/api/promotions?pageSize=100`, {
+        next: { revalidate: 60, tags: [CACHE_TAGS.PROMOTIONS] },
+      }).catch(() => null),
     ]);
 
     const categories: CategoryData[] = (categoriesRes && categoriesRes.ok) ? await categoriesRes.json() : [];

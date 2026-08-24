@@ -10,6 +10,7 @@ import { TestimonialItem } from "@/components/customers/CustomerTestimonials";
 import { ServicePlanItem } from "@/components/customers/CustomerServiceQRs";
 import { siteConfig } from "@/config/site";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { CACHE_TAGS } from "@/constants/cache-tags";
 
 export const metadata: Metadata = {
   title: "Khách hàng & Đánh giá Dịch vụ Máy chủ Đám mây",
@@ -37,7 +38,9 @@ export const metadata: Metadata = {
 async function getInitialTestimonials(): Promise<TestimonialItem[]> {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
-    const res = await fetch(`${apiUrl}/api/testimonials`, { next: { revalidate: 60 } });
+    const res = await fetch(`${apiUrl}/api/testimonials`, {
+      next: { revalidate: 60, tags: [CACHE_TAGS.TESTIMONIALS] },
+    });
     if (!res.ok) return [];
     const data = await res.json();
     const items = data.items || data || [];
@@ -61,7 +64,7 @@ async function getInitialServicePlans(): Promise<ServicePlanItem[]> {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
     const res = await fetch(`${apiUrl}/api/service-plans?pageSize=100`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 60, tags: [CACHE_TAGS.SERVICE_PLANS] },
     });
     if (!res.ok) return [];
     const data = await res.json();

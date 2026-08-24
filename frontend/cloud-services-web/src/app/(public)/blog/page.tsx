@@ -7,12 +7,13 @@ if (process.env.NODE_ENV === "development") {
 import { Suspense } from "react";
 import { BlogPageView, BlogPostItem } from "@/components/blog/BlogPageView";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CACHE_TAGS } from "@/constants/cache-tags";
 
 async function getBlogArticles(): Promise<BlogPostItem[]> {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
     const res = await fetch(`${apiUrl}/api/news?pageSize=100`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 60, tags: [CACHE_TAGS.NEWS] },
     });
 
     if (!res.ok) return [];

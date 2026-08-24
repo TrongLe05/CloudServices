@@ -16,15 +16,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { slugify } from "@/lib/slugUtils";
 import { siteConfig } from "@/config/site";
 import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { CACHE_TAGS } from "@/constants/cache-tags";
 
 async function getPlanDetail(categorySlugOrId: string, planSlugOrId: string) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
   try {
     const [categoriesRes, plansRes, testimonialsRes] = await Promise.all([
-      fetch(`${apiUrl}/api/service-categories`, { next: { revalidate: 60 } }),
-      fetch(`${apiUrl}/api/service-plans?pageSize=100`, { next: { revalidate: 60 } }),
-      fetch(`${apiUrl}/api/testimonials`, { next: { revalidate: 60 } }).catch(() => null),
+      fetch(`${apiUrl}/api/service-categories`, {
+        next: { revalidate: 60, tags: [CACHE_TAGS.CATEGORIES] },
+      }),
+      fetch(`${apiUrl}/api/service-plans?pageSize=100`, {
+        next: { revalidate: 60, tags: [CACHE_TAGS.SERVICE_PLANS] },
+      }),
+      fetch(`${apiUrl}/api/testimonials`, {
+        next: { revalidate: 60, tags: [CACHE_TAGS.TESTIMONIALS] },
+      }).catch(() => null),
     ]);
 
     if (!categoriesRes.ok || !plansRes.ok) return null;

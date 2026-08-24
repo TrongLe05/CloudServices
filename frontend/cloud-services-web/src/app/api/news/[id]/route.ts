@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
-import { revalidatePublicPages } from "@/lib/revalidate";
+import { revalidateNews } from "@/lib/revalidate";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -56,7 +56,7 @@ export async function PUT(
       return NextResponse.json(errorJson, { status: res.status });
     }
 
-    revalidatePublicPages();
+    revalidateNews();
 
     // Fetch the updated item
     const getRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news/${id}`, {
@@ -100,7 +100,7 @@ export async function DELETE(
       return NextResponse.json(errorJson, { status: res.status });
     }
 
-    revalidatePublicPages();
+    revalidateNews();
     return new Response(null, { status: 204 });
   } catch (error: any) {
     return NextResponse.json({ message: error.message || "An error occurred" }, { status: 500 });

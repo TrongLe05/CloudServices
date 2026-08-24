@@ -11,6 +11,7 @@ import {
   ServicePlan,
 } from "@/components/services/ServicesOverviewView";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CACHE_TAGS } from "@/constants/cache-tags";
 
 async function getServicesData() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
@@ -18,10 +19,10 @@ async function getServicesData() {
   try {
     const [categoriesRes, plansRes] = await Promise.all([
       fetch(`${apiUrl}/api/service-categories`, {
-        next: { revalidate: 60 },
+        next: { revalidate: 60, tags: [CACHE_TAGS.CATEGORIES] },
       }),
       fetch(`${apiUrl}/api/service-plans?pageSize=100`, {
-        next: { revalidate: 60 },
+        next: { revalidate: 60, tags: [CACHE_TAGS.SERVICE_PLANS] },
       }),
     ]);
 

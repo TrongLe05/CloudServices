@@ -1,19 +1,53 @@
-﻿import { revalidatePath } from "next/cache";
+﻿import { revalidateTag } from "next/cache";
+import { CACHE_TAGS } from "@/constants/cache-tags";
 
 /**
- * Purge cache on-demand for all public pages when Admin or Editor modifies content.
+ * Tag-based Revalidation: Invalidate specific cached data tags across all pages
  */
-export function revalidatePublicPages() {
+export function revalidatePlans() {
   try {
-    revalidatePath("/");
-    revalidatePath("/bang-gia");
-    revalidatePath("/dich-vu");
-    revalidatePath("/dich-vu/[...slug]", "page");
-    revalidatePath("/dich-vu/[slug]", "page");
-    revalidatePath("/blog");
-    revalidatePath("/blog/[slug]", "page");
-    revalidatePath("/khach-hang");
+    revalidateTag(CACHE_TAGS.SERVICE_PLANS, "max");
   } catch (err) {
-    console.error("[OnDemandRevalidate] Error revalidating pages:", err);
+    console.error("[RevalidateTag] Error revalidating plans:", err);
   }
+}
+
+export function revalidateCategories() {
+  try {
+    revalidateTag(CACHE_TAGS.CATEGORIES, "max");
+  } catch (err) {
+    console.error("[RevalidateTag] Error revalidating categories:", err);
+  }
+}
+
+export function revalidatePromotions() {
+  try {
+    revalidateTag(CACHE_TAGS.PROMOTIONS, "max");
+  } catch (err) {
+    console.error("[RevalidateTag] Error revalidating promotions:", err);
+  }
+}
+
+export function revalidateNews() {
+  try {
+    revalidateTag(CACHE_TAGS.NEWS, "max");
+  } catch (err) {
+    console.error("[RevalidateTag] Error revalidating news:", err);
+  }
+}
+
+export function revalidateTestimonials() {
+  try {
+    revalidateTag(CACHE_TAGS.TESTIMONIALS, "max");
+  } catch (err) {
+    console.error("[RevalidateTag] Error revalidating testimonials:", err);
+  }
+}
+
+export function revalidatePublicPages() {
+  revalidatePlans();
+  revalidateCategories();
+  revalidatePromotions();
+  revalidateNews();
+  revalidateTestimonials();
 }

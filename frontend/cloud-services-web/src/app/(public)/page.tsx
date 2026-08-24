@@ -13,16 +13,25 @@ import { Configurator } from "@/components/landing/Configurator";
 import { UptimeSla } from "@/components/landing/UptimeSla";
 import { LatestNews, BlogPostItem } from "@/components/landing/LatestNews";
 import { SupportContact } from "@/components/landing/SupportContact";
+import { CACHE_TAGS } from "@/constants/cache-tags";
 
 async function getHomePageData() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
 
   try {
     const [promotionsRes, plansRes, categoriesRes, newsRes] = await Promise.all([
-      fetch(`${apiUrl}/api/promotions?pageSize=10`, { next: { revalidate: 60 } }).catch(() => null),
-      fetch(`${apiUrl}/api/service-plans?pageSize=6`, { next: { revalidate: 60 } }).catch(() => null),
-      fetch(`${apiUrl}/api/service-categories`, { next: { revalidate: 60 } }).catch(() => null),
-      fetch(`${apiUrl}/api/news?pageSize=3`, { next: { revalidate: 60 } }).catch(() => null),
+      fetch(`${apiUrl}/api/promotions?pageSize=10`, {
+        next: { revalidate: 60, tags: [CACHE_TAGS.PROMOTIONS] },
+      }).catch(() => null),
+      fetch(`${apiUrl}/api/service-plans?pageSize=6`, {
+        next: { revalidate: 60, tags: [CACHE_TAGS.SERVICE_PLANS] },
+      }).catch(() => null),
+      fetch(`${apiUrl}/api/service-categories`, {
+        next: { revalidate: 60, tags: [CACHE_TAGS.CATEGORIES] },
+      }).catch(() => null),
+      fetch(`${apiUrl}/api/news?pageSize=3`, {
+        next: { revalidate: 60, tags: [CACHE_TAGS.NEWS] },
+      }).catch(() => null),
     ]);
 
     let promotions: PromotionItem[] = [];
