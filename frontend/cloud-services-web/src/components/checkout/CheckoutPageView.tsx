@@ -78,7 +78,7 @@ export function CheckoutPageView({
     },
   });
 
-  // Đồng bộ lại form khi session load xong
+ // Đồng bộ lại form khi session load xong
   React.useEffect(() => {
     if (effectiveName && !form.getValues("fullName")) {
       form.setValue("fullName", effectiveName);
@@ -87,7 +87,7 @@ export function CheckoutPageView({
       form.setValue("email", effectiveEmail);
     }
   }, [effectiveName, effectiveEmail, form]);
-
+  
   const handleStep1Next = () => {
     if (!selectedPlan) {
       toast.add({
@@ -103,7 +103,7 @@ export function CheckoutPageView({
   };
 
   const handleStep2Submit = async () => {
-    // 1. Kiểm tra đăng nhập trước khi tạo đơn
+     // 1. Kiểm tra đăng nhập trước khi tạo đơn
     if (!isLoggedIn) {
       toast.add({
         title: "Yêu cầu đăng nhập",
