@@ -155,8 +155,7 @@ export function CheckoutPageView({
         bin: paymentData.bin,
         checkoutUrl: paymentData.checkoutUrl,
         description: paymentData.description,
-        servicePlanName: selectedPlan.name,
-        billingCycle: selectedCycle,
+        planName: selectedPlan.name,
         createdAt: new Date().toISOString(),
       });
 
