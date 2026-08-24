@@ -1,10 +1,12 @@
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
+using CloudServices.Application.Features.Users.Commands.ChangeMyPassword;
 using CloudServices.Application.Features.Users.Commands.ChangePassword;
 using CloudServices.Application.Features.Users.Commands.Login;
 using CloudServices.Application.Features.Users.Commands.Logout;
 using CloudServices.Application.Features.Users.Commands.RefreshToken;
 using CloudServices.Application.Features.Users.Commands.RegisterUser;
+using CloudServices.Application.Features.Users.Commands.UpdateProfile;
 using CloudServices.Application.Features.Users.Queries.GetMe;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -324,17 +326,52 @@ public sealed class AuthController(
     [Authorize]
     public async Task<IActionResult> GetMe(CancellationToken cancellationToken)
     {
-        // Trích xuất User ID từ JWT Claim NameIdentifier (hoặc Sub)
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                           ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
         if (string.IsNullOrEmpty(userIdClaim))
         {
-            return BadRequest(new { message = "Email không tồn tại trong hệ thống." });
+            return Unauthorized();
         }
         var userId = Guid.Parse(userIdClaim);
-        // Gửi GetMeQuery sang Mediator
         var query = new GetMeQuery(userId);
         var response = await Mediator.Send(query, cancellationToken);
         return Ok(response);
+    }
+
+    public sealed record UpdateProfileRequestDto(string FullName, string? AvatarUrl);
+
+    [HttpPut("me")]
+    [Authorize]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequestDto dto, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized();
+        }
+        var userId = Guid.Parse(userIdClaim);
+        var command = new UpdateProfileCommand(userId, dto.FullName, dto.AvatarUrl);
+        await Mediator.Send(command, cancellationToken);
+        var response = await Mediator.Send(new GetMeQuery(userId), cancellationToken);
+        return Ok(response);
+    }
+
+    public sealed record ChangeMyPasswordRequestDto(string CurrentPassword, string NewPassword);
+
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangeMyPassword([FromBody] ChangeMyPasswordRequestDto dto, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized();
+        }
+        var userId = Guid.Parse(userIdClaim);
+        var command = new ChangeMyPasswordCommand(userId, dto.CurrentPassword, dto.NewPassword);
+        await Mediator.Send(command, cancellationToken);
+        return Ok(new { success = true, message = "Đổi mật khẩu thành công." });
     }
 }

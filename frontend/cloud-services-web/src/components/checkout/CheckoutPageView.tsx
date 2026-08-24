@@ -56,10 +56,6 @@ export function CheckoutPageView({
   const [maxAccessibleStep, setMaxAccessibleStep] = React.useState<number>(1);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // Coupon Voucher state
-  const [couponCode, setCouponCode] = React.useState("");
-  const [couponApplied, setCouponApplied] = React.useState(false);
-
   // PayOS Created Order state for Step 3
   const [orderCreatedData, setOrderCreatedData] = React.useState<CreatedOrderPayOSData | null>(null);
 
@@ -73,33 +69,6 @@ export function CheckoutPageView({
       notes: "",
     },
   });
-
-  const handleApplyCoupon = () => {
-    if (couponCode.trim().toUpperCase() === "CLOUD2026" || couponCode.trim().toUpperCase() === "SALE10") {
-      setCouponApplied(true);
-      toast.add({
-        title: "Áp dụng mã thành công!",
-        description: `Mã ${couponCode} giảm 10% trên tổng giá trị đơn hàng.`,
-        type: "success",
-      });
-    } else {
-      toast.add({
-        title: "Mã không hợp lệ",
-        description: "Mã khuyến mãi không tồn tại hoặc đã hết lượt áp dụng.",
-        type: "error",
-      });
-    }
-  };
-
-  const handleRemoveCoupon = () => {
-    setCouponApplied(false);
-    setCouponCode("");
-    toast.add({
-      title: "Đã gỡ bỏ mã",
-      description: "Đã hủy áp dụng voucher giảm giá.",
-      type: "info",
-    });
-  };
 
   const handleStep1Next = () => {
     if (!selectedPlan) {
@@ -115,8 +84,20 @@ export function CheckoutPageView({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleStep2Submit = form.handleSubmit(async (formData) => {
+  const handleStep2Submit = async () => {
+    const isValid = await form.trigger();
+    if (!isValid) {
+      toast.add({
+        title: "Thông tin chưa hợp lệ",
+        description: "Vui lòng kiểm tra lại các trường bắt buộc trong form liên hệ.",
+        type: "error",
+      });
+      return;
+    }
+
     if (!selectedPlan) return;
+
+    const formData = form.getValues();
 
     try {
       setIsSubmitting(true);
@@ -174,29 +155,34 @@ export function CheckoutPageView({
         bin: paymentData.bin,
         checkoutUrl: paymentData.checkoutUrl,
         description: paymentData.description,
-        createdAt: orderData.createdAt || new Date().toISOString(),
-        planName: selectedPlan.name,
+        servicePlanName: selectedPlan.name,
+        billingCycle: selectedCycle,
+        createdAt: new Date().toISOString(),
       });
 
+      // Chuyển sang Bước 3: Thanh toán
       setCurrentStep(3);
       setMaxAccessibleStep(3);
       window.scrollTo({ top: 0, behavior: "smooth" });
 
       toast.add({
-        title: "Tạo đơn hàng thành công!",
-        description: "Vui lòng quét mã VietQR để hoàn tất kích hoạt máy chủ.",
+        title: "Tạo đơn thành công",
+        description: "Vui lòng quét mã QR chuyển khoản chính xác để hoàn tất dịch vụ.",
         type: "success",
       });
     } catch (err: unknown) {
       toast.add({
-        title: "Lỗi xử lý",
-        description: err instanceof Error ? err.message : "Đã xảy ra lỗi không xác định.",
+        title: "Lỗi tạo đơn hàng",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Đã xảy ra lỗi không xác định khi tạo đơn.",
         type: "error",
       });
     } finally {
       setIsSubmitting(false);
     }
-  });
+  };
 
   const handleReset = () => {
     setCurrentStep(1);
@@ -275,11 +261,6 @@ export function CheckoutPageView({
               <CheckoutOrderSummary
                 selectedPlan={selectedPlan}
                 selectedCycle={selectedCycle}
-                couponCode={couponCode}
-                couponApplied={couponApplied}
-                onCouponChange={(code) => setCouponCode(code)}
-                onApplyCoupon={handleApplyCoupon}
-                onRemoveCoupon={handleRemoveCoupon}
                 onSubmit={handleStep2Submit}
                 isSubmitting={isSubmitting}
                 currentStep={currentStep}

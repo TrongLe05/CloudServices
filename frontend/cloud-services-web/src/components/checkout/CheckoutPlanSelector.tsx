@@ -32,9 +32,7 @@ export function CheckoutPlanSelector({
 
   const billingCycles = [
     { value: "Monthly", label: "Hàng tháng", badge: null },
-    { value: "Quarterly", label: "3 Tháng", badge: "Tiết kiệm 5%" },
-    { value: "SemiAnnually", label: "6 Tháng", badge: "Tiết kiệm 10%" },
-    { value: "Yearly", label: "1 Năm (Ưu đãi)", badge: "Giảm 20%" },
+    { value: "Yearly", label: "Hàng năm (Ưu đãi)", badge: "Giảm 20%" },
   ];
 
   return (
