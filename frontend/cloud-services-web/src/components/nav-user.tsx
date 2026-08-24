@@ -53,7 +53,7 @@ export function NavUser({
   const [profileSheetOpen, setProfileSheetOpen] = React.useState(false);
 
   const displayName = session?.user?.name || initialUser?.name || "Admin";
-  const displayEmail = session?.user?.email || (session?.user?.name ? `${session.user.name}@cloudservices.vn` : initialUser?.email || "admin@cloudservices.vn");
+  const displayEmail = session?.user?.email || initialUser?.email || "";
 
   const getInitials = (name: string) => {
     if (!name) return "AD";

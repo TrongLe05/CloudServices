@@ -43,8 +43,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const match = setCookie.match(/refreshToken=([^;]+)/);
           const refreshToken = match ? match[1] : data.refreshToken || null;
 
-          // Giải mã accessToken (chứa role, exp, claims)
-          const decoded: any = jose.decodeJwt(data.accessToken);
+          const rawAccessToken = data.accessToken || data.AccessToken;
+          const decoded: any = jose.decodeJwt(rawAccessToken);
+
+          const emailClaim =
+            decoded[
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+            ] ||
+            decoded["email"] ||
+            decoded["Email"] ||
+            data.email ||
+            data.Email ||
+            "";
 
           const roleClaim =
             decoded[
@@ -69,9 +79,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return {
             id: data.username || (credentials?.username as string),
             name: data.username || (credentials?.username as string),
-            email: data.email || `${data.username}@cloudservices.vn`,
+            email: emailClaim,
             role: role,
-            accessToken: data.accessToken,
+            accessToken: rawAccessToken,
             refreshToken: refreshToken,
             accessTokenExpires: decoded.exp
               ? decoded.exp * 1000
@@ -94,6 +104,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           refreshToken: (user as any).refreshToken,
           accessTokenExpires: (user as any).accessTokenExpires,
           role: (user as any).role,
+          email: (user as any).email,
           username: user.name,
           error: undefined,
         };
@@ -113,6 +124,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user = {
         ...session.user,
         name: (token.username || session.user?.name) as string,
+        email: (token.email || session.user?.email) as string,
         // @ts-ignore
         role: token.role as string,
       };
@@ -147,8 +159,9 @@ async function refreshAccessToken(token: any) {
 
   const refreshPromise = (async () => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`,
+        `${apiUrl}/api/auth/refresh-token`,
         {
           method: "POST",
           headers: {
@@ -194,11 +207,41 @@ async function refreshAccessToken(token: any) {
         ? decoded.exp * 1000
         : Date.now() + 15 * 60 * 1000;
 
+      const emailClaim =
+        decoded[
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+        ] ||
+        decoded["email"] ||
+        decoded["Email"] ||
+        token.email;
+
+      const roleClaim =
+        decoded[
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        ] ||
+        decoded[
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"
+        ] ||
+        decoded["role"] ||
+        decoded["Role"] ||
+        token.role ||
+        "User";
+
+      const lowerRole = String(roleClaim).toLowerCase();
+      const role =
+        lowerRole === "admin"
+          ? "Admin"
+          : lowerRole === "editor"
+          ? "Editor"
+          : String(roleClaim);
+
       return {
         ...token,
         accessToken: newAccessToken,
         accessTokenExpires: exp,
         refreshToken: newRefreshToken,
+        email: emailClaim,
+        role: role,
         error: undefined,
       };
     } catch (error) {

@@ -1,8 +1,7 @@
 import * as React from "react";
-import { ShieldCheck, Sparkles, Tag, Check, ArrowRight } from "lucide-react";
+import { ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { ServicePlanItem } from "@/types/plans.types";
 import { formatVND } from "@/lib/formatUtils";
 import { PlanSpecsList } from "@/components/common/PlanSpecsList";
@@ -10,11 +9,6 @@ import { PlanSpecsList } from "@/components/common/PlanSpecsList";
 export interface CheckoutOrderSummaryProps {
   selectedPlan: ServicePlanItem | null;
   selectedCycle: string;
-  couponCode: string;
-  couponApplied: boolean;
-  onCouponChange: (code: string) => void;
-  onApplyCoupon: () => void;
-  onRemoveCoupon: () => void;
   onSubmit: () => void;
   isSubmitting?: boolean;
   currentStep: number;
@@ -23,11 +17,6 @@ export interface CheckoutOrderSummaryProps {
 export function CheckoutOrderSummary({
   selectedPlan,
   selectedCycle,
-  couponCode,
-  couponApplied,
-  onCouponChange,
-  onApplyCoupon,
-  onRemoveCoupon,
   onSubmit,
   isSubmitting = false,
   currentStep,
@@ -42,10 +31,7 @@ export function CheckoutOrderSummary({
   // Chiết khấu khuyến mãi gói
   const promoDiscountAmount = (rawPrice * promoDiscountPct) / 100;
   
-  // Chiết khấu coupon bổ sung (nếu có)
-  const couponDiscountAmount = couponApplied ? Math.round(rawPrice * 0.1) : 0;
-  
-  const finalPrice = Math.max(0, rawPrice - promoDiscountAmount - couponDiscountAmount);
+  const finalPrice = Math.max(0, rawPrice - promoDiscountAmount);
 
   return (
     <aside className="p-6 md:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-6 sticky top-24">
@@ -74,49 +60,6 @@ export function CheckoutOrderSummary({
         />
       )}
 
-      {/* Mã giảm giá Coupon */}
-      <div className="space-y-2 pt-2 border-t border-slate-100">
-        <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
-          <Tag className="size-3 text-slate-400" />
-          Mã khuyến mãi / Voucher:
-        </label>
-
-        {couponApplied ? (
-          <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs text-emerald-800 font-bold">
-              <Check className="size-3.5 text-emerald-600" />
-              <span>Voucher {couponCode} (-10%)</span>
-            </div>
-            <button
-              type="button"
-              onClick={onRemoveCoupon}
-              className="text-[11px] text-rose-600 font-semibold hover:underline"
-            >
-              Gỡ bỏ
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Input
-              value={couponCode}
-              onChange={(e) => onCouponChange(e.target.value.toUpperCase())}
-              placeholder="Nhập mã (VD: CLOUD2026)"
-              className="h-10 text-xs rounded-xl bg-slate-50 uppercase"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onApplyCoupon}
-              disabled={!couponCode.trim()}
-              className="h-10 text-xs font-bold rounded-xl px-4 shrink-0"
-            >
-              Áp dụng
-            </Button>
-          </div>
-        )}
-      </div>
-
       {/* Bảng tính chi phí */}
       <dl className="space-y-2.5 text-xs border-t border-slate-100 pt-4">
         <div className="flex items-center justify-between text-slate-500">
@@ -133,16 +76,11 @@ export function CheckoutOrderSummary({
           </div>
         )}
 
-        {couponApplied && (
-          <div className="flex items-center justify-between text-emerald-600">
-            <dt>Giảm giá Voucher (10%):</dt>
-            <dd className="font-bold">-{formatVND(couponDiscountAmount)}</dd>
-          </div>
-        )}
-
         <div className="flex items-center justify-between text-slate-500">
           <dt>Chu kỳ thanh toán:</dt>
-          <dd className="font-semibold text-slate-800">{selectedCycle}</dd>
+          <dd className="font-semibold text-slate-800">
+            {selectedCycle.toLowerCase() === "monthly" ? "Hàng tháng" : "Hàng năm (1 Năm)"}
+          </dd>
         </div>
 
         <div className="flex items-baseline justify-between pt-3 border-t border-slate-200/80">
