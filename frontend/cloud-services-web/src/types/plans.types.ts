@@ -21,6 +21,8 @@ export interface ServicePlanItem {
   ram?: string | null;
   storage?: string | null;
   bandwidth?: string | null;
+  uptimeSla?: string | null;
+  features?: string[] | null;
   qrCodeUrl?: string | null;
   prices?: PlanPriceItem[];
   promotion?: {
