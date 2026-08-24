@@ -8,11 +8,15 @@ namespace CloudServices.Infrastructure.Repositories;
 public sealed class NewsRepository(ApplicationDbContext context) : INewsRepository
 {
     public Task<NewsArticle?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-        context.NewsArticles.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        context.NewsArticles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     public async Task<(IReadOnlyList<NewsArticle> Items, int TotalCount)> GetPagedAsync(string? search, string? category, string? sort, int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var query = context.NewsArticles.AsQueryable();
+        var query = context.NewsArticles
+            .AsNoTracking()
+            .AsQueryable();
         if (!string.IsNullOrWhiteSpace(search)) { var term = search.Trim(); query = query.Where(x => x.Title.Contains(term) || x.Content.Contains(term)); }
         if (!string.IsNullOrWhiteSpace(category)) query = query.Where(x => x.Category == category.Trim());
         query = string.Equals(sort, "createdAt", StringComparison.OrdinalIgnoreCase)
