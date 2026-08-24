@@ -44,6 +44,8 @@ export function AuditLogsCRUD({ initialData }: AuditLogsCRUDProps) {
     React.useState<AuditLogFilterState>(DEFAULT_FILTERS);
   const [loading, setLoading] = React.useState<boolean>(false);
 
+  const isFirstMount = React.useRef(true);
+
   // Detail Modal State
   const [selectedLog, setSelectedLog] = React.useState<AuditLogItem | null>(
     null
@@ -83,14 +85,15 @@ export function AuditLogsCRUD({ initialData }: AuditLogsCRUDProps) {
         });
 
         if (!res.ok) {
-          throw new Error(`Failed to fetch audit logs: ${res.status}`);
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || `Lỗi tải nhật ký: HTTP ${res.status}`);
         }
 
         const data: AuditLogPageResponse = await res.json();
         setLogs(data.items || []);
         setPage(data.page || 1);
         setTotalCount(data.totalCount || 0);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching audit logs:", error);
       } finally {
         setLoading(false);
@@ -110,10 +113,16 @@ export function AuditLogsCRUD({ initialData }: AuditLogsCRUDProps) {
     setPage(1);
   };
 
-  // Re-fetch when page or filters change
+  // Re-fetch when page or filters change (skip on first mount if initialData is provided)
   React.useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      if (initialData && initialData.items && initialData.items.length > 0) {
+        return;
+      }
+    }
     fetchLogs(page, filters);
-  }, [page, filters, fetchLogs]);
+  }, [page, filters, fetchLogs, initialData]);
 
   // Open detail modal
   const handleViewDetail = (log: AuditLogItem) => {
