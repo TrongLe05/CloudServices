@@ -20,6 +20,8 @@ import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/toast";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 import "../globals.css";
 import { cn } from "@/lib/utils";
 
@@ -40,11 +42,21 @@ export const metadata: Metadata = {
   description: "Cổng quản trị tin tức, yêu cầu đặt dịch vụ và đăng ký Affiliate dành cho Biên tập viên.",
 };
 
-export default function EditorLayout({
+export default async function EditorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/dang-nhap?callbackUrl=/editor/dashboard");
+  }
+
+  const role = String((session.user as any)?.role || "").toLowerCase();
+  if (role !== "admin" && role !== "editor") {
+    redirect("/");
+  }
+
   return (
     <html
       lang="vi"

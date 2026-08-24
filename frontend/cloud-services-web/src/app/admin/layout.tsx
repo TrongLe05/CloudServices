@@ -17,6 +17,8 @@ import { Toaster } from "@/components/ui/toast";
 import { SessionProvider } from "next-auth/react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
@@ -41,7 +43,20 @@ export const metadata: Metadata = {
   description: "Admin portal for Cloud Services",
 };
 
-const layout = ({ children }: LayoutProps<"/admin">) => {
+const layout = async ({ children }: LayoutProps<"/admin">) => {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/dang-nhap?callbackUrl=/admin/dashboard");
+  }
+
+  const role = String((session.user as any)?.role || "").toLowerCase();
+  if (role !== "admin") {
+    if (role === "editor") {
+      redirect("/editor/dashboard");
+    }
+    redirect("/");
+  }
+
   return (
     <html
       lang="en"

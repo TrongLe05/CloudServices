@@ -60,14 +60,29 @@ export function LoginForm() {
         return;
       }
 
-      toast.add({
-        title: "Đăng nhập thành công",
-        description: "Chào mừng bạn quay trở lại hệ thống.",
-        type: "success",
-      });
+      // Điều hướng thông minh theo Role nếu không có callbackUrl chỉ định
+      let targetUrl = callbackUrl;
+      if (!targetUrl || targetUrl === "/" || targetUrl.startsWith("/dang-nhap")) {
+        try {
+          const sessionRes = await fetch("/api/auth/session");
+          if (sessionRes.ok) {
+            const sessionData = await sessionRes.json();
+            const role = String(sessionData?.user?.role || "").toLowerCase();
+            if (role === "admin") {
+              targetUrl = "/admin/dashboard";
+            } else if (role === "editor") {
+              targetUrl = "/editor/dashboard";
+            } else {
+              targetUrl = "/";
+            }
+          }
+        } catch {
+          targetUrl = "/";
+        }
+      }
 
       // Điều hướng và đồng bộ NextAuth session tức thì trên toàn bộ Header & UI
-      window.location.href = callbackUrl;
+      window.location.href = targetUrl;
     } catch (error: any) {
       console.error(error);
       const msg = error.message || "Tài khoản hoặc mật khẩu không chính xác";

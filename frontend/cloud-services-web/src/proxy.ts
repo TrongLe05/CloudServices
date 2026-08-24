@@ -1,84 +1,69 @@
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
-export default auth((req) => {
+const proxyHandler = auth((req) => {
+  const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
-  const userRole =
-    (req.auth?.user as any)?.role || (req.auth as any)?.role || "";
-  const normalizedRole = String(userRole).toLowerCase();
-  const isAdmin = normalizedRole === "admin";
-  const isEditor = normalizedRole === "editor";
-  const { pathname } = req.nextUrl;
+  const userRole = (req.auth?.user as any)?.role || "";
+  const roleLower = String(userRole).toLowerCase();
 
-  const isAuthPage =
-    pathname.startsWith("/dang-nhap") || pathname.startsWith("/dang-ky");
-  const isAdminPage = pathname.startsWith("/admin");
-  const isEditorPage = pathname.startsWith("/editor");
-  const isOrderHistoryPage = pathname.startsWith("/don-hang");
+  const isAdminRoute = nextUrl.pathname.startsWith("/admin");
+  const isEditorRoute = nextUrl.pathname.startsWith("/editor");
+  const isAuthRoute =
+    nextUrl.pathname.startsWith("/dang-nhap") ||
+    nextUrl.pathname.startsWith("/dang-ky") ||
+    nextUrl.pathname.startsWith("/quen-mat-khau");
 
-  // 1. Auth routes (/dang-nhap, /dang-ky): Redirect already authenticated users to their respective portal
-  if (isAuthPage && isLoggedIn) {
-    if (isAdmin) {
-      return NextResponse.redirect(new URL("/admin/dashboard", req.url));
-    }
-    if (isEditor) {
-      return NextResponse.redirect(new URL("/editor/dashboard", req.url));
-    }
-    return NextResponse.redirect(new URL("/", req.url));
+  // 1. Chưa đăng nhập mà truy cập khu vực Admin hoặc Editor -> Chuyển hướng sang /dang-nhap
+  if (!isLoggedIn && (isAdminRoute || isEditorRoute)) {
+    const callbackUrl = encodeURIComponent(nextUrl.pathname + nextUrl.search);
+    return NextResponse.redirect(
+      new URL(`/dang-nhap?callbackUrl=${callbackUrl}`, nextUrl)
+    );
   }
 
-  // 2. Admin routes (/admin/*): Strictly Admin role only
-  if (isAdminPage) {
-    if (!isLoggedIn) {
-      const loginUrl = new URL("/dang-nhap", req.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
+  // 2. Đã đăng nhập -> Phân quyền truy cập theo Role
+  if (isLoggedIn) {
+    // 2.1 Truy cập /admin/* -> Chỉ Admin mới có quyền
+    if (isAdminRoute && roleLower !== "admin") {
+      if (roleLower === "editor") {
+        return NextResponse.redirect(new URL("/editor/dashboard", nextUrl));
+      }
+      return NextResponse.redirect(new URL("/", nextUrl));
     }
 
-    // If an Editor accesses /admin, redirect them to the dedicated Editor portal
-    if (isEditor) {
-      return NextResponse.redirect(new URL("/editor/dashboard", req.url));
+    // 2.2 Truy cập /editor/* -> Admin hoặc Editor mới có quyền
+    if (isEditorRoute && roleLower !== "admin" && roleLower !== "editor") {
+      return NextResponse.redirect(new URL("/", nextUrl));
     }
 
-    // Regular users cannot access Admin portal
-    if (!isAdmin) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-  }
-
-  // 3. Editor routes (/editor/*): Editor and Admin roles permitted
-  if (isEditorPage) {
-    if (!isLoggedIn) {
-      const loginUrl = new URL("/dang-nhap", req.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // Regular users cannot access Editor portal
-    if (!isEditor && !isAdmin) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-  }
-
-  // 4. Customer order history (/don-hang)
-  if (isOrderHistoryPage) {
-    if (!isLoggedIn) {
-      const loginUrl = new URL("/dang-nhap", req.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
+    // 2.3 Đã đăng nhập mà vào lại các trang Auth (/dang-nhap, /dang-ky) -> Chuyển về Dashboard tương ứng
+    if (isAuthRoute) {
+      if (roleLower === "admin") {
+        return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
+      }
+      if (roleLower === "editor") {
+        return NextResponse.redirect(new URL("/editor/dashboard", nextUrl));
+      }
+      return NextResponse.redirect(new URL("/", nextUrl));
     }
   }
 
   return NextResponse.next();
 });
 
-// Configure matcher for protected routes
+export const proxy = proxyHandler;
+export default proxyHandler;
+
 export const config = {
   matcher: [
-    "/admin/:path*",
-    "/editor/:path*",
-    "/don-hang/:path*",
-    "/dang-nhap",
-    "/dang-ky",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
 };
