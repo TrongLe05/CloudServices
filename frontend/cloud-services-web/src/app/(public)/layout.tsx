@@ -9,6 +9,9 @@ import { SessionProvider } from "next-auth/react";
 import { siteConfig } from "@/config/site";
 import { OrganizationJsonLd } from "@/components/seo/JsonLd";
 
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
@@ -99,6 +102,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Footer />
           <Toaster />
         </SessionProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
