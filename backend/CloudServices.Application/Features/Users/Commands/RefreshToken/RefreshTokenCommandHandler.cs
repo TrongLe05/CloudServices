@@ -58,9 +58,10 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             var newAccessToken = _jwtTokenGenerator.GenerateToken(user);
             var newRefreshToken = _jwtTokenGenerator.GenerateRefreshToken();
 
-            // Lưu lại token cũ vào PreviousRefreshToken với thời gian ân hạn 2 phút cho các request song song từ frontend
+            // Lưu lại token cũ vào PreviousRefreshToken với thời hạn bằng thời hạn phiên hiện tại (tối đa 7 ngày)
+            // để hỗ trợ multi-tab, serverless concurrency và browser đóng mở lại sau thời gian dài
             user.PreviousRefreshToken = user.RefreshToken;
-            user.PreviousRefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
+            user.PreviousRefreshTokenExpiryTime = user.RefreshTokenExpiryTime;
 
             user.RefreshToken = newRefreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Gia hạn 7 ngày

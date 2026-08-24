@@ -63,6 +63,8 @@ async function getServicesData() {
   }
 }
 
+import { auth } from "@/auth";
+
 export default async function OrderCheckoutPage({
   searchParams,
 }: {
@@ -70,7 +72,10 @@ export default async function OrderCheckoutPage({
 }) {
   const resolvedParams = await searchParams;
   const { planId, cycle } = resolvedParams;
-  const { plans } = await getServicesData();
+  const [{ plans }, session] = await Promise.all([
+    getServicesData(),
+    auth(),
+  ]);
 
   return (
     <Suspense fallback={<OrderCheckoutSkeleton />}>
@@ -78,6 +83,8 @@ export default async function OrderCheckoutPage({
         initialPlans={plans}
         preselectedPlanId={planId}
         preselectedCycle={cycle}
+        userEmail={session?.user?.email}
+        userName={session?.user?.name}
       />
     </Suspense>
   );

@@ -120,6 +120,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return await refreshAccessToken(token);
     },
     async session({ session, token }) {
+      if (token.error === "RefreshAccessTokenError" || !token.accessToken) {
+        // @ts-ignore
+        session.error = "RefreshAccessTokenError";
+        // @ts-ignore
+        session.accessToken = undefined;
+        // @ts-ignore
+        session.refreshToken = undefined;
+        // @ts-ignore
+        session.user = undefined;
+        return session;
+      }
+
       // Đính kèm thông tin token vào session để React components truy cập
       session.user = {
         ...session.user,
@@ -135,7 +147,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // @ts-ignore
       session.accessTokenExpires = token.accessTokenExpires;
       // @ts-ignore
-      session.error = token.error;
+      session.error = undefined;
       return session;
     },
   },

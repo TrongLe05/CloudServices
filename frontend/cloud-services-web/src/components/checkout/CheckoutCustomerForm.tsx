@@ -1,6 +1,7 @@
 import * as React from "react";
+import Link from "next/link";
 import { UseFormReturn } from "react-hook-form";
-import { User, Mail, Phone, Building2, FileText, ArrowLeft, ArrowRight } from "lucide-react";
+import { User, Mail, Phone, Building2, FileText, ArrowLeft, ArrowRight, AlertCircle, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CheckoutFormData } from "@/types/checkout.types";
@@ -10,6 +11,7 @@ export interface CheckoutCustomerFormProps {
   onBack: () => void;
   onSubmit: () => void;
   isSubmitting?: boolean;
+  isLoggedIn?: boolean;
 }
 
 export function CheckoutCustomerForm({
@@ -17,6 +19,7 @@ export function CheckoutCustomerForm({
   onBack,
   onSubmit,
   isSubmitting = false,
+  isLoggedIn = true,
 }: CheckoutCustomerFormProps) {
   const {
     register,
@@ -25,6 +28,32 @@ export function CheckoutCustomerForm({
 
   return (
     <div className="space-y-6">
+      {!isLoggedIn && (
+        <aside className="p-4 rounded-2xl bg-amber-50 border border-amber-200/90 text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="size-5 text-amber-600 shrink-0" />
+            <p className="text-xs leading-relaxed">
+              <strong>Yêu cầu đăng nhập:</strong> Vui lòng đăng nhập tài khoản trước khi tạo đơn để hệ thống tự động gán máy chủ vào tài khoản của bạn.
+            </p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold px-4 h-9 shrink-0 gap-1.5 shadow-xs"
+            render={
+              <Link
+                href={`/dang-nhap?callbackUrl=${encodeURIComponent(
+                  typeof window !== "undefined" ? window.location.pathname + window.location.search : "/dat-hang"
+                )}`}
+              />
+            }
+          >
+            <LogIn className="size-3.5" />
+            <span>Đăng nhập ngay</span>
+          </Button>
+        </aside>
+      )}
+
       <div className="p-6 md:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-6">
         <div>
           <h2 className="text-lg font-bold text-slate-900">

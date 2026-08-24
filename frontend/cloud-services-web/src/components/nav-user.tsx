@@ -51,8 +51,31 @@ export function NavUser({
 
   const [avatarUrl, setAvatarUrl] = React.useState(initialUser?.avatar || "");
   const [profileSheetOpen, setProfileSheetOpen] = React.useState(false);
+  const [fullName, setFullName] = React.useState(session?.user?.name || initialUser?.name || "Admin");
 
-  const displayName = session?.user?.name || initialUser?.name || "Admin";
+  React.useEffect(() => {
+    let isMounted = true;
+    async function loadUserData() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
+            if (data.fullName || data.username) setFullName(data.fullName || data.username);
+          }
+        }
+      } catch {
+        // keep fallback
+      }
+    }
+    loadUserData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const displayName = fullName;
   const displayEmail = session?.user?.email || initialUser?.email || "";
 
   const getInitials = (name: string) => {
@@ -94,7 +117,7 @@ export function NavUser({
                 >
                   <div className="relative">
                     <Avatar className="size-8 rounded-full border border-primary/30 bg-primary/10">
-                      <AvatarImage src={avatarUrl} alt={displayName} />
+                      {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName} /> : null}
                       <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
                         {getInitials(displayName)}
                       </AvatarFallback>
@@ -123,7 +146,7 @@ export function NavUser({
               <div className="p-2 font-normal">
                 <div className="flex items-center gap-3 text-left text-sm">
                   <Avatar className="size-10 rounded-full border border-primary/30 bg-primary/10">
-                    <AvatarImage src={avatarUrl} alt={displayName} />
+                    {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName} /> : null}
                     <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
                       {getInitials(displayName)}
                     </AvatarFallback>

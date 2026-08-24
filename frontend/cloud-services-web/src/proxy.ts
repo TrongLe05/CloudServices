@@ -3,19 +3,21 @@ import { auth } from "@/auth";
 
 const proxyHandler = auth((req) => {
   const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
+  const isTokenError = (req.auth as any)?.error === "RefreshAccessTokenError" || !(req.auth as any)?.accessToken;
+  const isLoggedIn = !!req.auth?.user && !isTokenError;
   const userRole = (req.auth?.user as any)?.role || "";
   const roleLower = String(userRole).toLowerCase();
 
   const isAdminRoute = nextUrl.pathname.startsWith("/admin");
   const isEditorRoute = nextUrl.pathname.startsWith("/editor");
+  const isProfileRoute = nextUrl.pathname.startsWith("/profile");
   const isAuthRoute =
     nextUrl.pathname.startsWith("/dang-nhap") ||
     nextUrl.pathname.startsWith("/dang-ky") ||
     nextUrl.pathname.startsWith("/quen-mat-khau");
 
-  // 1. Chưa đăng nhập mà truy cập khu vực Admin hoặc Editor -> Chuyển hướng sang /dang-nhap
-  if (!isLoggedIn && (isAdminRoute || isEditorRoute)) {
+  // 1. Chưa đăng nhập mà truy cập khu vực cần xác thực -> Chuyển hướng sang /dang-nhap
+  if (!isLoggedIn && (isAdminRoute || isEditorRoute || isProfileRoute)) {
     const callbackUrl = encodeURIComponent(nextUrl.pathname + nextUrl.search);
     return NextResponse.redirect(
       new URL(`/dang-nhap?callbackUrl=${callbackUrl}`, nextUrl)
