@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -22,9 +22,9 @@ async function getPlanDetail(categorySlugOrId: string, planSlugOrId: string) {
 
   try {
     const [categoriesRes, plansRes, testimonialsRes] = await Promise.all([
-      fetch(`${apiUrl}/api/service-categories`, { cache: "no-store" }),
-      fetch(`${apiUrl}/api/service-plans?pageSize=100`, { cache: "no-store" }),
-      fetch(`${apiUrl}/api/testimonials`, { cache: "no-store" }).catch(() => null),
+      fetch(`${apiUrl}/api/service-categories`, { next: { revalidate: 60 } }),
+      fetch(`${apiUrl}/api/service-plans?pageSize=100`, { next: { revalidate: 60 } }),
+      fetch(`${apiUrl}/api/testimonials`, { next: { revalidate: 60 } }).catch(() => null),
     ]);
 
     if (!categoriesRes.ok || !plansRes.ok) return null;
@@ -55,24 +55,11 @@ async function getPlanDetail(categorySlugOrId: string, planSlugOrId: string) {
 
     const currentCat = categories.find((c) => c.id === targetPlan.categoryId);
 
-    // Lấy thông tin giá của gói dịch vụ
-    let prices = [];
-    try {
-      const priceRes = await fetch(`${apiUrl}/api/service-plans/${targetPlan.id}/prices`, {
-        cache: "no-store",
-      });
-      if (priceRes.ok) {
-        prices = await priceRes.json();
-      }
-    } catch {
-      prices = [];
-    }
-
     const planData: ServicePlanItem = {
       ...targetPlan,
-      categoryName: currentCat?.name || "Dịch vụ Đám mây",
+      categoryName: targetPlan.categoryName || currentCat?.name || "Dịch vụ Đám mây",
       categorySlug: currentCat?.slug || slugify(currentCat?.name || "cloud"),
-      prices,
+      prices: targetPlan.prices || [],
     };
 
     // Lấy các gói liên quan trong cùng danh mục

@@ -19,6 +19,8 @@ public class ServicePlanRepository : IServicePlanRepository
         return await _context.ServicePlans
             .AsNoTracking()
             .Include(p => p.Category)
+            .Include(p => p.PlanPrices)
+                .ThenInclude(pr => pr.Promotion)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
@@ -29,6 +31,8 @@ public class ServicePlanRepository : IServicePlanRepository
         var query = _context.ServicePlans
             .AsNoTracking()
             .Include(p => p.Category)
+            .Include(p => p.PlanPrices)
+                .ThenInclude(pr => pr.Promotion)
             .AsQueryable();
         if (categoryId.HasValue) query = query.Where(p => p.CategoryId == categoryId.Value);
         if (!string.IsNullOrWhiteSpace(search))

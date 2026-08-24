@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 async function getInitialTestimonials(): Promise<TestimonialItem[]> {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
-    const res = await fetch(`${apiUrl}/api/testimonials`, { cache: "no-store" });
+    const res = await fetch(`${apiUrl}/api/testimonials`, { next: { revalidate: 60 } });
     if (!res.ok) return [];
     const data = await res.json();
     const items = data.items || data || [];
@@ -61,7 +61,7 @@ async function getInitialServicePlans(): Promise<ServicePlanItem[]> {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
     const res = await fetch(`${apiUrl}/api/service-plans?pageSize=100`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
     if (!res.ok) return [];
     const data = await res.json();
