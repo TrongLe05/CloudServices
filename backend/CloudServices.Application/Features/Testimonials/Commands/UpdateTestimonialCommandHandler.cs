@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Common.Exceptions;
+using CloudServices.Application.Common.Exceptions;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Application.Features.Testimonials.DTOs;
@@ -11,11 +11,13 @@ public class UpdateTestimonialCommandHandler : IRequestHandler<UpdateTestimonial
 {
     private readonly ITestimonialRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cache;
 
-    public UpdateTestimonialCommandHandler(ITestimonialRepository repository, IUnitOfWork unitOfWork)
+    public UpdateTestimonialCommandHandler(ITestimonialRepository repository, IUnitOfWork unitOfWork, ICacheService cache)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
+        _cache = cache;
     }
 
     public async Task<TestimonialDto> Handle(UpdateTestimonialCommand request, CancellationToken cancellationToken)
@@ -38,6 +40,8 @@ public class UpdateTestimonialCommandHandler : IRequestHandler<UpdateTestimonial
 
         _repository.Update(testimonial);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _cache.RemoveByPrefix("testimonials");
 
         return new TestimonialDto
         {

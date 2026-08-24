@@ -14,18 +14,20 @@ public class PromotionCommandHandlerTests
 {
     private readonly Mock<IPromotionRepository> _repositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<ICacheService> _cacheMock;
 
     public PromotionCommandHandlerTests()
     {
         _repositoryMock = new Mock<IPromotionRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _cacheMock = new Mock<ICacheService>();
     }
 
     [Fact]
     public async Task CreatePromotion_ValidRequest_CreatesAndSaves()
     {
         // Arrange
-        var handler = new CreatePromotionCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new CreatePromotionCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var start = DateTime.UtcNow.AddDays(-1);
         var end = DateTime.UtcNow.AddDays(1);
         var command = new CreatePromotionCommand("Black Friday", 20, start, end);
@@ -58,7 +60,7 @@ public class PromotionCommandHandlerTests
     public async Task DeletePromotion_NotFound_ReturnsFalse()
     {
         // Arrange
-        var handler = new DeletePromotionCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new DeletePromotionCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var command = new DeletePromotionCommand(Guid.NewGuid());
 
         _repositoryMock.Setup(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
@@ -75,7 +77,7 @@ public class PromotionCommandHandlerTests
     public async Task DeletePromotion_Found_DeletesAndSaves()
     {
         // Arrange
-        var handler = new DeletePromotionCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new DeletePromotionCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var id = Guid.NewGuid();
         var command = new DeletePromotionCommand(id);
         var promotion = new Promotion { Id = id };
@@ -99,7 +101,7 @@ public class PromotionCommandHandlerTests
     public async Task UpdatePromotion_NotFound_ReturnsNull()
     {
         // Arrange
-        var handler = new UpdatePromotionCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new UpdatePromotionCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var command = new UpdatePromotionCommand { Id = Guid.NewGuid(), Name = "Black Friday", DiscountPercentage = 25 };
 
         _repositoryMock.Setup(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
@@ -116,7 +118,7 @@ public class PromotionCommandHandlerTests
     public async Task UpdatePromotion_Found_UpdatesAndSaves()
     {
         // Arrange
-        var handler = new UpdatePromotionCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new UpdatePromotionCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var id = Guid.NewGuid();
         var start = DateTime.UtcNow.AddDays(-1);
         var end = DateTime.UtcNow.AddDays(1);

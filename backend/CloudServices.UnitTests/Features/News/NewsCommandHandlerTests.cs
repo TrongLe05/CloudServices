@@ -17,18 +17,20 @@ public class NewsCommandHandlerTests
 {
     private readonly Mock<INewsRepository> _repositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<ICacheService> _cacheMock;
 
     public NewsCommandHandlerTests()
     {
         _repositoryMock = new Mock<INewsRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _cacheMock = new Mock<ICacheService>();
     }
 
     [Fact]
     public async Task CreateNews_ValidRequest_CreatesNewsAndReturnsId()
     {
         // Arrange
-        var handler = new CreateNewsCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new CreateNewsCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var command = new CreateNewsCommand("Title ", "Slug ", "Category ", "Content", "http://thumb.url", null);
 
         _repositoryMock.Setup(repo => repo.AddAsync(It.IsAny<NewsArticle>(), It.IsAny<CancellationToken>()))
@@ -56,7 +58,7 @@ public class NewsCommandHandlerTests
     public async Task UpdateNews_ArticleNotFound_ThrowsNotFoundException()
     {
         // Arrange
-        var handler = new UpdateNewsCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new UpdateNewsCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var command = new UpdateNewsCommand(Guid.NewGuid(), "Title", "Slug", "Category", "Content", null, null);
 
         _repositoryMock.Setup(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
@@ -70,7 +72,7 @@ public class NewsCommandHandlerTests
     public async Task UpdateNews_ArticleFound_UpdatesAndSaves()
     {
         // Arrange
-        var handler = new UpdateNewsCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new UpdateNewsCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var articleId = Guid.NewGuid();
         var command = new UpdateNewsCommand(articleId, "New Title ", "New Slug ", "New Category ", "New Content", "new_url", null);
         var article = new NewsArticle { Id = articleId, Title = "Old Title", Slug = "old-slug", Category = "old-cat" };
@@ -100,7 +102,7 @@ public class NewsCommandHandlerTests
     public async Task DeleteNews_ArticleNotFound_ThrowsNotFoundException()
     {
         // Arrange
-        var handler = new DeleteNewsCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new DeleteNewsCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var command = new DeleteNewsCommand(Guid.NewGuid());
 
         _repositoryMock.Setup(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
@@ -114,7 +116,7 @@ public class NewsCommandHandlerTests
     public async Task DeleteNews_ArticleFound_DeletesAndSaves()
     {
         // Arrange
-        var handler = new DeleteNewsCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new DeleteNewsCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var articleId = Guid.NewGuid();
         var command = new DeleteNewsCommand(articleId);
         var article = new NewsArticle { Id = articleId, Title = "Title" };

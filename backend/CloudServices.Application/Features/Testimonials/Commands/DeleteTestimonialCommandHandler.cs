@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Common.Exceptions;
+using CloudServices.Application.Common.Exceptions;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Domain.Entities;
@@ -10,11 +10,13 @@ public class DeleteTestimonialCommandHandler : IRequestHandler<DeleteTestimonial
 {
     private readonly ITestimonialRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cache;
 
-    public DeleteTestimonialCommandHandler(ITestimonialRepository repository, IUnitOfWork unitOfWork)
+    public DeleteTestimonialCommandHandler(ITestimonialRepository repository, IUnitOfWork unitOfWork, ICacheService cache)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
+        _cache = cache;
     }
 
     public async Task<bool> Handle(DeleteTestimonialCommand request, CancellationToken cancellationToken)
@@ -27,6 +29,8 @@ public class DeleteTestimonialCommandHandler : IRequestHandler<DeleteTestimonial
 
         _repository.Delete(testimonial);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _cache.RemoveByPrefix("testimonials");
 
         return true;
     }

@@ -15,18 +15,20 @@ public class TestimonialCommandHandlerTests
 {
     private readonly Mock<ITestimonialRepository> _repositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<ICacheService> _cacheMock;
 
     public TestimonialCommandHandlerTests()
     {
         _repositoryMock = new Mock<ITestimonialRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _cacheMock = new Mock<ICacheService>();
     }
 
     [Fact]
     public async Task CreateTestimonial_ValidRequest_CreatesAndSaves()
     {
         // Arrange
-        var handler = new CreateTestimonialCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new CreateTestimonialCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var command = new CreateTestimonialCommand("Jane Doe", "Google", "Engineer", "Excellent service", "http://avatar", "http://logo", 5, true, 1);
 
         _repositoryMock.Setup(repo => repo.AddAsync(It.IsAny<Testimonial>(), It.IsAny<CancellationToken>()))
@@ -62,7 +64,7 @@ public class TestimonialCommandHandlerTests
     public async Task DeleteTestimonial_NotFound_ThrowsNotFoundException()
     {
         // Arrange
-        var handler = new DeleteTestimonialCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new DeleteTestimonialCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var command = new DeleteTestimonialCommand(Guid.NewGuid());
 
         _repositoryMock.Setup(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
@@ -76,7 +78,7 @@ public class TestimonialCommandHandlerTests
     public async Task DeleteTestimonial_Found_DeletesAndSaves()
     {
         // Arrange
-        var handler = new DeleteTestimonialCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new DeleteTestimonialCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var id = Guid.NewGuid();
         var command = new DeleteTestimonialCommand(id);
         var testimonial = new Testimonial { Id = id };
@@ -100,7 +102,7 @@ public class TestimonialCommandHandlerTests
     public async Task UpdateTestimonial_NotFound_ThrowsNotFoundException()
     {
         // Arrange
-        var handler = new UpdateTestimonialCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new UpdateTestimonialCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var command = new UpdateTestimonialCommand(Guid.NewGuid(), "Jane", null, null, "Cool", null, null, 5, true, 1);
 
         _repositoryMock.Setup(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
@@ -114,7 +116,7 @@ public class TestimonialCommandHandlerTests
     public async Task UpdateTestimonial_Found_UpdatesAndSaves()
     {
         // Arrange
-        var handler = new UpdateTestimonialCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new UpdateTestimonialCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var id = Guid.NewGuid();
         var command = new UpdateTestimonialCommand(id, "Jane 2", "Microsoft", "Lead", "Awesomeness", "avatar2", "logo2", 4, false, 2);
         var testimonial = new Testimonial { Id = id, ClientName = "Jane", Content = "Good" };

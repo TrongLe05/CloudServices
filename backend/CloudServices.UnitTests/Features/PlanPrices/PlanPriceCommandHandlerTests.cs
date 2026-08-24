@@ -14,18 +14,20 @@ public class PlanPriceCommandHandlerTests
 {
     private readonly Mock<IPlanPriceRepository> _repositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<ICacheService> _cacheMock;
 
     public PlanPriceCommandHandlerTests()
     {
         _repositoryMock = new Mock<IPlanPriceRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _cacheMock = new Mock<ICacheService>();
     }
 
     [Fact]
     public async Task CreatePlanPrice_ValidRequest_CreatesAndSaves()
     {
         // Arrange
-        var handler = new CreatePlanPriceCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new CreatePlanPriceCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var planId = Guid.NewGuid();
         var promoId = Guid.NewGuid();
         var command = new CreatePlanPriceCommand(planId, "Annually", 599.99m, promoId);
@@ -53,7 +55,7 @@ public class PlanPriceCommandHandlerTests
     public async Task DeletePlanPrice_NotFoundOrMismatch_ReturnsFalse()
     {
         // Arrange
-        var handler = new DeletePlanPriceCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new DeletePlanPriceCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var planId = Guid.NewGuid();
         var priceId = Guid.NewGuid();
         var command = new DeletePlanPriceCommand(planId, priceId);
@@ -81,7 +83,7 @@ public class PlanPriceCommandHandlerTests
     public async Task DeletePlanPrice_FoundAndMatches_DeletesAndSaves()
     {
         // Arrange
-        var handler = new DeletePlanPriceCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new DeletePlanPriceCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var planId = Guid.NewGuid();
         var priceId = Guid.NewGuid();
         var command = new DeletePlanPriceCommand(planId, priceId);
@@ -106,7 +108,7 @@ public class PlanPriceCommandHandlerTests
     public async Task UpdatePlanPrice_NotFoundOrMismatch_ReturnsFalse()
     {
         // Arrange
-        var handler = new UpdatePlanPriceCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new UpdatePlanPriceCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var planId = Guid.NewGuid();
         var priceId = Guid.NewGuid();
         var command = new UpdatePlanPriceCommand(planId, priceId, "Monthly", 100m, null);
@@ -125,7 +127,7 @@ public class PlanPriceCommandHandlerTests
     public async Task UpdatePlanPrice_FoundAndMatches_UpdatesAndSaves()
     {
         // Arrange
-        var handler = new UpdatePlanPriceCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new UpdatePlanPriceCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var planId = Guid.NewGuid();
         var priceId = Guid.NewGuid();
         var command = new UpdatePlanPriceCommand(planId, priceId, "Quarterly", 250m, null);

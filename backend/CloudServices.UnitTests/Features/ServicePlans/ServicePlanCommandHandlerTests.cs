@@ -15,18 +15,20 @@ public class ServicePlanCommandHandlerTests
 {
     private readonly Mock<IServicePlanRepository> _repositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<ICacheService> _cacheMock;
 
     public ServicePlanCommandHandlerTests()
     {
         _repositoryMock = new Mock<IServicePlanRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _cacheMock = new Mock<ICacheService>();
     }
 
     [Fact]
     public async Task CreateServicePlan_ValidRequest_CreatesAndSaves()
     {
         // Arrange
-        var handler = new CreateServicePlanCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new CreateServicePlanCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var catId = Guid.NewGuid();
         var command = new CreateServicePlanCommand(catId, "Cloud VPS 1 ", "Desc", "2 cores", "4GB", "50GB SSD", "100Mbps");
 
@@ -56,7 +58,7 @@ public class ServicePlanCommandHandlerTests
     public async Task DeleteServicePlan_NotFound_ThrowsNotFoundException()
     {
         // Arrange
-        var handler = new DeleteServicePlanCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new DeleteServicePlanCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var command = new DeleteServicePlanCommand(Guid.NewGuid());
 
         _repositoryMock.Setup(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
@@ -70,7 +72,7 @@ public class ServicePlanCommandHandlerTests
     public async Task DeleteServicePlan_Found_DeletesAndSaves()
     {
         // Arrange
-        var handler = new DeleteServicePlanCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new DeleteServicePlanCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var id = Guid.NewGuid();
         var command = new DeleteServicePlanCommand(id);
         var plan = new ServicePlan { Id = id };
@@ -93,7 +95,7 @@ public class ServicePlanCommandHandlerTests
     public async Task UpdateServicePlan_NotFound_ThrowsNotFoundException()
     {
         // Arrange
-        var handler = new UpdateServicePlanCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new UpdateServicePlanCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var command = new UpdateServicePlanCommand(Guid.NewGuid(), Guid.NewGuid(), "VPS", null, null, null, null, null);
 
         _repositoryMock.Setup(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
@@ -107,7 +109,7 @@ public class ServicePlanCommandHandlerTests
     public async Task UpdateServicePlan_Found_UpdatesAndSaves()
     {
         // Arrange
-        var handler = new UpdateServicePlanCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+        var handler = new UpdateServicePlanCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _cacheMock.Object);
         var id = Guid.NewGuid();
         var catId = Guid.NewGuid();
         var command = new UpdateServicePlanCommand(id, catId, "VPS Pro ", "New Desc", "4 cores", "8GB", "100GB SSD", "1Gbps");

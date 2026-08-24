@@ -13,36 +13,50 @@ public sealed record ServiceCategoryDto(Guid Id, string Name, string Slug, strin
 
 public sealed record GetServiceCategoriesQuery : IRequest<IReadOnlyList<ServiceCategoryDto>>;
 
-public sealed class GetServiceCategoriesQueryHandler(IServiceCategoryRepository categories)
+public sealed class GetServiceCategoriesQueryHandler(IServiceCategoryRepository categories, ICacheService cache)
     : IRequestHandler<GetServiceCategoriesQuery, IReadOnlyList<ServiceCategoryDto>>
 {
     public async Task<IReadOnlyList<ServiceCategoryDto>> Handle(
         GetServiceCategoriesQuery request,
         CancellationToken cancellationToken)
     {
-        var result = await categories.GetAllAsync(cancellationToken);
-        return result.Select(ServiceCategoryDto.FromEntity).ToList();
+        return await cache.GetOrCreateAsync(
+            "categories:all",
+            async ct =>
+            {
+                var result = await categories.GetAllAsync(ct);
+                return (IReadOnlyList<ServiceCategoryDto>)result.Select(ServiceCategoryDto.FromEntity).ToList();
+            },
+            TimeSpan.FromMinutes(2),
+            cancellationToken);
     }
 }
 
 public sealed record GetServiceCategoryByIdQuery(Guid Id) : IRequest<ServiceCategoryDto?>;
 
-public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryRepository categories)
+public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryRepository categories, ICacheService cache)
     : IRequestHandler<GetServiceCategoryByIdQuery, ServiceCategoryDto?>
 {
     public async Task<ServiceCategoryDto?> Handle(
         GetServiceCategoryByIdQuery request,
         CancellationToken cancellationToken)
     {
-        var category = await categories.GetByIdAsync(request.Id, cancellationToken);
-        return category is null ? null : ServiceCategoryDto.FromEntity(category);
+        return await cache.GetOrCreateAsync(
+            $"categories:id_{request.Id}",
+            async ct =>
+            {
+                var category = await categories.GetByIdAsync(request.Id, ct);
+                return category is null ? null : ServiceCategoryDto.FromEntity(category);
+            },
+            TimeSpan.FromMinutes(2),
+            cancellationToken);
     }
 }
 
 public sealed record CreateServiceCategoryCommand(string Name, string Slug, string? Description)
     : IRequest<Guid>;
 
-public sealed class CreateServiceCategoryCommandHandler(IServiceCategoryRepository categories)
+public sealed class CreateServiceCategoryCommandHandler(IServiceCategoryRepository categories, ICacheService cache)
     : IRequestHandler<CreateServiceCategoryCommand, Guid>
 {
     public async Task<Guid> Handle(CreateServiceCategoryCommand request, CancellationToken cancellationToken)
@@ -56,6 +70,10 @@ public sealed class CreateServiceCategoryCommandHandler(IServiceCategoryReposito
 
         await categories.AddAsync(category, cancellationToken);
         await categories.SaveChangesAsync(cancellationToken);
+
+        cache.RemoveByPrefix("categories");
+        cache.RemoveByPrefix("plans");
+
         return category.Id;
     }
 }
@@ -78,7 +96,7 @@ public sealed class CreateServiceCategoryCommandValidator : AbstractValidator<Cr
 public sealed record UpdateServiceCategoryCommand(Guid Id, string Name, string Slug, string? Description)
     : IRequest<bool>;
 
-public sealed class UpdateServiceCategoryCommandHandler(IServiceCategoryRepository categories)
+public sealed class UpdateServiceCategoryCommandHandler(IServiceCategoryRepository categories, ICacheService cache)
     : IRequestHandler<UpdateServiceCategoryCommand, bool>
 {
     public async Task<bool> Handle(UpdateServiceCategoryCommand request, CancellationToken cancellationToken)
@@ -94,6 +112,10 @@ public sealed class UpdateServiceCategoryCommandHandler(IServiceCategoryReposito
         category.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
 
         await categories.SaveChangesAsync(cancellationToken);
+
+        cache.RemoveByPrefix("categories");
+        cache.RemoveByPrefix("plans");
+
         return true;
     }
 }
@@ -118,7 +140,7 @@ public sealed class UpdateServiceCategoryCommandValidator : AbstractValidator<Up
 
 public sealed record DeleteServiceCategoryCommand(Guid Id) : IRequest<bool>;
 
-public sealed class DeleteServiceCategoryCommandHandler(IServiceCategoryRepository categories)
+public sealed class DeleteServiceCategoryCommandHandler(IServiceCategoryRepository categories, ICacheService cache)
     : IRequestHandler<DeleteServiceCategoryCommand, bool>
 {
     public async Task<bool> Handle(DeleteServiceCategoryCommand request, CancellationToken cancellationToken)
@@ -131,6 +153,10 @@ public sealed class DeleteServiceCategoryCommandHandler(IServiceCategoryReposito
 
         categories.Remove(category);
         await categories.SaveChangesAsync(cancellationToken);
+
+        cache.RemoveByPrefix("categories");
+        cache.RemoveByPrefix("plans");
+
         return true;
     }
 }
