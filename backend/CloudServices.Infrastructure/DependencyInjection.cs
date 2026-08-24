@@ -60,9 +60,10 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
-        // Đăng ký QR Code Generator & Excel Exporter
+        // Đăng ký QR Code Generator & Excel Exporter & Cache Service
         services.AddSingleton<IQrCodeGenerator, QrCodeGenerator>();
         services.AddTransient<IExcelExporter, ExcelExporter>();
+        services.AddSingleton<ICacheService, MemoryCacheService>();
 
         // Đăng ký PayOS Payment Gateway
         services.AddScoped<IPaymentGateway, PayOSPaymentGateway>();

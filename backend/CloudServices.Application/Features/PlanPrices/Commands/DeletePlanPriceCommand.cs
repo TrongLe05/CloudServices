@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 
@@ -10,11 +10,13 @@ public class DeletePlanPriceCommandHandler : IRequestHandler<DeletePlanPriceComm
 {
     private readonly IPlanPriceRepository _planPriceRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cache;
 
-    public DeletePlanPriceCommandHandler(IPlanPriceRepository planPriceRepository, IUnitOfWork unitOfWork)
+    public DeletePlanPriceCommandHandler(IPlanPriceRepository planPriceRepository, IUnitOfWork unitOfWork, ICacheService cache)
     {
         _planPriceRepository = planPriceRepository;
         _unitOfWork = unitOfWork;
+        _cache = cache;
     }
 
     public async Task<bool> Handle(DeletePlanPriceCommand request, CancellationToken cancellationToken)
@@ -25,6 +27,8 @@ public class DeletePlanPriceCommandHandler : IRequestHandler<DeletePlanPriceComm
 
         _planPriceRepository.Delete(planPrice);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _cache.RemoveByPrefix("plans");
 
         return true;
     }

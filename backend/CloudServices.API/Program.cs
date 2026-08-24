@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Security.Claims;
 using System.Text;
 using CloudServices.API.Middleware;
@@ -9,6 +10,7 @@ using CloudServices.Infrastructure;
 using CloudServices.Infrastructure.Data;
 using CloudServices.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Net.payOS;
@@ -129,6 +131,26 @@ try
     builder.Services.AddHttpClient<IEmailSender, ResendEmailSender>();
     builder.Services.AddMemoryCache();
 
+    // Cấu hình Nén phản hồi HTTP (Brotli + Gzip) để giảm dung lượng JSON payload và tăng tốc truyền tải
+    builder.Services.AddResponseCompression(options =>
+    {
+        options.EnableForHttps = true;
+        options.Providers.Add<BrotliCompressionProvider>();
+        options.Providers.Add<GzipCompressionProvider>();
+        options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+            new[] { "application/json", "application/javascript", "text/css", "text/plain" });
+    });
+
+    builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.Fastest;
+    });
+
+    builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.Fastest;
+    });
+
     var payOsClientId = builder.Configuration["PayOS:ClientId"]
         ?? throw new InvalidOperationException("Chưa cấu hình PayOS ClientId");
     var payOsApiKey = builder.Configuration["PayOS:ApiKey"]
@@ -142,6 +164,9 @@ try
 
     // Global Exception Handler
     app.UseExceptionHandler();
+
+    // Kích hoạt Response Compression sớm trong HTTP pipeline
+    app.UseResponseCompression();
 
     // Serilog Request Logging (đặt sớm trong pipeline để đo chính xác thời gian request)
     app.UseSerilogRequestLogging(options =>
