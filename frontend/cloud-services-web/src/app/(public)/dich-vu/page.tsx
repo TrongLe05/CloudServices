@@ -5,7 +5,11 @@ if (process.env.NODE_ENV === "development") {
 }
 
 import { Suspense } from "react";
-import { ServicesOverviewView, ServiceCategory, ServicePlan } from "@/components/services/ServicesOverviewView";
+import {
+  ServicesOverviewView,
+  ServiceCategory,
+  ServicePlan,
+} from "@/components/services/ServicesOverviewView";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function getServicesData() {
@@ -21,9 +25,13 @@ async function getServicesData() {
       }),
     ]);
 
-    const categories: ServiceCategory[] = categoriesRes.ok ? await categoriesRes.json() : [];
+    const categories: ServiceCategory[] = categoriesRes.ok
+      ? await categoriesRes.json()
+      : [];
     const plansData = plansRes.ok ? await plansRes.json() : { items: [] };
-    const rawPlans = Array.isArray(plansData) ? plansData : (plansData.items || []);
+    const rawPlans = Array.isArray(plansData)
+      ? plansData
+      : plansData.items || [];
 
     const plansWithPrices: ServicePlan[] = rawPlans.map((plan: any) => {
       const cat = categories.find((c) => c.id === plan.categoryId);
@@ -44,9 +52,6 @@ async function getServicesData() {
     return {
       categories: [],
       plans: [],
-    };
-  }
-}
     };
   }
 }
