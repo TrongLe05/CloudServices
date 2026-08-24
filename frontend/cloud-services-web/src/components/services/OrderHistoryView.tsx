@@ -130,11 +130,16 @@ export function OrderHistoryView({
       const res = await fetch("/api/payments/create-payos-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: order.id }),
+        body: JSON.stringify({
+          orderId: order.id,
+          returnUrl: `${window.location.origin}/don-hang?status=success`,
+          cancelUrl: `${window.location.origin}/don-hang?status=cancelled`,
+        }),
       });
 
       if (!res.ok) {
-        throw new Error("Không thể lấy mã thanh toán cho đơn hàng này.");
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || "Không thể lấy mã thanh toán cho đơn hàng này.");
       }
 
       const data = await res.json();
