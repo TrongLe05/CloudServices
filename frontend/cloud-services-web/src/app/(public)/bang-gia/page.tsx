@@ -122,14 +122,81 @@ export default function PricingPage() {
 
 function PricingSkeleton() {
   return (
-    <div className="min-h-screen bg-slate-50/50 py-16 px-6 max-w-7xl mx-auto space-y-8">
-      <Skeleton className="h-10 w-72 mx-auto" />
-      <Skeleton className="h-6 w-96 mx-auto" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8">
-        <Skeleton className="h-[460px] rounded-3xl" />
-        <Skeleton className="h-[460px] rounded-3xl" />
-        <Skeleton className="h-[460px] rounded-3xl" />
+    <main className="min-h-screen bg-slate-50/50 pb-24">
+      {/* 1. Header Banner Skeleton (Tối màu giống hệt giao diện thật) */}
+      <header className="relative overflow-hidden bg-slate-900 text-white pt-20 pb-24 px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl text-center space-y-4 flex flex-col items-center">
+          <Skeleton className="h-6 w-64 rounded-full bg-slate-800" />
+          <Skeleton className="h-12 w-80 md:w-[480px] rounded-xl bg-slate-800" />
+          <Skeleton className="h-4 w-full max-w-xl rounded-md bg-slate-800" />
+
+          {/* Billing Switcher Skeleton */}
+          <div className="pt-6">
+            <Skeleton className="h-12 w-72 rounded-2xl bg-slate-800" />
+          </div>
+        </div>
+      </header>
+
+      {/* 2. Main Content & Pricing Grid */}
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 -mt-8 relative z-20 space-y-12">
+        {/* Category Filter Tabs Bar */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-2.5 shadow-md flex items-center gap-2 overflow-hidden">
+          <Skeleton className="h-10 w-32 rounded-xl" />
+          <Skeleton className="h-10 w-36 rounded-xl" />
+          <Skeleton className="h-10 w-32 rounded-xl" />
+          <Skeleton className="h-10 w-40 rounded-xl" />
+        </div>
+
+        {/* Category Section Skeleton */}
+        <div className="space-y-8 pt-4">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-slate-200">
+            <div className="space-y-2">
+              <Skeleton className="h-7 w-48 rounded-lg" />
+              <Skeleton className="h-4 w-80 rounded-md" />
+            </div>
+            <Skeleton className="h-5 w-24 rounded-md" />
+          </div>
+
+          {/* Grid Plan Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-3xl border border-slate-200/90 bg-white p-8 shadow-sm flex flex-col justify-between h-[540px]"
+              >
+                {/* Header */}
+                <div className="space-y-2.5">
+                  <Skeleton className="h-5 w-24 rounded-full" />
+                  <Skeleton className="h-7 w-3/4 rounded-lg" />
+                  <Skeleton className="h-4 w-full rounded-md" />
+                </div>
+
+                {/* Price */}
+                <div className="py-4 border-y border-slate-100 my-4 space-y-2">
+                  <Skeleton className="h-10 w-40 rounded-lg" />
+                  <Skeleton className="h-3.5 w-28 rounded-xs" />
+                </div>
+
+                {/* Specs */}
+                <div className="space-y-3.5 flex-1">
+                  {Array.from({ length: 4 }).map((_, j) => (
+                    <div key={j} className="flex items-center gap-3">
+                      <Skeleton className="size-4 rounded-full shrink-0" />
+                      <Skeleton className="h-4 w-full max-w-[180px] rounded-md" />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-6 border-t border-slate-100">
+                  <Skeleton className="h-11 flex-1 rounded-xl" />
+                  <Skeleton className="size-11 rounded-xl shrink-0" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

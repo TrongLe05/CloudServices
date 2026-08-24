@@ -228,12 +228,77 @@ export default async function ServicePlanDetailPage({
 
 function PlanDetailSkeleton() {
   return (
-    <div className="min-h-screen bg-slate-50/50 py-12 px-6 max-w-7xl mx-auto space-y-8">
-      <Skeleton className="h-6 w-64" />
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <Skeleton className="lg:col-span-5 h-[480px] rounded-3xl" />
-        <Skeleton className="lg:col-span-7 h-[480px] rounded-3xl" />
+    <main className="min-h-screen bg-slate-50/50 pb-24">
+      {/* 1. Breadcrumbs Header */}
+      <header className="border-b border-slate-200 bg-white py-4 px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <Skeleton className="h-4 w-72 rounded-md" />
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 pt-8 space-y-12">
+        {/* 2. Main E-Commerce Product Box (Two Columns) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Visual Showcase & Specs (5 cols) */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="rounded-3xl bg-slate-900 border border-slate-800 p-8 text-white space-y-8">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-6 w-32 rounded-full bg-slate-800" />
+                <Skeleton className="h-6 w-28 rounded-md bg-slate-800" />
+              </div>
+
+              {/* QR Code Container */}
+              <div className="flex flex-col items-center justify-center py-4">
+                <Skeleton className="size-48 rounded-2xl bg-slate-800" />
+                <Skeleton className="h-3.5 w-40 rounded-xs bg-slate-800 mt-3" />
+              </div>
+
+              {/* Trust Badges */}
+              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-800">
+                <Skeleton className="h-4 w-28 rounded-md bg-slate-800" />
+                <Skeleton className="h-4 w-28 rounded-md bg-slate-800" />
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Pricing & Actions (7 cols) */}
+          <div className="lg:col-span-7">
+            <div className="rounded-3xl border border-slate-200/90 bg-white p-8 shadow-sm space-y-6">
+              <div className="space-y-2 pb-4 border-b border-slate-100">
+                <Skeleton className="h-4 w-32 rounded-xs" />
+                <Skeleton className="h-8 w-3/4 rounded-lg" />
+                <Skeleton className="h-4 w-full rounded-md" />
+              </div>
+
+              {/* Price and Cycle Selector */}
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-52 rounded-lg" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-9 w-28 rounded-xl" />
+                  <Skeleton className="h-9 w-28 rounded-xl" />
+                  <Skeleton className="h-9 w-28 rounded-xl" />
+                </div>
+              </div>
+
+              {/* Features List */}
+              <div className="space-y-3 pt-4 border-t border-slate-100">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="size-4 rounded-full shrink-0" />
+                    <Skeleton className="h-4 w-full max-w-[280px] rounded-md" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 pt-6 border-t border-slate-100">
+                <Skeleton className="h-12 flex-1 rounded-xl" />
+                <Skeleton className="h-12 w-36 rounded-xl" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

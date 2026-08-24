@@ -84,27 +84,56 @@ async function LatestNewsSection() {
   }
 }
 
-// --- Skeleton UI Components ---
+// --- Skeleton UI Components (Thiết kế pixel-perfect khớp 100% với component thật) ---
 function PromotionsSkeleton() {
   return (
-    <section className="w-full py-24 md:py-32 bg-slate-50 border-b border-slate-100">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col gap-12 text-center items-center">
-        <div className="flex flex-col items-center gap-3 max-w-md w-full">
-          <Skeleton className="h-6 w-56 rounded-full" />
-          <Skeleton className="h-9 w-72 md:w-96 rounded-xl" />
-          <Skeleton className="h-4 w-64 rounded-md" />
+    <section className="w-full py-24 md:py-32 bg-slate-50 border-b border-slate-100 relative overflow-hidden">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col gap-16">
+        {/* Header Skeleton */}
+        <div className="flex flex-col items-center gap-4 text-center max-w-3xl mx-auto w-full">
+          <Skeleton className="h-6 w-64 rounded-full" />
+          <Skeleton className="h-10 w-80 md:w-[420px] rounded-xl" />
+          <Skeleton className="h-4 w-full max-w-md rounded-md" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+
+        {/* 3 Promotions Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full items-stretch">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-6 bg-white rounded-2xl border border-slate-200 space-y-4 shadow-sm">
-              <div className="flex justify-between items-center">
-                <Skeleton className="size-10 rounded-xl" />
-                <Skeleton className="h-5 w-24 rounded-full" />
+            <div
+              key={i}
+              className="border border-slate-200 rounded-2xl bg-white shadow-sm h-[360px] relative overflow-hidden flex flex-col justify-between"
+            >
+              {/* Top indicator stripe */}
+              <div className="h-1.5 w-full bg-slate-200" />
+
+              <div className="p-6 flex-1 flex flex-col justify-between">
+                {/* Icon and Expiry Badge */}
+                <div className="flex justify-between items-start">
+                  <Skeleton className="size-11 rounded-xl" />
+                  <Skeleton className="h-6 w-28 rounded-full" />
+                </div>
+
+                {/* Title and Description */}
+                <div className="space-y-2.5 my-4">
+                  <Skeleton className="h-6 w-4/5 rounded-md" />
+                  <Skeleton className="h-4 w-full rounded-md" />
+                  <Skeleton className="h-4 w-3/4 rounded-md" />
+                </div>
+
+                {/* Promo Code Box */}
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3 w-16 rounded-xs" />
+                    <Skeleton className="h-5 w-24 rounded-md" />
+                  </div>
+                  <Skeleton className="size-8 rounded-lg" />
+                </div>
               </div>
-              <Skeleton className="h-6 w-3/4 rounded-md" />
-              <Skeleton className="h-4 w-full rounded-md" />
-              <Skeleton className="h-12 w-full rounded-xl" />
-              <Skeleton className="h-10 w-full rounded-xl" />
+
+              {/* Footer Action */}
+              <div className="p-6 pt-0 border-t border-slate-100">
+                <Skeleton className="h-10 w-full rounded-xl mt-4" />
+              </div>
             </div>
           ))}
         </div>
@@ -116,23 +145,50 @@ function PromotionsSkeleton() {
 function FeaturedPlansSkeleton() {
   return (
     <section className="w-full py-24 md:py-32 border-b border-slate-200/80 bg-slate-50">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col gap-12 text-center items-center">
-        <div className="flex flex-col items-center gap-3 max-w-md w-full">
-          <Skeleton className="h-6 w-48 rounded-full" />
-          <Skeleton className="h-9 w-80 md:w-96 rounded-xl" />
-          <Skeleton className="h-4 w-72 rounded-md" />
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col gap-16 items-center">
+        {/* Header Skeleton */}
+        <div className="flex flex-col items-center gap-4 text-center max-w-2xl w-full">
+          <Skeleton className="h-6 w-60 rounded-full" />
+          <Skeleton className="h-10 w-80 md:w-[460px] rounded-xl" />
+          <Skeleton className="h-4 w-full max-w-lg rounded-md" />
         </div>
+
+        {/* 3 Featured Plan Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-8 bg-white rounded-3xl border border-slate-200 space-y-6 shadow-sm">
-              <Skeleton className="h-7 w-1/2 rounded-md" />
-              <Skeleton className="h-10 w-3/4 rounded-xl" />
-              <div className="space-y-3 pt-4 border-t border-slate-100">
+            <div
+              key={i}
+              className="border border-slate-200/80 rounded-3xl bg-white shadow-sm p-8 flex flex-col justify-between h-[520px]"
+            >
+              {/* Header: Category Badge & Title & Description */}
+              <div className="space-y-3">
+                <Skeleton className="h-5 w-28 rounded-full" />
+                <Skeleton className="h-7 w-3/4 rounded-lg" />
                 <Skeleton className="h-4 w-full rounded-md" />
-                <Skeleton className="h-4 w-5/6 rounded-md" />
-                <Skeleton className="h-4 w-4/6 rounded-md" />
+                <Skeleton className="h-4 w-2/3 rounded-md" />
               </div>
-              <Skeleton className="h-11 w-full rounded-2xl" />
+
+              {/* Price Tag */}
+              <div className="py-4 border-y border-slate-100 my-4 space-y-2">
+                <Skeleton className="h-9 w-44 rounded-lg" />
+                <Skeleton className="h-3 w-32 rounded-xs" />
+              </div>
+
+              {/* Specs List (CPU, RAM, SSD, Bandwidth) */}
+              <div className="space-y-3.5 flex-1">
+                {Array.from({ length: 4 }).map((_, j) => (
+                  <div key={j} className="flex items-center gap-3">
+                    <Skeleton className="size-4 rounded-full shrink-0" />
+                    <Skeleton className="h-4 w-full max-w-[200px] rounded-md" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Buttons: Order CTA + QR */}
+              <div className="flex items-center gap-2 pt-6 border-t border-slate-100">
+                <Skeleton className="h-11 flex-1 rounded-xl" />
+                <Skeleton className="size-11 rounded-xl shrink-0" />
+              </div>
             </div>
           ))}
         </div>
@@ -144,21 +200,37 @@ function FeaturedPlansSkeleton() {
 function LatestNewsSkeleton() {
   return (
     <section className="w-full py-24 md:py-32 bg-white">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col gap-12">
-        <div className="flex justify-between items-end pb-6 border-b border-slate-100">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col gap-16">
+        {/* Header Skeleton */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-100">
           <div className="space-y-3">
-            <Skeleton className="h-4 w-40 rounded-md" />
-            <Skeleton className="h-8 w-72 rounded-xl" />
+            <Skeleton className="h-4 w-44 rounded-md" />
+            <Skeleton className="h-9 w-80 md:w-96 rounded-xl" />
+            <Skeleton className="h-4 w-64 rounded-md" />
           </div>
-          <Skeleton className="h-9 w-28 rounded-xl hidden md:block" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="size-10 rounded-full" />
+            <Skeleton className="size-10 rounded-full" />
+          </div>
         </div>
+
+        {/* 3 News Article Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-5 bg-white rounded-2xl border border-slate-200 space-y-4">
-              <Skeleton className="aspect-video w-full rounded-xl" />
-              <Skeleton className="h-4 w-24 rounded-md" />
-              <Skeleton className="h-6 w-full rounded-md" />
-              <Skeleton className="h-4 w-5/6 rounded-md" />
+            <div key={i} className="flex flex-col justify-between space-y-4">
+              <Skeleton className="aspect-video w-full rounded-2xl" />
+              <div className="space-y-3">
+                <Skeleton className="h-5 w-24 rounded-full" />
+                <Skeleton className="h-6 w-full rounded-md" />
+                <Skeleton className="h-6 w-4/5 rounded-md" />
+                <div className="flex items-center gap-4 pt-1">
+                  <Skeleton className="h-4 w-28 rounded-md" />
+                  <Skeleton className="h-4 w-20 rounded-md" />
+                </div>
+                <Skeleton className="h-4 w-full rounded-md" />
+                <Skeleton className="h-4 w-5/6 rounded-md" />
+              </div>
+              <Skeleton className="h-5 w-28 rounded-md pt-2" />
             </div>
           ))}
         </div>

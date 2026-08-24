@@ -32,22 +32,43 @@ export default function BlogPage() {
 
 function BlogPageSkeleton() {
   return (
-    <main className="min-h-screen bg-slate-50/50 py-12 px-6 max-w-7xl mx-auto space-y-8">
-      <header className="space-y-4">
-        <Skeleton className="h-6 w-48 rounded-md" />
-        <Skeleton className="h-10 w-96 rounded-xl" />
-        <Skeleton className="h-4 w-72 rounded-md" />
+    <main className="min-h-screen bg-slate-50/50 pb-24 space-y-12">
+      {/* 1. Header Banner Skeleton */}
+      <header className="relative overflow-hidden bg-slate-900 text-white pt-20 pb-24 px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl text-center space-y-4 flex flex-col items-center">
+          <Skeleton className="h-6 w-48 rounded-full bg-slate-800" />
+          <Skeleton className="h-12 w-80 md:w-[480px] rounded-xl bg-slate-800" />
+          <Skeleton className="h-4 w-full max-w-lg rounded-md bg-slate-800" />
+
+          {/* Search bar & Category filters */}
+          <div className="pt-6 w-full max-w-xl space-y-4">
+            <Skeleton className="h-11 w-full rounded-2xl bg-slate-800" />
+            <div className="flex justify-center gap-2 overflow-hidden pt-2">
+              <Skeleton className="h-8 w-24 rounded-full bg-slate-800" />
+              <Skeleton className="h-8 w-28 rounded-full bg-slate-800" />
+              <Skeleton className="h-8 w-24 rounded-full bg-slate-800" />
+            </div>
+          </div>
+        </div>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
-            <Skeleton className="aspect-[16/10] w-full rounded-xl" />
-            <Skeleton className="h-4 w-24 rounded-md" />
-            <Skeleton className="h-6 w-full rounded-md" />
-            <Skeleton className="h-4 w-5/6 rounded-md" />
-          </div>
-        ))}
+      {/* 2. Grid Articles Skeleton */}
+      <section className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <Skeleton className="aspect-video w-full rounded-2xl" />
+              <div className="space-y-3">
+                <Skeleton className="h-5 w-24 rounded-full" />
+                <Skeleton className="h-6 w-full rounded-md" />
+                <Skeleton className="h-6 w-4/5 rounded-md" />
+                <Skeleton className="h-4 w-32 rounded-xs" />
+                <Skeleton className="h-4 w-full rounded-md" />
+                <Skeleton className="h-4 w-5/6 rounded-md" />
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
     </main>
   );
