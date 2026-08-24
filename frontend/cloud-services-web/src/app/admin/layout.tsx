@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toast";
 import { SessionProvider } from "next-auth/react";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
@@ -84,6 +86,8 @@ const layout = ({ children }: LayoutProps<"/admin">) => {
           </SidebarProvider>
           <Toaster />
         </SessionProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
