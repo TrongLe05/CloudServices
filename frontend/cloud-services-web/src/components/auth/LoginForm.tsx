@@ -66,8 +66,8 @@ export function LoginForm() {
         type: "success",
       });
 
-      router.push(callbackUrl);
-      router.refresh();
+      // Điều hướng và đồng bộ NextAuth session tức thì trên toàn bộ Header & UI
+      window.location.href = callbackUrl;
     } catch (error: any) {
       console.error(error);
       const msg = error.message || "Tài khoản hoặc mật khẩu không chính xác";
