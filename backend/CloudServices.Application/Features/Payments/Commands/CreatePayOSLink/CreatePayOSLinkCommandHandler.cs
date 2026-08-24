@@ -3,6 +3,7 @@ using CloudServices.Application.Common.Exceptions.BadRequestException;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,8 @@ namespace CloudServices.Application.Features.Payments.Commands.CreatePayOSLink;
 public sealed class CreatePayOSLinkCommandHandler(
     IOrderRequestRepository orderRepository,
     IPaymentGateway paymentGateway,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    IConfiguration configuration
     ) : IRequestHandler<CreatePayOSLinkCommand, CreatePayOSLinkResponse>
 {
     public async Task<CreatePayOSLinkResponse> Handle(CreatePayOSLinkCommand request, CancellationToken cancellationToken)
@@ -43,6 +45,10 @@ public sealed class CreatePayOSLinkCommandHandler(
         string planName = order.PlanPrice?.Plan?.Name ?? "Gói Cloud Service";
         string description = $"DH{orderCode % 1000000}".Trim();
 
+        var frontendBase = configuration["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
+        var returnUrl = string.IsNullOrWhiteSpace(request.ReturnUrl) ? $"{frontendBase}/don-hang?status=success" : request.ReturnUrl;
+        var cancelUrl = string.IsNullOrWhiteSpace(request.CancelUrl) ? $"{frontendBase}/don-hang?status=cancelled" : request.CancelUrl;
+
         // Lưu orderCode và thời gian bắt đầu thanh toán vào đơn hàng
         order.Notes = $"PayOS:{orderCode}";
         order.LastModifiedAt = DateTime.UtcNow;
@@ -55,8 +61,8 @@ public sealed class CreatePayOSLinkCommandHandler(
             amount,
             description,
             planName,
-            request.ReturnUrl,
-            request.CancelUrl,
+            returnUrl,
+            cancelUrl,
             cancellationToken
         );
 
@@ -70,6 +76,8 @@ public sealed class CreatePayOSLinkCommandHandler(
         return new CreatePayOSLinkResponse(
             paymentResult.CheckoutUrl,
             paymentResult.OrderCode,
+            amount,
+            description,
             paymentResult.QrCode,
             paymentResult.AccountNumber,
             paymentResult.AccountName,

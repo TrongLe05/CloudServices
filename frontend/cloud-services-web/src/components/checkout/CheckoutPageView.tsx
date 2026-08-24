@@ -149,11 +149,16 @@ export function CheckoutPageView({
       const paymentRes = await fetch("/api/payments/create-payos-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId }),
+        body: JSON.stringify({
+          orderId,
+          returnUrl: `${window.location.origin}/don-hang?status=success`,
+          cancelUrl: `${window.location.origin}/don-hang?status=cancelled`,
+        }),
       });
 
       if (!paymentRes.ok) {
-        throw new Error("Không thể khởi tạo cổng thanh toán PayOS.");
+        const errJson = await paymentRes.json().catch(() => ({}));
+        throw new Error(errJson.message || "Không thể khởi tạo cổng thanh toán PayOS.");
       }
 
       const paymentData = await paymentRes.json();
