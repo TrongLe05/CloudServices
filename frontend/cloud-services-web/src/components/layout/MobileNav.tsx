@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Sheet,
   SheetContent,
@@ -75,7 +76,10 @@ export const MobileNav = ({ isLoggedIn }: MobileNavProps) => {
                   >
                     <span>{feature.title}</span>
                     <ChevronDown
-                      className={h-4 w-4 text-zinc-500 transition-transform duration-200 }
+                      className={cn(
+                        "h-4 w-4 text-zinc-500 transition-transform duration-200",
+                        isExpanded && "rotate-180"
+                      )}
                     />
                   </button>
 
