@@ -67,11 +67,20 @@ public class CustomExceptionHandler : IExceptionHandler
                 _logger.LogWarning("Xác thực không thành công: {Message}", unauthorizedException.Message);
                 httpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 problemDetails.Status = (int)HttpStatusCode.Unauthorized;
-                problemDetails.Title = "Không có quyền truy cập (Unauthorized)";
+                problemDetails.Title = "Chưa xác thực (Unauthorized)";
                 problemDetails.Detail = unauthorizedException.Message;
                 break;
 
-            // 4. Lỗi Không tìm thấy tài nguyên -> Trả về 404 Not Found
+            // 4. Lỗi Forbidden (Không đủ quyền hạn truy cập tài nguyên) -> Trả về 403 Forbidden
+            case ForbiddenAccessException forbiddenException:
+                _logger.LogWarning("Không đủ quyền truy cập: {Message}", forbiddenException.Message);
+                httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                problemDetails.Status = (int)HttpStatusCode.Forbidden;
+                problemDetails.Title = "Không có quyền truy cập (Forbidden)";
+                problemDetails.Detail = forbiddenException.Message;
+                break;
+
+            // 5. Lỗi Không tìm thấy tài nguyên -> Trả về 404 Not Found
             case NotFoundException notFoundException:
                 _logger.LogWarning("Không tìm thấy tài nguyên: {Message}", notFoundException.Message);
                 httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
@@ -80,7 +89,15 @@ public class CustomExceptionHandler : IExceptionHandler
                 problemDetails.Detail = notFoundException.Message;
                 break;
 
-            // 5. Các lỗi hệ thống không mong muốn -> Trả về 500 Internal Server Error & LogError
+            case KeyNotFoundException keyNotFoundException:
+                _logger.LogWarning("Không tìm thấy khóa tài nguyên: {Message}", keyNotFoundException.Message);
+                httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                problemDetails.Status = (int)HttpStatusCode.NotFound;
+                problemDetails.Title = "Không tìm thấy tài nguyên (Not Found)";
+                problemDetails.Detail = keyNotFoundException.Message;
+                break;
+
+            // 6. Các lỗi hệ thống không mong muốn -> Trả về 500 Internal Server Error & LogError
             default:
                 _logger.LogError(exception, "Đã xảy ra lỗi hệ thống nghiêm trọng: {Message}", exception.Message);
                 httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

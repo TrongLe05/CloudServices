@@ -121,6 +121,6 @@ public class UsersController : ApiControllerBase
     public async Task<IActionResult> DeleteUser(Guid id, CancellationToken cancellationToken)
     {
         await Mediator.Send(new DeleteUserCommand(id), cancellationToken);
-        return Ok(new { message = "Đã xóa người dùng thành công." });
+        return NoContent();
     }
 }
