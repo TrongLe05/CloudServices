@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import * as jose from "jose";
+import { getBackendApiUrl } from "@/lib/api-url";
 
 // Bỏ qua lỗi chứng chỉ SSL tự ký trên môi trường local development
 if (process.env.NODE_ENV === "development") {
@@ -20,8 +21,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       authorize: async (credentials) => {
         try {
+          const apiUrl = getBackendApiUrl();
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+            `${apiUrl}/api/auth/login`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -171,7 +173,7 @@ async function refreshAccessToken(token: any) {
 
   const refreshPromise = (async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+      const apiUrl = getBackendApiUrl();
       const res = await fetch(
         `${apiUrl}/api/auth/refresh-token`,
         {
