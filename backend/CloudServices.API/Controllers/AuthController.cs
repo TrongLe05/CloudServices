@@ -20,6 +20,7 @@ namespace CloudServices.API.Controllers;
 
 public sealed class AuthController(
     IEmailSender _emailSender,
+    IEmailTemplateService _emailTemplateService,
     IMemoryCache _memoryCache,
     IUserRepository _userRepository,
     IConfiguration _configuration) : ApiControllerBase
@@ -132,68 +133,8 @@ public sealed class AuthController(
         _memoryCache.Set(cacheKey, otpCode, cacheOptions);
 
         // 4. Gửi email thông qua Interface _emailSender
-        var emailSubject = "Mã xác thực OTP đặt lại mật khẩu";
-        var emailContent = $@"
-                <!DOCTYPE html>
-                <html lang=""vi"">
-                <head>
-                    <meta charset=""UTF-8"">
-                    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-                    <title>Mã xác thực OTP đặt lại mật khẩu</title>
-                </head>
-                <body style=""margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; color: #333333;"">
-                    <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""background-color: #f1f5f9; padding: 40px 20px;"">
-                        <tr>
-                            <td align=""center"">
-                                <!-- Main Card -->
-                                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""max-width: 500px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden;"">
-                    
-                                    <!-- Header -->
-                                    <tr>
-                                        <td style=""background-color: #2563eb; padding: 24px; text-align: center;"">
-                                            <h2 style=""color: #ffffff; margin: 0; font-size: 22px; font-weight: 600;"">Xác Thực Tài Khoản</h2>
-                                        </td>
-                                    </tr>
-                    
-                                    <!-- Body Content -->
-                                    <tr>
-                                        <td style=""padding: 32px 24px;"">
-                                            <p style=""margin: 0 0 16px 0; font-size: 16px; color: #334155;"">Chào bạn,</p>
-                                            <p style=""margin: 0 0 24px 0; font-size: 16px; color: #475569; line-height: 1.6;"">
-                                                Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Vui lòng sử dụng mã xác thực (OTP) dưới đây để tiếp tục quá trình:
-                                            </p>
-                            
-                                            <!-- OTP Box -->
-                                            <div style=""text-align: center; margin: 32px 0;"">
-                                                <span style=""display: inline-block; padding: 16px 32px; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #1d4ed8; font-family: 'Courier New', Courier, monospace;"">
-                                                    {otpCode}
-                                                </span>
-                                            </div>
-                            
-                                            <p style=""margin: 0 0 16px 0; font-size: 14px; color: #64748b; line-height: 1.5;"">
-                                                Mã này có hiệu lực trong vòng <strong>5 phút</strong>. Tuyệt đối không chia sẻ mã này cho bất kỳ ai để đảm bảo an toàn cho tài khoản.
-                                            </p>
-                                            <p style=""margin: 0; font-size: 14px; color: #64748b; line-height: 1.5;"">
-                                                Nếu bạn không yêu cầu đặt lại mật khẩu, xin vui lòng bỏ qua email này.
-                                            </p>
-                                        </td>
-                                    </tr>
-                    
-                                    <!-- Footer -->
-                                    <tr>
-                                        <td style=""background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;"">
-                                            <p style=""margin: 0; font-size: 12px; color: #94a3b8;"">
-                                                &copy; 2026 Cloud Services. Mọi quyền được bảo lưu.
-                                            </p>
-                                        </td>
-                                    </tr>
-                    
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                </body>
-                </html>";
+        var emailSubject = "[CloudServices] Mã xác thực OTP đặt lại mật khẩu";
+        var emailContent = _emailTemplateService.GenerateOtpEmail(otpCode);
 
         try
         {

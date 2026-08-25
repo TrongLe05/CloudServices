@@ -25,6 +25,8 @@ public sealed class OrderRequestRepository(ApplicationDbContext context) : IOrde
     {
         var tag = $"PayOS:{orderCode}";
         return context.OrderRequests
+            .Include(x => x.PlanPrice)
+                .ThenInclude(x => x.Plan)
             .FirstOrDefaultAsync(x => x.Notes != null && x.Notes.Contains(tag), cancellationToken);
     }
 
