@@ -7,10 +7,11 @@ if (process.env.NODE_ENV === "development") {
 import { Suspense } from "react";
 import { NewsCRUD, NewsItem } from "@/components/admin/NewsCRUD";
 import { PanelSkeleton } from "@/components/admin/PanelSkeleton";
+import { getBackendApiUrl } from "@/lib/api-url";
 
 export async function getNews(): Promise<NewsItem[]> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const apiUrl = getBackendApiUrl();
     const res = await fetch(`${apiUrl}/api/news?pageSize=100`, {
       cache: "no-store",
     });

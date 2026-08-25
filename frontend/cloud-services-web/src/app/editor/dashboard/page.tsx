@@ -8,12 +8,13 @@ import { Suspense } from "react";
 import { getNews } from "@/app/admin/news/page";
 import { EditorWorkspaceView } from "@/components/admin/dashboard/EditorWorkspaceView";
 import { getAuthAccessToken } from "@/lib/auth-token";
+import { getBackendApiUrl } from "@/lib/api-url";
 import { EditorWorkspaceSkeleton } from "@/components/admin/AdminSkeletons";
 
 async function getOrderRequests(): Promise<any[]> {
   try {
     const token = await getAuthAccessToken();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/order-requests?pageSize=100`, {
       headers: {
@@ -33,7 +34,7 @@ async function getOrderRequests(): Promise<any[]> {
 async function getAffiliates(): Promise<any[]> {
   try {
     const token = await getAuthAccessToken();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/affiliates?pageSize=100`, {
       headers: {
