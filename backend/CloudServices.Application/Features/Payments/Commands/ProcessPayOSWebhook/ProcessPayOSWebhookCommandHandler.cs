@@ -2,6 +2,8 @@ using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Domain.Enums;
 using MediatR;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace CloudServices.Application.Features.Payments.Commands.ProcessPayOSWebhook;
 
@@ -10,15 +12,27 @@ public class ProcessPayOSWebhookCommandHandler : IRequestHandler<ProcessPayOSWeb
     private readonly IPaymentGateway _paymentGateway;
     private readonly IOrderRequestRepository _orderRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailSender _emailSender;
+    private readonly IEmailTemplateService _emailTemplateService;
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<ProcessPayOSWebhookCommandHandler> _logger;
 
     public ProcessPayOSWebhookCommandHandler(
         IPaymentGateway paymentGateway,
         IOrderRequestRepository orderRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IEmailSender emailSender,
+        IEmailTemplateService emailTemplateService,
+        IConfiguration configuration,
+        ILogger<ProcessPayOSWebhookCommandHandler> logger)
     {
         _paymentGateway = paymentGateway;
         _orderRepository = orderRepository;
         _unitOfWork = unitOfWork;
+        _emailSender = emailSender;
+        _emailTemplateService = emailTemplateService;
+        _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task<bool> Handle(ProcessPayOSWebhookCommand request, CancellationToken cancellationToken)
@@ -41,6 +55,32 @@ public class ProcessPayOSWebhookCommandHandler : IRequestHandler<ProcessPayOSWeb
                 matchedOrder.Status = OrderStatus.Processing;
                 _orderRepository.Update(matchedOrder);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                // 3. Gửi email xác nhận thanh toán & triển khai dịch vụ
+                try
+                {
+                    var planName = matchedOrder.PlanPrice?.Plan?.Name ?? "Gói dịch vụ Cloud";
+                    var billingCycle = matchedOrder.PlanPrice?.BillingCycle ?? "Hàng tháng";
+                    var amount = matchedOrder.PlanPrice?.Price ?? (decimal)verification.Amount;
+                    var frontendUrl = _configuration["AppSettings:FrontendUrl"] ?? "https://cloudservices.vn";
+
+                    var emailSubject = $"[CloudServices] Xác nhận thanh toán thành công đơn hàng #{verification.OrderCode}";
+                    var emailHtml = _emailTemplateService.GeneratePaymentSuccessEmail(
+                        matchedOrder.CustomerName,
+                        verification.OrderCode.ToString(),
+                        planName,
+                        billingCycle,
+                        amount,
+                        matchedOrder.Notes,
+                        frontendUrl);
+
+                    await _emailSender.SendEmailAsync(matchedOrder.CustomerEmail, emailSubject, emailHtml);
+                    _logger.LogInformation("Đã gửi email xác nhận thanh toán cho khách hàng {Email}, đơn hàng #{OrderCode}", matchedOrder.CustomerEmail, verification.OrderCode);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Lỗi khi gửi email xác nhận thanh toán cho đơn hàng #{OrderCode}", verification.OrderCode);
+                }
             }
         }
 

@@ -25,6 +25,10 @@ public class PaymentsController : ApiControllerBase
         [FromServices] IPaymentGateway paymentGateway,
         [FromServices] IOrderRequestRepository orderRepository,
         [FromServices] IUnitOfWork unitOfWork,
+        [FromServices] IEmailSender emailSender,
+        [FromServices] IEmailTemplateService emailTemplateService,
+        [FromServices] IConfiguration configuration,
+        [FromServices] ILogger<PaymentsController> logger,
         CancellationToken cancellationToken)
     {
         try
@@ -41,6 +45,32 @@ public class PaymentsController : ApiControllerBase
                     matchedOrder.Status = Domain.Enums.OrderStatus.Processing;
                     orderRepository.Update(matchedOrder);
                     await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    // Gửi email xác nhận thanh toán & triển khai dịch vụ
+                    try
+                    {
+                        var planName = matchedOrder.PlanPrice?.Plan?.Name ?? "Gói dịch vụ Cloud";
+                        var billingCycle = matchedOrder.PlanPrice?.BillingCycle ?? "Hàng tháng";
+                        var amount = matchedOrder.PlanPrice?.Price ?? (decimal)statusDto.Amount;
+                        var frontendUrl = configuration["AppSettings:FrontendUrl"] ?? "https://cloudservices.vn";
+
+                        var emailSubject = $"[CloudServices] Xác nhận thanh toán thành công đơn hàng #{orderCode}";
+                        var emailHtml = emailTemplateService.GeneratePaymentSuccessEmail(
+                            matchedOrder.CustomerName,
+                            orderCode.ToString(),
+                            planName,
+                            billingCycle,
+                            amount,
+                            matchedOrder.Notes,
+                            frontendUrl);
+
+                        await emailSender.SendEmailAsync(matchedOrder.CustomerEmail, emailSubject, emailHtml);
+                        logger.LogInformation("Đã gửi email xác nhận thanh toán cho khách hàng {Email}, đơn hàng #{OrderCode}", matchedOrder.CustomerEmail, orderCode);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Lỗi khi gửi email xác nhận thanh toán cho đơn hàng #{OrderCode}", orderCode);
+                    }
                 }
                 // Nếu chưa thanh toán và đã quá 5 phút -> Chuyển sang Rejected (Từ chối)
                 else if (!statusDto.IsPaid && matchedOrder.Status == Domain.Enums.OrderStatus.New)
