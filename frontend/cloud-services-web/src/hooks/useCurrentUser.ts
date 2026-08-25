@@ -67,8 +67,13 @@ export function useCurrentUser() {
   }, [session]);
 
   React.useEffect(() => {
+    if ((session as any)?.error === "RefreshAccessTokenError") {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     fetchUser();
-  }, [fetchUser]);
+  }, [fetchUser, session]);
 
   const roleLower = String(user?.role || (session?.user as any)?.role || "").toLowerCase();
   const isAdmin = roleLower === "admin";

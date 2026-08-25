@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
+import { getBackendApiUrl } from "@/lib/api-url";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/payments/create-payos-link`, {
       method: "POST",

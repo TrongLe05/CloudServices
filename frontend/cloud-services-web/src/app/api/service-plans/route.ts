@@ -1,3 +1,4 @@
+import { getBackendApiUrl } from "@/lib/api-url";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
 
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const pageSize = searchParams.get("pageSize") || "100";
 
     const query = new URLSearchParams({ categoryId, search, sort, page, pageSize }).toString();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/service-plans?${query}`, {
       cache: "no-store",
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
   try {
     const accessToken = await getAuthAccessToken();
     const body = await request.json();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/service-plans`, {
       method: "POST",

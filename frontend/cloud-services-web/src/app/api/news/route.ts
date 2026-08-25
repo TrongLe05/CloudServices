@@ -1,3 +1,4 @@
+import { getBackendApiUrl } from "@/lib/api-url";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
 
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
     params.append("page", page);
     params.append("pageSize", pageSize);
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news?${params.toString()}`, {
+    const res = await fetch(`${getBackendApiUrl()}/api/news?${params.toString()}`, {
       cache: "no-store",
     });
 
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
     const accessToken = await getAuthAccessToken();
     const payload = await req.json();
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`, {
+    const res = await fetch(`${getBackendApiUrl()}/api/news`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -12,6 +12,14 @@ if (process.env.NODE_ENV === "development") {
 const inFlightRefreshes = new Map<string, Promise<any>>();
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: {
+    strategy: "jwt",
+    maxAge: 7 * 24 * 60 * 60, // 7 ngày (đồng bộ với thời hạn Refresh Token ở backend)
+    updateAge: 60 * 60,        // Cập nhật session cookie mỗi 1 giờ
+  },
+  jwt: {
+    maxAge: 7 * 24 * 60 * 60,
+  },
   providers: [
     Credentials({
       name: "Credentials",
@@ -43,7 +51,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const data = await res.json();
           const setCookie = res.headers.get("set-cookie") || "";
           const match = setCookie.match(/refreshToken=([^;]+)/);
-          const refreshToken = match ? match[1] : data.refreshToken || null;
+          const refreshToken = match ? match[1] : data.refreshToken || data.RefreshToken || null;
 
           const rawAccessToken = data.accessToken || data.AccessToken;
           const decoded: any = jose.decodeJwt(rawAccessToken);
@@ -97,7 +105,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       // 1. Lần đầu đăng nhập: Lưu thông tin từ authorize vào token
       if (user) {
         return {
@@ -107,14 +115,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           accessTokenExpires: (user as any).accessTokenExpires,
           role: (user as any).role,
           email: (user as any).email,
-          username: user.name,
+          username: user.name || (user as any).username || token.username,
           error: undefined,
         };
       }
 
       // 2. Token vẫn còn hạn (trừ hao 2 phút để an toàn) -> Trả về token hiện tại
       const expiresAt = Number(token.accessTokenExpires || 0);
-      if (expiresAt > 0 && Date.now() < expiresAt - 2 * 60 * 1000) {
+      if (expiresAt > 0 && Date.now() < expiresAt - 2 * 60 * 1000 && token.accessToken) {
         return token;
       }
 
@@ -122,7 +130,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return await refreshAccessToken(token);
     },
     async session({ session, token }) {
-      if (token.error === "RefreshAccessTokenError" || !token.accessToken) {
+      if (token.error === "RefreshAccessTokenError" || (!token.accessToken && !token.refreshToken)) {
         // @ts-ignore
         session.error = "RefreshAccessTokenError";
         // @ts-ignore
@@ -140,7 +148,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         name: (token.username || session.user?.name) as string,
         email: (token.email || session.user?.email) as string,
         // @ts-ignore
-        role: token.role as string,
+        role: (token.role || "User") as string,
       };
       // @ts-ignore
       session.accessToken = token.accessToken;
@@ -149,7 +157,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // @ts-ignore
       session.accessTokenExpires = token.accessTokenExpires;
       // @ts-ignore
-      session.error = undefined;
+      session.error = token.error;
       return session;
     },
   },
@@ -162,6 +170,7 @@ async function refreshAccessToken(token: any) {
   if (!token.refreshToken) {
     return {
       ...token,
+      accessToken: undefined,
       error: "RefreshAccessTokenError",
     };
   }
@@ -183,7 +192,7 @@ async function refreshAccessToken(token: any) {
             Cookie: `refreshToken=${token.refreshToken}`,
           },
           body: JSON.stringify({
-            expiredAccessToken: token.accessToken,
+            expiredAccessToken: token.accessToken || "",
             refreshToken: token.refreshToken,
           }),
         },
@@ -249,8 +258,17 @@ async function refreshAccessToken(token: any) {
           ? "Editor"
           : String(roleClaim);
 
+      const username =
+        refreshedTokens.username ||
+        refreshedTokens.Username ||
+        decoded?.unique_name ||
+        decoded?.name ||
+        token.username ||
+        token.name;
+
       return {
         ...token,
+        username: username,
         accessToken: newAccessToken,
         accessTokenExpires: exp,
         refreshToken: newRefreshToken,

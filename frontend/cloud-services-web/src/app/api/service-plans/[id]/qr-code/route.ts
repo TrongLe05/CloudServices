@@ -1,3 +1,4 @@
+import { getBackendApiUrl } from "@/lib/api-url";
 import { NextRequest, NextResponse } from "next/server";
 
 if (process.env.NODE_ENV === "development") {
@@ -7,7 +8,7 @@ if (process.env.NODE_ENV === "development") {
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/service-plans/${id}/qr-code`, {
       cache: "no-store",

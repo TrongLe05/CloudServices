@@ -1,3 +1,4 @@
+import { getBackendApiUrl } from "@/lib/api-url";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
 
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
       pageSize,
     });
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
     const res = await fetch(`${apiUrl}/api/affiliates?${query.toString()}`, {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/affiliates`, {
       method: "POST",

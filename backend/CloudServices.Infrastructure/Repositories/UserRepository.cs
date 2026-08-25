@@ -51,6 +51,19 @@ public sealed class UserRepository(IApplicationDbContext context) : IUserReposit
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
+    public async Task<AppUser?> GetByRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken)) return null;
+
+        return await context.AppUsers
+            .IgnoreQueryFilters()
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => 
+                (u.RefreshToken == refreshToken && u.RefreshTokenExpiryTime > DateTime.UtcNow) ||
+                (!string.IsNullOrEmpty(u.PreviousRefreshToken) && u.PreviousRefreshToken == refreshToken && u.PreviousRefreshTokenExpiryTime > DateTime.UtcNow), 
+                cancellationToken);
+    }
+
     public async Task<AppUser?> GetByEmailAsync(string email, CancellationToken cancellationToken)
     {
         return await context.AppUsers

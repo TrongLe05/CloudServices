@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
+import { getBackendApiUrl } from "@/lib/api-url";
 
 if (process.env.NODE_ENV === "development") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
       ...(customerEmail ? { customerEmail } : {}),
     });
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
     const res = await fetch(`${apiUrl}/api/order-requests?${query.toString()}`, {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/order-requests`, {
       method: "POST",
