@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
@@ -29,9 +30,10 @@ import {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession();
+  const { isEditor: isEditorUser } = useCurrentUser();
   const pathname = usePathname();
-  const userRole = (session?.user as any)?.role || "Admin";
-  const isEditor = pathname?.startsWith("/editor") || String(userRole).toLowerCase() === "editor";
+  const isEditor =
+    pathname?.startsWith("/editor") || isEditorUser;
 
   // Dynamic teams title based on role
   const teams = [
@@ -177,7 +179,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={visibleNav} />
-        <NavProjects projects={[]} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

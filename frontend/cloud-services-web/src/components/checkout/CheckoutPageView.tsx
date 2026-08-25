@@ -30,6 +30,8 @@ import { CheckoutPlanSelector } from "./CheckoutPlanSelector";
 import { CheckoutCustomerForm } from "./CheckoutCustomerForm";
 import { CheckoutOrderSummary } from "./CheckoutOrderSummary";
 import { CheckoutPaymentSection } from "./CheckoutPaymentSection";
+import { createOrderRequest } from "@/services/order.services";
+import { createPayosPaymentLink } from "@/services/payment.services";
 
 const checkoutSchema = z.object({
   fullName: z.string().min(2, "Vui lòng nhập họ và tên của bạn"),
@@ -143,11 +145,7 @@ export function CheckoutPageView({
         notes: formData.notes || null,
       };
 
-      const orderRes = await fetch("/api/order-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload),
-      });
+      const orderRes = await createOrderRequest(orderPayload);
 
       if (!orderRes.ok) {
         const errJson = await orderRes.json().catch(() => ({}));
@@ -168,14 +166,10 @@ export function CheckoutPageView({
       const orderId = orderData.id || orderData.Id;
 
       // 3. Tạo link & mã QR VietQR PayOS
-      const paymentRes = await fetch("/api/payments/create-payos-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId,
-          returnUrl: `${window.location.origin}/don-hang?status=success`,
-          cancelUrl: `${window.location.origin}/don-hang?status=cancelled`,
-        }),
+      const paymentRes = await createPayosPaymentLink({
+        orderId,
+        returnUrl: `${window.location.origin}/don-hang?status=success`,
+        cancelUrl: `${window.location.origin}/don-hang?status=cancelled`,
       });
 
       if (!paymentRes.ok) {

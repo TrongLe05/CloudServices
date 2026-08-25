@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toast";
 import { useSession } from "next-auth/react";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
   Camera,
   KeyRound,
@@ -43,23 +44,27 @@ export function ProfileSettingsSheet({
   onAvatarChange,
 }: ProfileSettingsSheetProps) {
   const { data: session } = useSession();
+  const { user: profileUser, isEditor, isAdmin, role } = useCurrentUser();
 
   const [activeTab, setActiveTab] = React.useState<"info" | "password">("info");
-  const [fullName, setFullName] = React.useState(session?.user?.name || "Admin");
+  const [fullName, setFullName] = React.useState(profileUser?.fullName || session?.user?.name || "Tài khoản");
   const [email, setEmail] = React.useState(
-    session?.user?.email || (session?.user?.name ? `${session.user.name}@cloudservices.vn` : "admin@cloudservices.vn")
+    profileUser?.email || session?.user?.email || "user@cloudservices.vn"
   );
-  const [currentAvatar, setCurrentAvatar] = React.useState(avatarUrl || "");
+  const [currentAvatar, setCurrentAvatar] = React.useState(avatarUrl || profileUser?.avatarUrl || "");
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
-    if (session?.user?.name) {
-      setFullName(session.user.name);
+    if (profileUser?.fullName || session?.user?.name) {
+      setFullName(profileUser?.fullName || session?.user?.name || "Tài khoản");
     }
-    if (session?.user?.email) {
-      setEmail(session.user.email);
+    if (profileUser?.email || session?.user?.email) {
+      setEmail(profileUser?.email || session?.user?.email || "");
     }
-  }, [session]);
+    if (avatarUrl || profileUser?.avatarUrl) {
+      setCurrentAvatar(avatarUrl || profileUser?.avatarUrl || "");
+    }
+  }, [profileUser, session, avatarUrl]);
 
   // Password fields
   const [currentPassword, setCurrentPassword] = React.useState("");
@@ -286,10 +291,20 @@ export function ProfileSettingsSheet({
             <div className="space-y-1.5">
               <Label>Vai trò hệ thống</Label>
               <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/60 border border-border/60 text-xs">
-                <Shield className="size-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="font-semibold text-foreground">Quản trị viên cấp cao (Admin)</span>
-                <Badge variant="outline" className="ml-auto text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
-                  <CheckCircle2 className="size-2.5 mr-0.5" /> Toàn quyền
+                <Shield className={`size-4 ${isEditor ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`} />
+                <span className="font-semibold text-foreground">
+                  {isEditor ? "Biên tập viên (Editor)" : isAdmin ? "Quản trị viên cấp cao (Admin)" : `${role} (Thành viên)`}
+                </span>
+                <Badge
+                  variant="outline"
+                  className={`ml-auto text-[10px] ${
+                    isEditor
+                      ? "bg-amber-50 text-amber-700 border-amber-200"
+                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  }`}
+                >
+                  <CheckCircle2 className="size-2.5 mr-0.5" />
+                  {isEditor ? "Quyền biên tập" : isAdmin ? "Toàn quyền" : "Quyền người dùng"}
                 </Badge>
               </div>
             </div>

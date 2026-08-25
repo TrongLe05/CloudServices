@@ -1,17 +1,12 @@
 import * as React from "react";
 import Link from "next/link";
-import {
-  Users,
-  Star,
-  ShieldCheck,
-  Award,
-  Sparkles,
-  QrCode,
-  Building2,
-  MessageSquareQuote,
-} from "lucide-react";
+import { Star, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  CUSTOMER_HERO_NAV_LINKS,
+  CUSTOMER_HERO_METRICS,
+} from "@/data/customerHero.data";
 
 export function CustomerHero() {
   return (
@@ -38,67 +33,43 @@ export function CustomerHero() {
 
         {/* Quick Jump Navigation */}
         <nav aria-label="Mục lục chuyển nhanh" className="flex flex-wrap items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md"
-            render={<Link href="#testimonials" />}
-          >
-            <MessageSquareQuote className="size-3.5 mr-1.5 text-indigo-300" />
-            Đánh giá khách hàng
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md"
-            render={<Link href="#partners" />}
-          >
-            <Building2 className="size-3.5 mr-1.5 text-indigo-300" />
-            Đối tác tiêu biểu
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md"
-            render={<Link href="#service-qrs" />}
-          >
-            <QrCode className="size-3.5 mr-1.5 text-indigo-300" />
-            Mã QR gói dịch vụ
-          </Button>
+          {CUSTOMER_HERO_NAV_LINKS.map((link) => {
+            const Icon = link.icon;
+            return (
+              <Button
+                key={link.href}
+                variant="outline"
+                size="sm"
+                className="rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md"
+                render={<Link href={link.href} />}
+              >
+                <Icon className="size-3.5 mr-1.5 text-indigo-300" />
+                {link.label}
+              </Button>
+            );
+          })}
         </nav>
 
         {/* Semantic Definition List for Key Trust Metrics */}
         <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 pt-4 border-t border-slate-800">
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs space-y-1">
-            <dt className="text-xs text-slate-400 font-medium">Khách hàng tin chọn</dt>
-            <dd className="text-2xl sm:text-3xl font-extrabold text-white flex items-baseline gap-1">
-              10,000+
-            </dd>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs space-y-1">
-            <dt className="text-xs text-slate-400 font-medium">Đánh giá hài lòng</dt>
-            <dd className="text-2xl sm:text-3xl font-extrabold text-amber-400 flex items-center gap-1.5">
-              4.9/5
-              <Star className="size-5 fill-amber-400 text-amber-400 inline" />
-            </dd>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs space-y-1">
-            <dt className="text-xs text-slate-400 font-medium">Cam kết Uptime SLA</dt>
-            <dd className="text-2xl sm:text-3xl font-extrabold text-emerald-400 flex items-baseline gap-1">
-              99.99%
-            </dd>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs space-y-1">
-            <dt className="text-xs text-slate-400 font-medium">Hỗ trợ kỹ thuật SLA</dt>
-            <dd className="text-2xl sm:text-3xl font-extrabold text-indigo-300 flex items-baseline gap-1">
-              24/7/365
-            </dd>
-          </div>
+          {CUSTOMER_HERO_METRICS.map((metric, idx) => (
+            <div
+              key={idx}
+              className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs space-y-1"
+            >
+              <dt className="text-xs text-slate-400 font-medium">{metric.label}</dt>
+              <dd
+                className={`text-2xl sm:text-3xl font-extrabold flex items-center gap-1.5 ${
+                  metric.colorClass || "text-white"
+                }`}
+              >
+                {metric.value}
+                {metric.hasStar && (
+                  <Star className="size-5 fill-amber-400 text-amber-400 inline" />
+                )}
+              </dd>
+            </div>
+          ))}
         </dl>
       </div>
     </header>

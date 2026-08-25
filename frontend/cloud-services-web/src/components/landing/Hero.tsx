@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TechLayeredVisual } from "./TechLayeredVisual";
+import { HERO_TRUST_METRICS } from "@/data/landingHero.data";
 
 export const Hero = () => {
   return (
@@ -60,30 +61,16 @@ export const Hero = () => {
 
           {/* Trust Metrics Block */}
           <div className="grid grid-cols-3 gap-6 pt-8 mt-4 border-t border-slate-150 font-sans">
-            <div>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">
-                Độ ổn định SLA
-              </p>
-              <p className="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
-                99.99% Uptime
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">
-                Khởi tạo nhanh
-              </p>
-              <p className="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
-                &lt; 30 giây
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">
-                Kết nối mạng
-              </p>
-              <p className="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
-                10 Gbps Uplink
-              </p>
-            </div>
+            {HERO_TRUST_METRICS.map((metric, idx) => (
+              <div key={idx}>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+                  {metric.label}
+                </p>
+                <p className="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
+                  {metric.value}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 

@@ -20,101 +20,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { toast } from "@/components/ui/toast";
 import { formatVND } from "@/lib/formatUtils";
 import { PlanSpecsList } from "@/components/common/PlanSpecsList";
+import { SAMPLE_PLANS, ServicePlanItem } from "@/data/customerQrs.data";
 
-export interface ServicePlanItem {
-  id: string;
-  name: string;
-  description?: string;
-  categoryId?: string;
-  categoryName?: string;
-  cpu?: string;
-  ram?: string;
-  storage?: string;
-  bandwidth?: string;
-  qrCodeUrl?: string | null;
-  prices?: Array<{
-    id?: string;
-    billingCycle: string;
-    price: number;
-    promotionDiscountPercentage?: number;
-  }>;
-}
+export type { ServicePlanItem };
 
 interface CustomerServiceQRsProps {
   initialPlans?: ServicePlanItem[];
 }
 
-const SAMPLE_PLANS: ServicePlanItem[] = [
-  {
-    id: "plan-vps-basic",
-    name: "Cloud VPS Basic",
-    categoryName: "Máy chủ ảo VPS",
-    description: "Giải pháp lưu trữ cá nhân, blog và hệ thống testing khởi đầu.",
-    cpu: "2 vCPU Intel Xeon Platinum",
-    ram: "4 GB RAM ECC DDR4",
-    storage: "50 GB NVMe SSD Uptime 100%",
-    bandwidth: "100 Mbps Không giới hạn",
-    prices: [{ billingCycle: "monthly", price: 150000 }],
-  },
-  {
-    id: "plan-vps-pro",
-    name: "Cloud VPS Pro NVMe",
-    categoryName: "Máy chủ ảo VPS",
-    description: "Tối ưu cho website thương mại điện tử, ứng dụng web và API microservices.",
-    cpu: "4 vCPU AMD EPYC 7003",
-    ram: "8 GB RAM ECC DDR4",
-    storage: "120 GB NVMe SSD Enterprise",
-    bandwidth: "300 Mbps Không giới hạn",
-    prices: [{ billingCycle: "monthly", price: 350000, promotionDiscountPercentage: 10 }],
-  },
-  {
-    id: "plan-dedicated-biz",
-    name: "Dedicated Server Enterprise",
-    categoryName: "Máy chủ vật lý Dedicated",
-    description: "Máy chủ vật lý chuyên biệt cấu hình cao, toàn quyền điều khiển phần cứng.",
-    cpu: "16 Core / 32 Thread Intel Xeon",
-    ram: "64 GB RAM ECC Registered",
-    storage: "2 x 1TB NVMe RAID 1",
-    bandwidth: "1 Gbps Trong nước / 50 Mbps Quốc tế",
-    prices: [{ billingCycle: "monthly", price: 2500000 }],
-  },
-  {
-    id: "plan-cloud-gpu",
-    name: "GPU AI Server Pro",
-    categoryName: "Hạ tầng AI & GPU",
-    description: "Cụm máy chủ tăng tốc GPU NVIDIA phục vụ AI Training, Deep Learning.",
-    cpu: "24 vCPU AMD EPYC + NVIDIA RTX A5000",
-    ram: "128 GB RAM ECC",
-    storage: "2 TB NVMe Gen4 High-IOPS",
-    bandwidth: "1 Gbps Không giới hạn",
-    prices: [{ billingCycle: "monthly", price: 6500000 }],
-  },
-  {
-    id: "plan-storage-s3",
-    name: "Cloud S3 Storage 1TB",
-    categoryName: "Lưu trữ đám mây",
-    description: "Lưu trữ đối tượng tương thích S3 API, backup dữ liệu an toàn đa vùng.",
-    cpu: "API Gateway S3 High-Availability",
-    ram: "Unlimited Concurrent Requests",
-    storage: "1,000 GB Block / Object Storage",
-    bandwidth: "Miễn phí băng thông tải lên",
-    prices: [{ billingCycle: "monthly", price: 200000 }],
-  },
-  {
-    id: "plan-custom-quote",
-    name: "Private Cloud Custom Cluster",
-    categoryName: "Giải pháp Doanh nghiệp",
-    description: "Cụm đám mây riêng biệt thiết kế kiến trúc theo yêu cầu đặc thù của tập đoàn.",
-    cpu: "Tùy biến theo yêu cầu",
-    ram: "Mở rộng không giới hạn",
-    storage: "Hệ thống SAN / Ceph Storage",
-    bandwidth: "Đường truyền riêng Leased Line",
-    prices: [{ billingCycle: "monthly", price: 0 }],
-  },
-];
 
 // Subcomponent cho từng thẻ gói dịch vụ & QR Code lấy trực tiếp từ Backend API
 function ServicePlanQrCard({ plan }: { plan: ServicePlanItem }) {
@@ -183,9 +107,9 @@ function ServicePlanQrCard({ plan }: { plan: ServicePlanItem }) {
 
   return (
     <li className="h-full">
-      <article className="h-full p-6 rounded-3xl bg-white border border-slate-200 hover:border-primary/50 hover:shadow-lg transition-all flex flex-col justify-between space-y-6">
+      <Card className="h-full p-6 rounded-3xl bg-white border border-slate-200 hover:border-primary/50 hover:shadow-lg transition-all flex flex-col justify-between space-y-6">
         {/* Header: Tên gói & Danh mục */}
-        <header className="space-y-2">
+        <CardHeader className="p-0 space-y-2">
           <div className="flex items-center justify-between">
             <Badge variant="secondary" className="text-[10px] font-bold bg-indigo-50 text-indigo-700 border-indigo-100">
               {plan.categoryName || "Cloud Service"}
@@ -195,55 +119,57 @@ function ServicePlanQrCard({ plan }: { plan: ServicePlanItem }) {
             </span>
           </div>
 
-          <h3 className="text-lg font-bold text-slate-900 line-clamp-1">
+          <CardTitle className="text-lg font-bold text-slate-900 line-clamp-1">
             {plan.name}
-          </h3>
+          </CardTitle>
 
           {plan.description && (
-            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+            <CardDescription className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
               {plan.description}
-            </p>
+            </CardDescription>
           )}
-        </header>
+        </CardHeader>
 
         {/* QR Code Figure lấy trực tiếp từ Backend API */}
-        <figure className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col items-center justify-center space-y-3">
-          <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:scale-105 transition-transform flex items-center justify-center min-h-[144px] min-w-[144px]">
-            {loading ? (
-              <div className="size-36 flex flex-col items-center justify-center text-slate-400 gap-2">
-                <Loader2 className="size-6 animate-spin text-primary" />
-                <span className="text-[10px] font-medium">Đang tạo mã QR...</span>
-              </div>
-            ) : imageSrc ? (
-              <img
-                src={imageSrc}
-                alt={`Mã QR ${plan.name}`}
-                className="size-36 object-contain rounded-lg"
-              />
-            ) : (
-              <div className="size-36 flex flex-col items-center justify-center text-slate-300">
-                <QrCode className="size-8" />
-              </div>
-            )}
-          </div>
-          <figcaption className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
-            <Smartphone className="size-3 text-slate-400" />
-            <span>Quét bằng Camera / Zalo để xem chi tiết</span>
-          </figcaption>
-        </figure>
+        <CardContent className="p-0 space-y-4">
+          <figure className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col items-center justify-center space-y-3">
+            <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:scale-105 transition-transform flex items-center justify-center min-h-[144px] min-w-[144px]">
+              {loading ? (
+                <div className="size-36 flex flex-col items-center justify-center text-slate-400 gap-2">
+                  <Loader2 className="size-6 animate-spin text-primary" />
+                  <span className="text-[10px] font-medium">Đang tạo mã QR...</span>
+                </div>
+              ) : imageSrc ? (
+                <img
+                  src={imageSrc}
+                  alt={`Mã QR ${plan.name}`}
+                  className="size-36 object-contain rounded-lg"
+                />
+              ) : (
+                <div className="size-36 flex flex-col items-center justify-center text-slate-300">
+                  <QrCode className="size-8" />
+                </div>
+              )}
+            </div>
+            <figcaption className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
+              <Smartphone className="size-3 text-slate-400" />
+              <span>Quét bằng Camera / Zalo để xem chi tiết</span>
+            </figcaption>
+          </figure>
 
-        {/* Specifications Definition List */}
-        <PlanSpecsList
-          cpu={plan.cpu}
-          ram={plan.ram}
-          storage={plan.storage}
-          bandwidth={plan.bandwidth}
-          variant="dl"
-          className="border-t border-slate-100 pt-4"
-        />
+          {/* Specifications Definition List */}
+          <PlanSpecsList
+            cpu={plan.cpu}
+            ram={plan.ram}
+            storage={plan.storage}
+            bandwidth={plan.bandwidth}
+            variant="dl"
+            className="border-t border-slate-100 pt-4"
+          />
+        </CardContent>
 
         {/* Footer Actions */}
-        <footer className="pt-2 flex items-center gap-2">
+        <CardFooter className="p-0 pt-2 flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -270,8 +196,8 @@ function ServicePlanQrCard({ plan }: { plan: ServicePlanItem }) {
             <ExternalLink className="size-3.5 mr-1" />
             {isQuote ? "Báo giá" : "Đặt ngay"}
           </Button>
-        </footer>
-      </article>
+        </CardFooter>
+      </Card>
     </li>
   );
 }

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Loader2, QrCode } from "lucide-react";
+import { usePlanQr } from "@/hooks/usePlanQr";
 
 interface PlanQrThumbnailProps {
   planId: string;
@@ -16,35 +17,7 @@ export function PlanQrThumbnail({
   size = "md",
   className = "",
 }: PlanQrThumbnailProps) {
-  const [qrBase64, setQrBase64] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!planId) return;
-
-    let isMounted = true;
-    const fetchQr = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/service-plans/${planId}/qr-code`);
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted) {
-            setQrBase64(data.qrCodeBase64);
-          }
-        }
-      } catch (err) {
-        console.error("Lỗi khi tải mã QR:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    fetchQr();
-    return () => {
-      isMounted = false;
-    };
-  }, [planId]);
+  const { qrCodeUrl, loading } = usePlanQr(planId);
 
   const sizeClasses = {
     sm: "size-16 p-1 rounded-xl",
@@ -52,10 +25,10 @@ export function PlanQrThumbnail({
     lg: "size-28 p-2 rounded-2xl",
   };
 
-  const imageSrc = qrBase64
-    ? qrBase64.startsWith("data:")
-      ? qrBase64
-      : `data:image/png;base64,${qrBase64}`
+  const imageSrc = qrCodeUrl
+    ? qrCodeUrl.startsWith("data:") || qrCodeUrl.startsWith("http")
+      ? qrCodeUrl
+      : `data:image/png;base64,${qrCodeUrl}`
     : "";
 
   return (

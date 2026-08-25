@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export function AvatarDropdown({
   user: initialUser,
@@ -25,34 +25,11 @@ export function AvatarDropdown({
   };
 }) {
   const { data: session } = useSession();
+  const { user: profileUser, isAdmin, isEditor } = useCurrentUser();
+
   const user = session?.user || initialUser;
-
-  const [avatarUrl, setAvatarUrl] = useState(user?.image || initialUser?.image || "");
-  const [displayName, setDisplayName] = useState(user?.name || initialUser?.name || "Tài khoản");
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadUserAvatar() {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted) {
-            if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
-            if (data.fullName || data.username) setDisplayName(data.fullName || data.username);
-          }
-        }
-      } catch {
-        // keep fallback
-      }
-    }
-    if (session?.user || initialUser) {
-      loadUserAvatar();
-    }
-    return () => {
-      isMounted = false;
-    };
-  }, [session?.user, initialUser]);
+  const avatarUrl = profileUser?.avatarUrl || user?.image || initialUser?.image || "";
+  const displayName = profileUser?.fullName || user?.name || initialUser?.name || "Tài khoản";
 
   // Lấy 2 chữ cái đầu của Username / FullName làm fallback avatar
   const initials = displayName
@@ -68,8 +45,6 @@ export function AvatarDropdown({
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/dang-nhap" });
   };
-
-  const isAdmin = (user as any)?.role === "Admin";
 
   return (
     <DropdownMenu>
@@ -108,6 +83,11 @@ export function AvatarDropdown({
           {isAdmin && (
             <DropdownMenuItem render={<Link href="/admin/dashboard" />}>
               Trang Quản trị
+            </DropdownMenuItem>
+          )}
+          {isEditor && !isAdmin && (
+            <DropdownMenuItem render={<Link href="/editor/dashboard" />}>
+              Trang Biên tập
             </DropdownMenuItem>
           )}
           <DropdownMenuItem render={<Link href="/don-hang" />}>

@@ -5,6 +5,7 @@ import { QrCode, X, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toast";
+import { usePlanQr } from "@/hooks/usePlanQr";
 
 export interface PlanQrModalProps {
   planId: string;
@@ -21,43 +22,9 @@ export function PlanQrModal({
   isOpen,
   onClose,
 }: PlanQrModalProps) {
-  const [loading, setLoading] = React.useState(false);
-  const [qrCodeBase64, setQrCodeBase64] = React.useState<string | null>(null);
-  const [targetUrl, setTargetUrl] = React.useState<string | null>(null);
+  const { qrCodeUrl, loading } = usePlanQr(isOpen ? planId : undefined);
   const [copied, setCopied] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!isOpen || !planId) return;
-
-    let isMounted = true;
-    const fetchQr = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/service-plans/${planId}/qr-code`);
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted) {
-            setQrCodeBase64(data.qrCodeBase64);
-            setTargetUrl(data.targetUrl);
-          }
-        } else {
-          if (isMounted) {
-            setQrCodeBase64(null);
-            setTargetUrl(null);
-          }
-        }
-      } catch (err) {
-        console.error("Lỗi khi tải mã QR:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    fetchQr();
-    return () => {
-      isMounted = false;
-    };
-  }, [isOpen, planId]);
+  const targetUrl = typeof window !== "undefined" ? `${window.location.origin}/dich-vu/${planId}` : "";
 
   if (!isOpen) return null;
 
@@ -77,10 +44,10 @@ export function PlanQrModal({
     }
   };
 
-  const imageSrc = qrCodeBase64
-    ? qrCodeBase64.startsWith("data:")
-      ? qrCodeBase64
-      : `data:image/png;base64,${qrCodeBase64}`
+  const imageSrc = qrCodeUrl
+    ? qrCodeUrl.startsWith("data:") || qrCodeUrl.startsWith("http")
+      ? qrCodeUrl
+      : `data:image/png;base64,${qrCodeUrl}`
     : "";
 
   return (
