@@ -4,10 +4,11 @@ if (process.env.NODE_ENV === "development") {
 
 import { ServicePlansCRUD, ServicePlan, ServiceCategory } from "./ServicePlansCRUD";
 import { Promotion } from "../promotions/PromotionsCRUD";
+import { getBackendApiUrl } from "@/lib/api-url";
 
 export async function getCategories(): Promise<ServiceCategory[]> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const apiUrl = getBackendApiUrl();
     const res = await fetch(`${apiUrl}/api/service-categories`, {
       cache: "no-store",
     });
@@ -24,7 +25,7 @@ export async function getCategories(): Promise<ServiceCategory[]> {
 
 export async function getServicePlans(categoryId?: string): Promise<ServicePlan[]> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const apiUrl = getBackendApiUrl();
     const params = new URLSearchParams();
     if (categoryId) {
       params.append("categoryId", categoryId);

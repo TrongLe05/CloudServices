@@ -12,6 +12,7 @@ import { AdminDashboardView, DashboardData } from "@/components/admin/dashboard/
 import { MonthlyOrderData } from "@/components/admin/dashboard/MonthlyOrdersChart";
 import { PopularPlanItem } from "@/components/admin/dashboard/PopularPlansBarChart";
 import { getAuthAccessToken } from "@/lib/auth-token";
+import { getBackendApiUrl } from "@/lib/api-url";
 import { AdminDashboardSkeleton } from "@/components/admin/AdminSkeletons";
 
 async function getDashboardStatistics(): Promise<{
@@ -24,7 +25,7 @@ async function getDashboardStatistics(): Promise<{
 } | null> {
   try {
     const token = await getAuthAccessToken();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/statistics/dashboard`, {
       headers: {
@@ -44,7 +45,7 @@ async function getDashboardStatistics(): Promise<{
 async function getMonthlyOrderStatistics(): Promise<MonthlyOrderData[]> {
   try {
     const token = await getAuthAccessToken();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/statistics/orders?months=6`, {
       headers: {
@@ -64,7 +65,7 @@ async function getMonthlyOrderStatistics(): Promise<MonthlyOrderData[]> {
 async function getOrderRequests(): Promise<any[]> {
   try {
     const token = await getAuthAccessToken();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/order-requests?pageSize=100`, {
       headers: {
@@ -84,7 +85,7 @@ async function getOrderRequests(): Promise<any[]> {
 async function getAffiliates(): Promise<any[]> {
   try {
     const token = await getAuthAccessToken();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/affiliates?pageSize=100`, {
       headers: {

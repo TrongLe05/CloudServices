@@ -3,11 +3,12 @@ if (process.env.NODE_ENV === "development") {
 }
 
 import { PromotionsCRUD, Promotion } from "./PromotionsCRUD";
+import { getBackendApiUrl } from "@/lib/api-url";
 
 // Data Fetching Function (Server-side)
 export async function getPromotions(): Promise<Promotion[]> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const apiUrl = getBackendApiUrl();
     const res = await fetch(`${apiUrl}/api/promotions`, {
       cache: "no-store",
     });
