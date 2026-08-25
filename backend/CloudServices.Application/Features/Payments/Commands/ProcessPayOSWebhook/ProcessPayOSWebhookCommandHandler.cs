@@ -61,7 +61,7 @@ public class ProcessPayOSWebhookCommandHandler : IRequestHandler<ProcessPayOSWeb
                 {
                     var planName = matchedOrder.PlanPrice?.Plan?.Name ?? "Gói dịch vụ Cloud";
                     var billingCycle = matchedOrder.PlanPrice?.BillingCycle ?? "Hàng tháng";
-                    var amount = matchedOrder.PlanPrice?.Price ?? (decimal)verification.Amount;
+                    var amount = matchedOrder.PlanPrice?.Price ?? 0m;
                     var frontendUrl = _configuration["AppSettings:FrontendUrl"] ?? "https://cloudservices.vn";
 
                     var emailSubject = $"[CloudServices] Xác nhận thanh toán thành công đơn hàng #{verification.OrderCode}";
