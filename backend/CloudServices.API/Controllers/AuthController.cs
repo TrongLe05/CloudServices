@@ -28,7 +28,7 @@ public sealed class AuthController(
     public async Task<IActionResult> Register([FromBody] RegisterUserCommand command)
     {
         var userId = await Mediator.Send(command);
-        return Ok(new { UserId = userId });
+        return StatusCode(StatusCodes.Status201Created, new { userId, success = true, message = "Đăng ký tài khoản thành công." });
     }
 
     [HttpPost("login")]

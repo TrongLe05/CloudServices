@@ -30,7 +30,8 @@ public class PromotionsController : ApiControllerBase
     [Authorize(Roles = "Admin,Editor")]
     public async Task<ActionResult<PromotionDto>> Create([FromBody] CreatePromotionCommand command)
     {
-        return await Mediator.Send(command);
+        var result = await Mediator.Send(command);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     [HttpPut("{id:guid}")]

@@ -77,10 +77,10 @@ public class TestimonialsController : ControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await _mediator.Send(new DeleteTestimonialCommand(id), cancellationToken);
-        return Ok(new { message = "Testimonial deleted successfully." });
+        return NoContent();
     }
 }
 
