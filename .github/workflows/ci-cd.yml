@@ -130,3 +130,45 @@ jobs:
             exit 1
           fi
           echo "✅ All CI checks passed successfully!"
+
+  # ============================================================
+  # AZURE CD: Deploy Backend to Azure Web App (Only on main branch)
+  # ============================================================
+  deploy-azure-backend:
+    name: Deploy Backend to Azure Web App
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    permissions:
+      id-token: write
+      contents: read
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish ASP.NET Core API
+        run: dotnet publish CloudServices.API/CloudServices.API.csproj -c Release -o ./publish
+
+      - name: Login to Azure (OIDC / Federated Credentials)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9A3F3F922F1148DC9ADF12E73728F459 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7DFB7E2713A041FE8D4F8F670CB2A26E }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4A49926A496746CCAD084B065B3480CD }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'cloudservices-api-dev'
+          slot-name: 'Production'
+          package: ./backend/publish
