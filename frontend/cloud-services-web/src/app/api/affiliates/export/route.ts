@@ -1,3 +1,4 @@
+import { getBackendApiUrl } from "@/lib/api-url";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
 
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     if (search) query.append("search", search);
     if (status && status !== "ALL") query.append("status", status);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
     const res = await fetch(`${apiUrl}/api/Affiliates/export?${query.toString()}`, {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

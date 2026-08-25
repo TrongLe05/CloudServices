@@ -1,3 +1,4 @@
+import { getBackendApiUrl } from "@/lib/api-url";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
 
@@ -13,7 +14,7 @@ export async function PATCH(
     const { id } = await params;
     const accessToken = await getAuthAccessToken();
     const body = await request.json().catch(() => ({}));
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/users/${id}/status`, {
       method: "PATCH",

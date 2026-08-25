@@ -1,3 +1,4 @@
+import { getBackendApiUrl } from "@/lib/api-url";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
 
@@ -8,7 +9,7 @@ if (process.env.NODE_ENV === "development") {
 export async function GET(request: NextRequest) {
   try {
     const accessToken = await getAuthAccessToken();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
     const { searchParams } = new URL(request.url);
 
     const res = await fetch(`${apiUrl}/api/users?${searchParams.toString()}`, {
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
   try {
     const accessToken = await getAuthAccessToken();
     const body = await request.json();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
+    const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/users`, {
       method: "POST",

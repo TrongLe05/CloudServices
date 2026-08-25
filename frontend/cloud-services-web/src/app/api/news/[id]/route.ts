@@ -1,3 +1,4 @@
+import { getBackendApiUrl } from "@/lib/api-url";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAccessToken } from "@/lib/auth-token";
 
@@ -11,7 +12,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news/${id}`, {
+    const res = await fetch(`${getBackendApiUrl()}/api/news/${id}`, {
       cache: "no-store",
     });
 
@@ -35,7 +36,7 @@ export async function PUT(
     const accessToken = await getAuthAccessToken();
     const payload = await req.json();
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news/${id}`, {
+    const res = await fetch(`${getBackendApiUrl()}/api/news/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -56,7 +57,7 @@ export async function PUT(
     }
 
     // Fetch the updated item
-    const getRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news/${id}`, {
+    const getRes = await fetch(`${getBackendApiUrl()}/api/news/${id}`, {
       cache: "no-store",
     });
 
@@ -79,7 +80,7 @@ export async function DELETE(
     const { id } = await params;
     const accessToken = await getAuthAccessToken();
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news/${id}`, {
+    const res = await fetch(`${getBackendApiUrl()}/api/news/${id}`, {
       method: "DELETE",
       headers: {
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),

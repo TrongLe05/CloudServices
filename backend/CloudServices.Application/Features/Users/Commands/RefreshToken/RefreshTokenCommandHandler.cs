@@ -1,6 +1,7 @@
 using CloudServices.Application.Common.Exceptions;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
+using CloudServices.Domain.Entities;
 using MediatR;
 using System.Security.Claims;
 
@@ -24,34 +25,47 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
     public async Task<RefreshTokenCommandResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        // 1. Trích xuất Claims từ Access Token đã hết hạn
-        ClaimsPrincipal principal;
-        try
+        if (string.IsNullOrWhiteSpace(request.RefreshToken))
         {
-            principal = _jwtTokenGenerator.GetPrincipalFromExpiredToken(request.ExpiredAccessToken);
-        }
-        catch (Exception)
-        {
-            throw new UnauthorizedException("Access Token không hợp lệ.");
+            throw new UnauthorizedException("Refresh Token không được để trống.");
         }
 
-        // 2. Lấy UserId từ Claims (Sub claim)
-        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                          ?? principal.FindFirst("sub")?.Value;
+        AppUser? user = null;
 
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        // 1. Bước 1: Ưu tiên tìm user trực tiếp từ RefreshToken / PreviousRefreshToken trong cơ sở dữ liệu
+        user = await _userRepository.GetByRefreshTokenAsync(request.RefreshToken, cancellationToken);
+
+        // 2. Bước 2: Nếu chưa tìm thấy và có ExpiredAccessToken, thử trích xuất UserId từ Claims (Fallback)
+        if (user == null && !string.IsNullOrWhiteSpace(request.ExpiredAccessToken))
         {
-            throw new UnauthorizedException("Token không chứa thông tin User hợp lệ.");
+            try
+            {
+                var principal = _jwtTokenGenerator.GetPrincipalFromExpiredToken(request.ExpiredAccessToken);
+                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                  ?? principal.FindFirst("sub")?.Value;
+
+                if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
+                {
+                    user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+                }
+            }
+            catch
+            {
+                // Bỏ qua lỗi giải mã token nếu token đã quá hạn hoặc đổi định dạng
+            }
         }
 
-        // 3. Tìm User trong database (Đã Include Role để generate JWT đầy đủ quyền)
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user == null)
         {
-            throw new UnauthorizedException("User không tồn tại.");
+            throw new UnauthorizedException("Phiên làm việc không tồn tại hoặc đã hết hạn. Vui lòng đăng nhập lại.");
         }
 
-        // 4. Kiểm tra Refresh Token
+        if (!user.IsActive)
+        {
+            throw new UnauthorizedException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+        }
+
+        // 3. Kiểm tra Refresh Token
         // Trường hợp A: Khớp với RefreshToken hiện tại và chưa hết hạn -> Tiến hành Rotate Token
         if (user.RefreshToken == request.RefreshToken && user.RefreshTokenExpiryTime > DateTime.UtcNow)
         {
