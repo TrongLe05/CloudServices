@@ -23,7 +23,7 @@ services:
     networks:
       - cloudservices-network
 
- # ----------------------------------------------------
+  # ----------------------------------------------------
   # 2. Backend: ASP.NET Core 10 Web API
   # ----------------------------------------------------
   backend:
@@ -40,8 +40,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=CloudServicesDb;User Id=sa;Password=${SA_PASSWORD:-CloudServices@2026!};MultipleActiveResultSets=true;
-  TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=CloudServicesDb;User Id=sa;Password=${SA_PASSWORD:-CloudServices@2026!};MultipleActiveResultSets=true;TrustServerCertificate=True;
       - JwtSettings__Secret=${JWT_SECRET:-SuperSecretKeyForCloudServicesProject2026!@#$}
       - JwtSettings__Issuer=CloudServicesAPI
       - JwtSettings__Audience=CloudServicesClient
@@ -60,27 +59,28 @@ services:
   # 3. Frontend: Next.js 16 (App Router + Turbopack)
   # ----------------------------------------------------
   frontend:
-  build:
-  context: ./frontend/cloud-services-web
-  dockerfile: Dockerfile
-  args:
-    NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
-    NEXT_PUBLIC_TINYMCE_API_KEY: ${NEXT_PUBLIC_TINYMCE_API_KEY:-lo22j7heipnhkk80mk7x7bqk9ibuus8tz5gqz145z52ymorj}
-    AUTH_SECRET: ${AUTH_SECRET:-e4f95d4e244405a2588f95d36854429a77e6299e1d6ab520e804c5d7d594ec86}
-  container_name: cloudservices-frontend
-  restart: unless-stopped
-  depends_on:
-  - backend
-  ports:
-  - "3000:3000"
-  environment:
-  - NODE_ENV=production
-  - PORT=3000
-  - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080}
-  - AUTH_SECRET=${AUTH_SECRET:-e4f95d4e244405a2588f95d36854429a77e6299e1d6ab520e804c5d7d594ec86}
-  - AUTH_URL=${AUTH_URL:-http://localhost:3000}
-  networks:
-  - cloudservices-network
+    build:
+      context: ./frontend/cloud-services-web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+        NEXT_PUBLIC_TINYMCE_API_KEY: ${NEXT_PUBLIC_TINYMCE_API_KEY:-lo22j7heipnhkk80mk7x7bqk9ibuus8tz5gqz145z52ymorj}
+        AUTH_SECRET: ${AUTH_SECRET:-e4f95d4e244405a2588f95d36854429a77e6299e1d6ab520e804c5d7d594ec86}
+    container_name: cloudservices-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+      - INTERNAL_API_URL=http://backend:8080
+      - AUTH_SECRET=${AUTH_SECRET:-e4f95d4e244405a2588f95d36854429a77e6299e1d6ab520e804c5d7d594ec86}
+      - AUTH_URL=${AUTH_URL:-http://localhost:3000}
+    networks:
+      - cloudservices-network
 
 # ----------------------------------------------------
 # Networks & Volumes
