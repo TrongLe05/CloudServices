@@ -33,6 +33,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/toast";
+import {
+  AFFILIATE_BENEFITS,
+  AFFILIATE_STEPS,
+  AFFILIATE_AUDIENCES,
+} from "@/data/affiliate.data";
+import { registerAffiliate } from "@/services/affiliate.services";
 
 export function AffiliateRegisterPageView() {
   const [loading, setLoading] = React.useState(false);
@@ -79,18 +85,12 @@ export function AffiliateRegisterPageView() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/affiliates", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fullName: formData.fullName.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim(),
-          websiteUrl: formData.websiteUrl.trim() || null,
-          motivation: formData.motivation.trim() || null,
-        }),
+      const res = await registerAffiliate({
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        websiteUrl: formData.websiteUrl.trim() || null,
+        motivation: formData.motivation.trim() || null,
       });
 
       if (!res.ok) {
@@ -143,41 +143,22 @@ export function AffiliateRegisterPageView() {
       {/* 2. Key Benefits Highlights Grid */}
       <section className="mx-auto max-w-7xl px-6 -mt-10 relative z-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="rounded-3xl border-slate-200 shadow-md bg-white hover:shadow-lg transition-all">
-            <CardHeader className="pb-3 space-y-2">
-              <div className="size-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-primary">
-                <Percent className="size-5" />
-              </div>
-              <CardTitle className="text-base font-bold text-slate-900">Hoa Hồng Tái Tục Hấp Dẫn</CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Nhận 15% - 20% trên mỗi hóa đơn thanh toán mới và các chu kỳ gia hạn định kỳ của khách hàng.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="rounded-3xl border-slate-200 shadow-md bg-white hover:shadow-lg transition-all">
-            <CardHeader className="pb-3 space-y-2">
-              <div className="size-11 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-                <Coins className="size-5" />
-              </div>
-              <CardTitle className="text-base font-bold text-slate-900">Thanh Toán Linh Hoạt</CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Đối soát minh bạch, rút tiền trực tiếp về tài khoản ngân hàng vào ngày 10 hàng tháng không giới hạn.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="rounded-3xl border-slate-200 shadow-md bg-white hover:shadow-lg transition-all">
-            <CardHeader className="pb-3 space-y-2">
-              <div className="size-11 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
-                <ShieldCheck className="size-5" />
-              </div>
-              <CardTitle className="text-base font-bold text-slate-900">Cookie 60 Ngày & Dashboard</CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Thời gian lưu Cookie giới thiệu lên tới 60 ngày. Báo cáo lượt click, đơn hàng theo thời gian thực.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+          {AFFILIATE_BENEFITS.map((benefit, idx) => {
+            const Icon = benefit.icon;
+            return (
+              <Card key={idx} className="rounded-3xl border-slate-200 shadow-md bg-white hover:shadow-lg transition-all">
+                <CardHeader className="pb-3 space-y-2">
+                  <div className={`size-11 rounded-2xl ${benefit.colorClass} flex items-center justify-center`}>
+                    <Icon className="size-5" />
+                  </div>
+                  <CardTitle className="text-base font-bold text-slate-900">{benefit.title}</CardTitle>
+                  <CardDescription className="text-xs text-slate-500">
+                    {benefit.desc}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            );
+          })}
         </div>
       </section>
 
@@ -198,35 +179,20 @@ export function AffiliateRegisterPageView() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-xs text-slate-600">
-                <div className="flex items-start gap-3">
-                  <div className="size-6 rounded-full bg-primary text-white font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
-                    1
-                  </div>
-                  <div>
-                    <strong className="block text-slate-900 text-sm">Gửi hồ sơ đăng ký</strong>
-                    Điền đầy đủ thông tin cá nhân/doanh nghiệp và định hướng kênh quảng bá qua form bên cạnh.
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex items-start gap-3">
-                  <div className="size-6 rounded-full bg-primary text-white font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
-                    2
-                  </div>
-                  <div>
-                    <strong className="block text-slate-900 text-sm">Xét duyệt trong 24h</strong>
-                    Đội ngũ Partnership của CloudServices kiểm tra thông tin và kích hoạt tài khoản Partner.
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex items-start gap-3">
-                  <div className="size-6 rounded-full bg-primary text-white font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
-                    3
-                  </div>
-                  <div>
-                    <strong className="block text-slate-900 text-sm">Nhận link & Thu nhập</strong>
-                    Chia sẻ liên kết tiếp thị trên Website, Blog, Fanpage hoặc Cộng đồng và nhận hoa hồng.
-                  </div>
-                </div>
+                {AFFILIATE_STEPS.map((stepItem, idx) => (
+                  <React.Fragment key={stepItem.step}>
+                    {idx > 0 && <Separator />}
+                    <div className="flex items-start gap-3">
+                      <div className="size-6 rounded-full bg-primary text-white font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
+                        {stepItem.step}
+                      </div>
+                      <div>
+                        <strong className="block text-slate-900 text-sm">{stepItem.title}</strong>
+                        {stepItem.desc}
+                      </div>
+                    </div>
+                  </React.Fragment>
+                ))}
               </CardContent>
             </Card>
 
@@ -238,22 +204,12 @@ export function AffiliateRegisterPageView() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2.5 text-xs text-slate-600">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
-                  <span>Kỹ sư CNTT, Lập trình viên, DevOps, Quản trị mạng</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
-                  <span>Agency thiết kế Website, Marketing & Phần mềm</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
-                  <span>Chủ sở hữu Blog công nghệ, Kênh Youtube, Diễn đàn</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
-                  <span>Chuyên gia tư vấn giải pháp Chuyển đổi số & Cloud</span>
-                </div>
+                {AFFILIATE_AUDIENCES.map((audience, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                    <span>{audience}</span>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </aside>

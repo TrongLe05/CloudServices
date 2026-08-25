@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/sidebar";
 import { toast } from "@/components/ui/toast";
 import { ProfileSettingsSheet } from "@/components/admin/profile/ProfileSettingsSheet";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useSession, signOut } from "next-auth/react";
 
 export function NavUser({
@@ -48,38 +49,20 @@ export function NavUser({
   const router = useRouter();
   const { isMobile } = useSidebar();
   const { data: session } = useSession();
+  const { user: profileUser, refreshUser, isEditor, isAdmin, role } = useCurrentUser();
 
-  const [avatarUrl, setAvatarUrl] = React.useState(initialUser?.avatar || "");
   const [profileSheetOpen, setProfileSheetOpen] = React.useState(false);
-  const [fullName, setFullName] = React.useState(session?.user?.name || initialUser?.name || "Admin");
 
-  React.useEffect(() => {
-    let isMounted = true;
-    async function loadUserData() {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted) {
-            if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
-            if (data.fullName || data.username) setFullName(data.fullName || data.username);
-          }
-        }
-      } catch {
-        // keep fallback
-      }
-    }
-    loadUserData();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const avatarUrl = profileUser?.avatarUrl || initialUser?.avatar || "";
+  const displayName = profileUser?.fullName || session?.user?.name || initialUser?.name || "Tài khoản";
+  const displayEmail = profileUser?.email || session?.user?.email || initialUser?.email || "";
 
-  const displayName = fullName;
-  const displayEmail = session?.user?.email || initialUser?.email || "";
+  const roleLabel = isEditor ? "Biên tập viên" : isAdmin ? "Quản trị viên" : "Người dùng";
+  const roleBadge = isEditor ? "Editor" : isAdmin ? "Admin" : role || "User";
+  const dashboardLink = isEditor ? "/editor/dashboard" : isAdmin ? "/admin/dashboard" : "/profile";
 
   const getInitials = (name: string) => {
-    if (!name) return "AD";
+    if (!name) return "US";
     const parts = name.trim().split(" ");
     if (parts.length >= 2) {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
@@ -92,7 +75,7 @@ export function NavUser({
       await signOut({ callbackUrl: "/dang-nhap" });
       toast.add({
         title: "Đăng xuất thành công",
-        description: "Bạn đã đăng xuất khỏi phiên làm việc quản trị.",
+        description: "Bạn đã đăng xuất khỏi phiên làm việc.",
         type: "success",
       });
     } catch (error: any) {
@@ -129,7 +112,7 @@ export function NavUser({
                       {displayName}
                     </span>
                     <span className="truncate text-[11px] text-muted-foreground">
-                      Quản trị viên
+                      {roleLabel}
                     </span>
                   </div>
                   <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
@@ -161,7 +144,7 @@ export function NavUser({
                         variant="secondary"
                         className="text-[10px] px-1.5 py-0 h-4 shrink-0 font-semibold text-primary"
                       >
-                        Admin
+                        {roleBadge}
                       </Badge>
                     </div>
                     <span className="truncate text-xs text-muted-foreground mt-0.5">
@@ -184,7 +167,7 @@ export function NavUser({
                 </DropdownMenuItem>
 
                 {/* Dashboard Shortcut */}
-                <Link href="/admin/dashboard" className="block">
+                <Link href={dashboardLink} className="block">
                   <DropdownMenuItem className="cursor-pointer gap-2.5 text-xs py-2 font-medium">
                     <LayoutDashboard className="size-4 text-muted-foreground" />
                     Bảng điều khiển
@@ -225,7 +208,7 @@ export function NavUser({
         open={profileSheetOpen}
         onOpenChange={setProfileSheetOpen}
         avatarUrl={avatarUrl}
-        onAvatarChange={setAvatarUrl}
+        onAvatarChange={() => refreshUser()}
       />
     </>
   );

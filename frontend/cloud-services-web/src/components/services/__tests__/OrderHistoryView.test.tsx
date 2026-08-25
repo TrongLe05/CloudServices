@@ -85,4 +85,49 @@ describe("OrderHistoryView Component", () => {
       expect(screen.queryByText("Cloud Server Standard")).not.toBeInTheDocument();
     });
   });
+
+  it("should paginate orders correctly when multiple items exist", async () => {
+    const manyOrders: UserOrder[] = Array.from({ length: 12 }, (_, i) => ({
+      id: `ord-${i + 1}`,
+      customerName: "Nguyen Van A",
+      email: "a.nguyen@test.com",
+      phone: "0901112223",
+      servicePlanId: `plan-${i + 1}`,
+      servicePlanName: `Cloud Server Plan ${i + 1}`,
+      billingCycle: "Hàng tháng",
+      estimatedPrice: 500000 + i * 100000,
+      status: "New",
+      createdAt: new Date().toISOString(),
+    }));
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ items: manyOrders }),
+    });
+
+    render(<OrderHistoryView initialOrders={manyOrders} userEmail="a.nguyen@test.com" />);
+
+    await waitFor(() => {
+      // First page shows 5 items (default pageSize = 5)
+      expect(screen.getByText("Cloud Server Plan 1")).toBeInTheDocument();
+      expect(screen.getByText("Cloud Server Plan 5")).toBeInTheDocument();
+      expect(screen.queryByText("Cloud Server Plan 6")).not.toBeInTheDocument();
+    });
+
+    // Check pagination information text
+    expect(screen.getByText(/Hiển thị/i)).toBeInTheDocument();
+    expect(screen.getByText(/trong tổng số/i)).toBeInTheDocument();
+
+    // Click on page 2
+    const page2Button = screen.getByRole("link", { name: "2" });
+    fireEvent.click(page2Button);
+
+    await waitFor(() => {
+      expect(screen.getByText("Cloud Server Plan 6")).toBeInTheDocument();
+      expect(screen.queryByText("Cloud Server Plan 1")).not.toBeInTheDocument();
+    });
+  });
 });
+
+
+

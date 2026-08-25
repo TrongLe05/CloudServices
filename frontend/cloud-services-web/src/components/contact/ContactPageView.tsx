@@ -30,6 +30,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/toast";
+import {
+  CONTACT_LOCATIONS,
+  CONTACT_DIRECT_CHANNELS,
+} from "@/data/contact.data";
 
 export function ContactPageView() {
   const [loading, setLoading] = React.useState(false);
@@ -103,21 +107,18 @@ export function ContactPageView() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-xs text-slate-600">
-                <div className="flex items-start gap-3">
-                  <MapPin className="size-4 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="block text-slate-900">Trụ sở chính:</strong>
-                    Tòa nhà Công nghệ FPT, Khu Công nghệ cao Hòa Lạc, Hà Nội
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex items-start gap-3">
-                  <MapPin className="size-4 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="block text-slate-900">Chi nhánh TP. Hồ Chí Minh:</strong>
-                    Khu Công viên Phần mềm Quang Trung, Quận 12, TP. HCM
-                  </div>
-                </div>
+                {CONTACT_LOCATIONS.map((loc, idx) => (
+                  <React.Fragment key={idx}>
+                    {idx > 0 && <Separator />}
+                    <div className="flex items-start gap-3">
+                      <MapPin className="size-4 text-primary shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="block text-slate-900">{loc.name}</strong>
+                        {loc.address}
+                      </div>
+                    </div>
+                  </React.Fragment>
+                ))}
               </CardContent>
             </Card>
 
@@ -133,31 +134,33 @@ export function ContactPageView() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-xs text-slate-600">
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center gap-2.5">
-                    <Phone className="size-4 text-emerald-600" />
-                    <div>
-                      <span className="text-[11px] text-slate-500 block">Hotline Kinh Doanh & Kỹ Thuật</span>
-                      <strong className="text-sm text-slate-900">1900 6868 - 0988 123 456</strong>
+                {CONTACT_DIRECT_CHANNELS.map((ch, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      {ch.type === "phone" ? (
+                        <Phone className="size-4 text-emerald-600" />
+                      ) : (
+                        <Mail className="size-4 text-blue-600" />
+                      )}
+                      <div>
+                        <span className="text-[11px] text-slate-500 block">{ch.title}</span>
+                        <strong className={ch.type === "phone" ? "text-sm text-slate-900" : "text-xs text-slate-900"}>
+                          {ch.value}
+                        </strong>
+                      </div>
                     </div>
+                    <Badge
+                      variant="outline"
+                      className={
+                        ch.type === "phone"
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700 text-[10px]"
+                          : "border-blue-200 bg-blue-50 text-blue-700 text-[10px]"
+                      }
+                    >
+                      {ch.badge}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 text-[10px]">
-                    24/7
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center gap-2.5">
-                    <Mail className="size-4 text-blue-600" />
-                    <div>
-                      <span className="text-[11px] text-slate-500 block">Hộp thư hỗ trợ chính thức</span>
-                      <strong className="text-xs text-slate-900">support@cloudservices.vn</strong>
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 text-[10px]">
-                    Email
-                  </Badge>
-                </div>
+                ))}
 
                 <div className="flex items-center gap-3 pt-1 text-slate-500">
                   <Clock className="size-4 text-slate-400 shrink-0" />

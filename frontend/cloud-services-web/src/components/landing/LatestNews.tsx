@@ -4,6 +4,14 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowRight, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import Image from "next/image";
 import { decodeHtmlEntities, stripHtml } from "@/lib/htmlUtils";
 import {
@@ -92,22 +100,24 @@ export const LatestNews = ({ initialNews = [] }: LatestNewsProps) => {
 
                 return (
                   <CarouselItem key={post.id || index} className="pl-6 md:basis-1/2 lg:basis-1/3">
-                    <article className="flex flex-col items-start justify-between bg-white border border-slate-100 hover:border-slate-200/80 p-5 rounded-2xl hover:shadow-xl hover:shadow-slate-100/60 transition-all duration-300 text-left shadow-xs group h-full">
+                    <Card className="flex flex-col items-start justify-between bg-white border border-slate-100 hover:border-slate-200/80 p-5 rounded-2xl hover:shadow-xl hover:shadow-slate-100/60 transition-all duration-300 text-left shadow-xs group h-full">
                       {/* Thumbnail */}
-                      <div className="w-full relative aspect-[16/10] rounded-xl overflow-hidden mb-5 bg-slate-50 border border-slate-100 shrink-0">
-                        <Image
-                          src={
-                            post.thumbnailUrl ||
-                            "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop"
-                          }
-                          alt={post.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          width={500}
-                          height={300}
-                        />
-                      </div>
+                      <CardHeader className="p-0 w-full mb-5">
+                        <div className="w-full relative aspect-[16/10] rounded-xl overflow-hidden bg-slate-50 border border-slate-100 shrink-0">
+                          <Image
+                            src={
+                              post.thumbnailUrl ||
+                              "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop"
+                            }
+                            alt={post.title}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            width={500}
+                            height={300}
+                          />
+                        </div>
+                      </CardHeader>
 
-                      <div className="w-full flex-1 flex flex-col justify-between">
+                      <CardContent className="p-0 w-full flex-1 flex flex-col justify-between">
                         <div>
                           <div className="flex items-center gap-2.5 text-[10px] text-slate-400 font-sans">
                             <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[9px] font-bold text-primary uppercase">
@@ -120,30 +130,30 @@ export const LatestNews = ({ initialNews = [] }: LatestNewsProps) => {
                             </span>
                           </div>
 
-                          <h3 className="mt-3.5 text-sm font-bold text-slate-900 leading-snug hover:text-primary transition-colors font-sans">
+                          <CardTitle className="mt-3.5 text-sm font-bold text-slate-900 leading-snug hover:text-primary transition-colors font-sans">
                             <Link href={`/blog/${post.slug || post.id}`} className="line-clamp-2">
                               {decodeHtmlEntities(post.title)}
                             </Link>
-                          </h3>
+                          </CardTitle>
 
-                          <p className="mt-3 text-xs text-slate-500 line-clamp-3 leading-relaxed font-sans">
+                          <CardDescription className="mt-3 text-xs text-slate-500 line-clamp-3 leading-relaxed font-sans">
                             {stripHtml(post.content)}
-                          </p>
+                          </CardDescription>
                         </div>
+                      </CardContent>
 
-                        <div className="w-full pt-4 mt-6 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400 font-sans">
-                          <span className="font-semibold text-slate-700 flex items-center gap-1">
-                            <User className="size-3 text-slate-400" /> Ban Biên Tập
-                          </span>
-                          <Link
-                            href={`/blog/${post.slug || post.id}`}
-                            className="text-primary hover:underline font-semibold flex items-center gap-1 text-xs"
-                          >
-                            Đọc tiếp <ArrowRight className="size-3" />
-                          </Link>
-                        </div>
-                      </div>
-                    </article>
+                      <CardFooter className="p-0 w-full pt-4 mt-6 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400 font-sans">
+                        <span className="font-semibold text-slate-700 flex items-center gap-1">
+                          <User className="size-3 text-slate-400" /> Ban Biên Tập
+                        </span>
+                        <Link
+                          href={`/blog/${post.slug || post.id}`}
+                          className="text-primary hover:underline font-semibold flex items-center gap-1 text-xs"
+                        >
+                          Đọc tiếp <ArrowRight className="size-3" />
+                        </Link>
+                      </CardFooter>
+                    </Card>
                   </CarouselItem>
                 );
               })}

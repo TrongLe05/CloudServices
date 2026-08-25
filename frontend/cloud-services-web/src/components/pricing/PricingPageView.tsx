@@ -43,6 +43,7 @@ import { OrderServiceModal, OrderModalPlan } from "@/components/services/OrderSe
 import { PlanQrModal } from "@/components/services/PlanQrModal";
 import { PlanQrThumbnail } from "@/components/services/PlanQrThumbnail";
 import { formatVND } from "@/lib/formatUtils";
+import { PRICING_ASSURANCES } from "@/data/pricing.data";
 
 export interface CategoryData {
   id: string;
@@ -568,47 +569,24 @@ export function PricingPageView({
 
         {/* 5. Assurance Badges Grid */}
         <section aria-label="Cam kết chất lượng dịch vụ" className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-          <Card className="rounded-3xl bg-white border-slate-200 p-6 space-y-2">
-            <CardHeader className="p-0 pb-2">
-              <div className="size-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <ShieldCheck className="size-5" />
-              </div>
-              <CardTitle className="font-bold text-slate-900 text-sm pt-2">Cam kết Uptime SLA 99.9%</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <CardDescription className="text-xs text-slate-500 leading-relaxed">
-                Hệ thống trung tâm dữ liệu tiêu chuẩn quốc tế Tier III đảm bảo máy chủ luôn online ổn định và liên tục 24/7.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl bg-white border-slate-200 p-6 space-y-2">
-            <CardHeader className="p-0 pb-2">
-              <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-                <Zap className="size-5" />
-              </div>
-              <CardTitle className="font-bold text-slate-900 text-sm pt-2">Khởi tạo tức thì trong 60s</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <CardDescription className="text-xs text-slate-500 leading-relaxed">
-                Ngay sau khi xác nhận đơn hàng, toàn bộ thông tin quản trị IP và password sẽ được gửi tự động qua email.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl bg-white border-slate-200 p-6 space-y-2">
-            <CardHeader className="p-0 pb-2">
-              <div className="size-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <Sparkles className="size-5" />
-              </div>
-              <CardTitle className="font-bold text-slate-900 text-sm pt-2">Hỗ trợ kỹ thuật 24/7/365</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <CardDescription className="text-xs text-slate-500 leading-relaxed">
-                Đội ngũ chuyên gia kỹ sư hạ tầng luôn sẵn sàng hỗ trợ trực tuyến qua ticket, live chat và hotline.
-              </CardDescription>
-            </CardContent>
-          </Card>
+          {PRICING_ASSURANCES.map((item, idx) => {
+            const Icon = item.icon;
+            return (
+              <Card key={idx} className="rounded-3xl bg-white border-slate-200 p-6 space-y-2">
+                <CardHeader className="p-0 pb-2">
+                  <div className={`size-10 rounded-2xl ${item.iconBgClass} ${item.iconColorClass} flex items-center justify-center`}>
+                    <Icon className="size-5" />
+                  </div>
+                  <CardTitle className="font-bold text-slate-900 text-sm pt-2">{item.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <CardDescription className="text-xs text-slate-500 leading-relaxed">
+                    {item.desc}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            );
+          })}
         </section>
       </section>
 

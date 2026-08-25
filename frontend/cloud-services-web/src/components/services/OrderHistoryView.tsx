@@ -15,9 +15,12 @@ import {
   CreditCard,
   ShoppingBag,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -26,12 +29,22 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { toast } from "@/components/ui/toast";
 import { PaymentQrModal } from "./PaymentQrModal";
 import { OrderStatusBadge } from "@/components/common/OrderStatusBadge";
 import { OrderHistoryStatsCards } from "./OrderHistoryStatsCards";
 import { OrderDetailSheet } from "./OrderDetailSheet";
 import { UserOrder, PaymentModalData } from "@/types/orders.types";
+import { createPayosPaymentLink } from "@/services/payment.services";
 import {
   formatVND,
   formatDateVN,
@@ -45,6 +58,49 @@ interface OrderHistoryViewProps {
   userEmail?: string | null;
 }
 
+function getPaginationRange(
+  currentPage: number,
+  totalPages: number,
+  siblingCount: number = 1
+): (number | "DOTS_LEFT" | "DOTS_RIGHT")[] {
+  const totalPageNumbers = siblingCount * 2 + 5;
+
+  if (totalPages <= totalPageNumbers) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
+  const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
+
+  const shouldShowLeftDots = leftSiblingIndex > 2;
+  const shouldShowRightDots = rightSiblingIndex < totalPages - 1;
+
+  if (!shouldShowLeftDots && shouldShowRightDots) {
+    const leftItemCount = 3 + 2 * siblingCount;
+    const leftRange = Array.from({ length: leftItemCount }, (_, i) => i + 1);
+    return [...leftRange, "DOTS_RIGHT", totalPages];
+  }
+
+  if (shouldShowLeftDots && !shouldShowRightDots) {
+    const rightItemCount = 3 + 2 * siblingCount;
+    const rightRange = Array.from(
+      { length: rightItemCount },
+      (_, i) => totalPages - rightItemCount + 1 + i
+    );
+    return [1, "DOTS_LEFT", ...rightRange];
+  }
+
+  if (shouldShowLeftDots && shouldShowRightDots) {
+    const middleRange = Array.from(
+      { length: rightSiblingIndex - leftSiblingIndex + 1 },
+      (_, i) => leftSiblingIndex + i
+    );
+    return [1, "DOTS_LEFT", ...middleRange, "DOTS_RIGHT", totalPages];
+  }
+
+  return Array.from({ length: totalPages }, (_, i) => i + 1);
+}
+
 export function OrderHistoryView({
   initialOrders = [],
   userEmail,
@@ -53,14 +109,23 @@ export function OrderHistoryView({
   const effectiveEmail = userEmail || session?.user?.email;
 
   const [orders, setOrders] = React.useState<UserOrder[]>(initialOrders);
-  const [isLoadingInitial, setIsLoadingInitial] = React.useState(initialOrders.length === 0);
+  const [isLoadingInitial, setIsLoadingInitial] = React.useState(
+    initialOrders.length === 0,
+  );
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
-  const [selectedOrder, setSelectedOrder] = React.useState<UserOrder | null>(null);
+  const [selectedOrder, setSelectedOrder] = React.useState<UserOrder | null>(
+    null,
+  );
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [payingOrderId, setPayingOrderId] = React.useState<string | null>(null);
   const [showPaymentQr, setShowPaymentQr] = React.useState(false);
-  const [paymentModalData, setPaymentModalData] = React.useState<PaymentModalData | null>(null);
+  const [paymentModalData, setPaymentModalData] =
+    React.useState<PaymentModalData | null>(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(5);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -72,6 +137,11 @@ export function OrderHistoryView({
     }
   }, [initialOrders]);
 
+  // Reset to page 1 whenever filter or search or page size changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, statusFilter, pageSize]);
+
   // Core API Fetch Function
   const fetchOrders = React.useCallback(
     async (showToast = false) => {
@@ -80,7 +150,9 @@ export function OrderHistoryView({
         const emailParam = effectiveEmail
           ? `&customerEmail=${encodeURIComponent(effectiveEmail)}`
           : "";
-        const res = await fetch(`/api/order-requests?pageSize=100${emailParam}`);
+        const res = await fetch(
+          `/api/order-requests?pageSize=100${emailParam}`,
+        );
         if (res.ok) {
           const data = await res.json();
           const items: UserOrder[] = data.items || data.Items || [];
@@ -88,7 +160,8 @@ export function OrderHistoryView({
           if (showToast) {
             toast.add({
               title: "Đã làm mới danh sách",
-              description: "Thông tin các đơn dịch vụ đã được cập nhật mới nhất.",
+              description:
+                "Thông tin các đơn dịch vụ đã được cập nhật mới nhất.",
               type: "success",
             });
           }
@@ -106,7 +179,7 @@ export function OrderHistoryView({
         setIsLoadingInitial(false);
       }
     },
-    [effectiveEmail]
+    [effectiveEmail],
   );
 
   // Auto-fetch on client mount & when session resolves to ensure instant load
@@ -119,7 +192,8 @@ export function OrderHistoryView({
     if (remaining <= 0) {
       toast.add({
         title: "Đơn hàng đã hết hạn",
-        description: "Đơn hàng này đã quá hạn 5 phút. Vui lòng tạo đơn hàng mới.",
+        description:
+          "Đơn hàng này đã quá hạn 5 phút. Vui lòng tạo đơn hàng mới.",
         type: "error",
       });
       return;
@@ -127,19 +201,17 @@ export function OrderHistoryView({
 
     try {
       setPayingOrderId(order.id);
-      const res = await fetch("/api/payments/create-payos-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: order.id,
-          returnUrl: `${window.location.origin}/don-hang?status=success`,
-          cancelUrl: `${window.location.origin}/don-hang?status=cancelled`,
-        }),
+      const res = await createPayosPaymentLink({
+        orderId: order.id,
+        returnUrl: `${window.location.origin}/don-hang?status=success`,
+        cancelUrl: `${window.location.origin}/don-hang?status=cancelled`,
       });
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.message || "Không thể lấy mã thanh toán cho đơn hàng này.");
+        throw new Error(
+          errJson.message || "Không thể lấy mã thanh toán cho đơn hàng này.",
+        );
       }
 
       const data = await res.json();
@@ -175,10 +247,14 @@ export function OrderHistoryView({
   const filteredOrders = React.useMemo(() => {
     return orders.filter((o) => {
       const matchSearch =
-        o.servicePlanName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        o.servicePlanName
+          .toLowerCase()
+          .includes(debouncedSearchTerm.toLowerCase()) ||
         o.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         (o.companyName &&
-          o.companyName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
+          o.companyName
+            .toLowerCase()
+            .includes(debouncedSearchTerm.toLowerCase()));
 
       let matchStatus = true;
       const s = String(o.status);
@@ -191,7 +267,10 @@ export function OrderHistoryView({
       } else if (statusFilter === "ACTIVE") {
         matchStatus = s === "2" || s === "Completed";
       } else if (statusFilter === "REJECTED") {
-        matchStatus = s === "3" || s === "Rejected" || ((s === "0" || s === "New") && remaining <= 0);
+        matchStatus =
+          s === "3" ||
+          s === "Rejected" ||
+          ((s === "0" || s === "New") && remaining <= 0);
       }
 
       return matchSearch && matchStatus;
@@ -201,7 +280,7 @@ export function OrderHistoryView({
   // Statistics counts
   const totalCount = orders.length;
   const activeCount = orders.filter(
-    (o) => String(o.status) === "2" || String(o.status) === "Completed"
+    (o) => String(o.status) === "2" || String(o.status) === "Completed",
   ).length;
   const pendingCount = orders.filter((o) => {
     const s = String(o.status);
@@ -212,6 +291,28 @@ export function OrderHistoryView({
     return false;
   }).length;
 
+  // Pagination calculation
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
+  const paginatedOrders = React.useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredOrders.slice(start, start + pageSize);
+  }, [filteredOrders, currentPage, pageSize]);
+
+  const startItem = filteredOrders.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, filteredOrders.length);
+  const paginationRange = getPaginationRange(currentPage, totalPages, 1);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      setCurrentPage(page);
+      const section = document.getElementById("order-list-section");
+      if (section && typeof section.scrollIntoView === "function") {
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
+
+
   return (
     <main className="min-h-screen bg-slate-50/50 pb-24 font-sans">
       {/* 1. Breadcrumb Bar */}
@@ -220,7 +321,9 @@ export function OrderHistoryView({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink render={<Link href="/" />}>Trang chủ</BreadcrumbLink>
+                <BreadcrumbLink render={<Link href="/" />}>
+                  Trang chủ
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -243,7 +346,8 @@ export function OrderHistoryView({
               Lịch sử đơn dịch vụ đám mây
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Theo dõi tiến độ duyệt, đếm ngược thanh toán VietQR và trạng thái bàn giao máy chủ.
+              Theo dõi tiến độ duyệt, đếm ngược thanh toán VietQR và trạng thái
+              bàn giao máy chủ.
             </p>
           </div>
 
@@ -255,7 +359,9 @@ export function OrderHistoryView({
               disabled={isRefreshing}
               className="rounded-xl border-slate-200 bg-white shadow-2xs text-xs font-semibold gap-1.5"
             >
-              <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`size-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+              />
               <span>{isRefreshing ? "Đang tải..." : "Làm mới"}</span>
             </Button>
 
@@ -278,7 +384,10 @@ export function OrderHistoryView({
         />
 
         {/* Search & Filter Toolbar */}
-        <section aria-label="Bộ lọc đơn hàng" className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <section
+          aria-label="Bộ lọc đơn hàng"
+          className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4"
+        >
           <div className="relative w-full sm:max-w-md">
             <Search className="size-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <Input
@@ -302,7 +411,7 @@ export function OrderHistoryView({
                 key={tab.value}
                 type="button"
                 onClick={() => setStatusFilter(tab.value)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                   statusFilter === tab.value
                     ? "bg-slate-900 text-white shadow-xs"
                     : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/80"
@@ -315,7 +424,7 @@ export function OrderHistoryView({
         </section>
 
         {/* 3. Orders List */}
-        <section aria-label="Danh sách đơn hàng">
+        <section id="order-list-section" aria-label="Danh sách đơn hàng" className="space-y-6">
           {isLoadingInitial ? (
             <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
               <Loader2 className="size-8 text-primary animate-spin mx-auto" />
@@ -333,7 +442,8 @@ export function OrderHistoryView({
                   Không tìm thấy đơn dịch vụ nào
                 </h3>
                 <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                  Bạn chưa có yêu cầu dịch vụ nào hoặc không có đơn nào khớp với bộ lọc hiện tại.
+                  Bạn chưa có yêu cầu dịch vụ nào hoặc không có đơn nào khớp với
+                  bộ lọc hiện tại.
                 </p>
               </div>
               <Button
@@ -344,111 +454,218 @@ export function OrderHistoryView({
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
-              {filteredOrders.map((order) => {
-                const isNew = String(order.status) === "0" || String(order.status) === "New";
-                const remaining = isNew ? getRemainingPaymentSeconds(order.createdAt) : 0;
-                const isExpired = isNew && remaining <= 0;
+            <>
+              <div className="space-y-4">
+                {paginatedOrders.map((order) => {
+                  const isNew =
+                    String(order.status) === "0" ||
+                    String(order.status) === "New";
+                  const remaining = isNew
+                    ? getRemainingPaymentSeconds(order.createdAt)
+                    : 0;
+                  const isExpired = isNew && remaining <= 0;
 
-                return (
-                  <article
-                    key={order.id}
-                    className={`p-5 md:p-6 rounded-2xl bg-white border transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 ${
-                      isNew && !isExpired
-                        ? "border-amber-200 bg-amber-50/20 hover:border-amber-300 hover:shadow-md"
-                        : "border-slate-200 hover:border-slate-300 hover:shadow-md"
-                    }`}
-                  >
-                    {/* Left: Service & Specs info */}
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`size-12 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${
-                          isNew && !isExpired
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-primary/10 text-primary"
+                  return (
+                    <Card
+                      key={order.id}
+                      className={`p-5 md:p-6 rounded-2xl bg-white border transition-all ${
+                        isNew && !isExpired
+                          ? "border-amber-200 bg-amber-50/20 hover:border-amber-300 hover:shadow-md"
+                          : "border-slate-200 hover:border-slate-300 hover:shadow-md"
+                      }`}
+                    >
+                      <CardContent className="p-0 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        {/* Left: Service & Specs info */}
+                        <div className="flex items-start gap-4">
+                          <div
+                            className={`size-12 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${
+                              isNew && !isExpired
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-primary/10 text-primary"
+                            }`}
+                          >
+                            <Server className="size-6" />
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="text-base font-bold text-slate-900 font-heading">
+                                {order.servicePlanName}
+                              </h4>
+                              <OrderStatusBadge
+                                status={order.status}
+                                createdAt={order.createdAt}
+                              />
+                              {order.estimatedPrice && order.estimatedPrice > 0 && (
+                                <span className="text-xs font-extrabold text-primary ml-1">
+                                  {formatVND(order.estimatedPrice)}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                              <span className="flex items-center gap-1 font-mono text-slate-400">
+                                Mã: #{order.id.substring(0, 8).toUpperCase()}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <CreditCard className="size-3.5 text-slate-400" />
+                                Chu kỳ:{" "}
+                                <strong className="text-slate-700">
+                                  {order.billingCycle}
+                                </strong>
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="size-3.5 text-slate-400" />
+                                Ngày tạo: {formatDateVN(order.createdAt)}
+                              </span>
+                            </div>
+
+                            {order.companyName && (
+                              <p className="text-xs text-slate-500 flex items-center gap-1">
+                                <Building2 className="size-3.5 text-slate-400" />
+                                <span>
+                                  Doanh nghiệp: <strong>{order.companyName}</strong>
+                                </span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 self-end md:self-center shrink-0">
+                          {isNew && !isExpired && (
+                            <Button
+                              onClick={() => handleOpenPayOSQr(order)}
+                              disabled={payingOrderId === order.id}
+                              className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-xs shadow-xs gap-1.5"
+                            >
+                              <CreditCard className="size-3.5" />
+                              <span>
+                                {payingOrderId === order.id
+                                  ? "Đang mở VietQR..."
+                                  : "Thanh toán ngay"}
+                              </span>
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="outline"
+                            onClick={() => setSelectedOrder(order)}
+                            className="h-10 px-4 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs gap-1.5 shadow-2xs"
+                          >
+                            <Eye className="size-3.5 text-slate-400" />
+                            <span>Chi tiết</span>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Phân trang (Pagination Toolbar) */}
+              <div className="p-4 md:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                {/* Information counter */}
+                <div className="flex items-center gap-3 text-xs text-slate-500">
+                  <span>
+                    Hiển thị <strong className="text-slate-900">{startItem}</strong> -{" "}
+                    <strong className="text-slate-900">{endItem}</strong> trong tổng số{" "}
+                    <strong className="text-slate-900">{filteredOrders.length}</strong> đơn dịch vụ
+                  </span>
+
+                  {/* Page Size Selector */}
+                  <div className="hidden sm:flex items-center gap-1.5 border-l border-slate-200 pl-3">
+                    <span className="text-slate-400 text-[11px]">Mỗi trang:</span>
+                    {[5, 10, 20].map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => setPageSize(size)}
+                        className={`px-2 py-0.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                          pageSize === size
+                            ? "bg-primary text-white shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-100"
                         }`}
                       >
-                        <Server className="size-6" />
-                      </div>
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h4 className="text-base font-bold text-slate-900 font-heading">
-                            {order.servicePlanName}
-                          </h4>
-                          <OrderStatusBadge
-                            status={order.status}
-                            createdAt={order.createdAt}
-                          />
-                          {order.estimatedPrice && order.estimatedPrice > 0 && (
-                            <span className="text-xs font-extrabold text-primary ml-1">
-                              {formatVND(order.estimatedPrice)}
-                            </span>
-                          )}
-                        </div>
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <Pagination className="w-auto mx-0">
+                    <PaginationContent className="flex-wrap justify-center gap-1">
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(currentPage - 1);
+                          }}
+                          aria-disabled={currentPage === 1}
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-40 rounded-xl"
+                              : "cursor-pointer rounded-xl hover:bg-slate-100"
+                          }
+                        />
+                      </PaginationItem>
 
-                        {/* Remaining payment countdown ticker for pending orders */}
-                        {isNew && !isExpired && (
-                          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-100/80 border border-amber-200 text-amber-900 text-xs font-semibold">
-                            <Clock className="size-3.5 text-amber-700 animate-spin" style={{ animationDuration: "6s" }} />
-                            <span>Thời gian thanh toán còn lại:</span>
-                            <span className="font-mono text-sm font-extrabold text-amber-950 tracking-wider">
-                              {formatTimer(remaining)}
-                            </span>
-                          </div>
-                        )}
+                      {paginationRange.map((item, index) => {
+                        if (item === "DOTS_LEFT" || item === "DOTS_RIGHT") {
+                          return (
+                            <PaginationItem key={`${item}-${index}`}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
 
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-                          <span className="flex items-center gap-1 font-mono text-slate-400">
-                            Mã: #{order.id.substring(0, 8).toUpperCase()}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <CreditCard className="size-3.5 text-slate-400" />
-                            Chu kỳ: <strong className="text-slate-700">{order.billingCycle}</strong>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="size-3.5 text-slate-400" />
-                            Ngày tạo: {formatDateVN(order.createdAt)}
-                          </span>
-                        </div>
+                        const page = item as number;
+                        const isActive = page === currentPage;
 
-                        {order.companyName && (
-                          <p className="text-xs text-slate-500 flex items-center gap-1">
-                            <Building2 className="size-3.5 text-slate-400" />
-                            <span>Doanh nghiệp: <strong>{order.companyName}</strong></span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              href="#"
+                              isActive={isActive}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handlePageChange(page);
+                              }}
+                              className={`cursor-pointer rounded-xl font-medium transition-colors ${
+                                isActive
+                                  ? "bg-slate-900 text-white hover:bg-slate-800 font-bold"
+                                  : "hover:bg-slate-100 text-slate-700"
+                              }`}
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
 
-                    {/* Right: Actions */}
-                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 self-end md:self-center shrink-0">
-                      {isNew && !isExpired && (
-                        <Button
-                          onClick={() => handleOpenPayOSQr(order)}
-                          disabled={payingOrderId === order.id}
-                          className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-xs shadow-xs gap-1.5"
-                        >
-                          <CreditCard className="size-3.5" />
-                          <span>
-                            {payingOrderId === order.id ? "Đang mở VietQR..." : "Thanh toán ngay"}
-                          </span>
-                        </Button>
-                      )}
-
-                      <Button
-                        variant="outline"
-                        onClick={() => setSelectedOrder(order)}
-                        className="h-10 px-4 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs gap-1.5 shadow-2xs"
-                      >
-                        <Eye className="size-3.5 text-slate-400" />
-                        <span>Chi tiết</span>
-                      </Button>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(currentPage + 1);
+                          }}
+                          aria-disabled={currentPage === totalPages}
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-40 rounded-xl"
+                              : "cursor-pointer rounded-xl hover:bg-slate-100"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
+              </div>
+            </>
           )}
         </section>
       </div>
@@ -490,3 +707,4 @@ export function OrderHistoryView({
     </main>
   );
 }
+
