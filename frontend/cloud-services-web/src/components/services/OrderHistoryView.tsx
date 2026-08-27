@@ -199,6 +199,26 @@ export function OrderHistoryView({
       return;
     }
 
+    // 💳 1. Fintech Standard: Mở ngay PaymentQrModal với trạng thái chờ kết nối Ngân hàng
+    const orderAmount = order.estimatedPrice || 0;
+    setPaymentModalData({
+      orderId: order.id,
+      planName: order.servicePlanName,
+      amount: orderAmount,
+      orderCode: 0,
+      qrCodeString: "",
+      vietQrUrl: null,
+      accountNumber: null,
+      accountName: null,
+      bin: null,
+      checkoutUrl: undefined,
+      description: "",
+      createdAt: order.createdAt,
+      isLoading: true,
+      errorMessage: null,
+    });
+    setShowPaymentQr(true);
+
     try {
       setPayingOrderId(order.id);
       const res = await createPayosPaymentLink({
@@ -215,30 +235,38 @@ export function OrderHistoryView({
       }
 
       const data = await res.json();
-      setPaymentModalData({
-        orderId: order.id,
-        planName: order.servicePlanName,
-        amount: data.amount,
-        orderCode: data.orderCode,
-        qrCodeString: data.qrCode,
-        vietQrUrl: data.vietQrUrl,
-        accountNumber: data.accountNumber,
-        accountName: data.accountName,
-        bin: data.bin,
-        checkoutUrl: data.checkoutUrl,
-        description: data.description,
-        createdAt: order.createdAt,
-      });
-      setShowPaymentQr(true);
+      setPaymentModalData((prev) =>
+        prev
+          ? {
+              ...prev,
+              amount: data.amount || orderAmount,
+              orderCode: data.orderCode,
+              qrCodeString: data.qrCode,
+              vietQrUrl: data.vietQrUrl,
+              accountNumber: data.accountNumber,
+              accountName: data.accountName,
+              bin: data.bin,
+              checkoutUrl: data.checkoutUrl,
+              description: data.description,
+              isLoading: false,
+              errorMessage: null,
+            }
+          : null
+      );
     } catch (err: unknown) {
-      toast.add({
-        title: "Lỗi thanh toán",
-        description:
-          err instanceof Error
-            ? err.message
-            : "Đã xảy ra lỗi khi tạo mã QR VietQR.",
-        type: "error",
-      });
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Đã xảy ra lỗi khi tạo mã QR VietQR.";
+      setPaymentModalData((prev) =>
+        prev
+          ? {
+              ...prev,
+              isLoading: false,
+              errorMessage: msg,
+            }
+          : null
+      );
     } finally {
       setPayingOrderId(null);
     }
@@ -695,6 +723,8 @@ export function OrderHistoryView({
           checkoutUrl={paymentModalData.checkoutUrl}
           description={paymentModalData.description}
           createdAt={paymentModalData.createdAt}
+          isLoading={paymentModalData.isLoading}
+          errorMessage={paymentModalData.errorMessage}
           onPaymentSuccess={() => {
             setShowPaymentQr(false);
             fetchOrders(false);

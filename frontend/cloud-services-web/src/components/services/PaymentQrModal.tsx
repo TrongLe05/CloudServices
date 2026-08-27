@@ -45,6 +45,9 @@ export interface PaymentQrModalProps {
   checkoutUrl?: string;
   description: string;
   createdAt?: string;
+  isLoading?: boolean;
+  errorMessage?: string | null;
+  onRetry?: () => void;
   onPaymentSuccess?: () => void;
   onPaymentExpired?: () => void;
 }
@@ -64,6 +67,9 @@ export function PaymentQrModal({
   checkoutUrl,
   description,
   createdAt,
+  isLoading = false,
+  errorMessage = null,
+  onRetry,
   onPaymentSuccess,
   onPaymentExpired,
 }: PaymentQrModalProps) {
@@ -265,7 +271,10 @@ export function PaymentQrModal({
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-medium truncate max-w-[260px] sm:max-w-xs">
-                {planName} • <span className="font-mono text-indigo-200">#{orderCode % 1000000}</span>
+                {planName} •{" "}
+                <span className="font-mono text-indigo-200">
+                  {isLoading ? "Đang kết nối cổng thanh toán..." : `#${orderCode % 1000000}`}
+                </span>
               </p>
             </div>
           </div>
@@ -282,7 +291,92 @@ export function PaymentQrModal({
 
         {/* Modal Body */}
         <div className="p-5 sm:p-6 overflow-y-auto space-y-5">
-          {isSuccess ? (
+          {errorMessage ? (
+            /* Màn hình báo lỗi khi gọi cổng thanh toán */
+            <div className="py-8 flex flex-col items-center justify-center text-center space-y-4">
+              <div className="size-16 rounded-full bg-rose-50 text-rose-600 border-4 border-rose-100 flex items-center justify-center shadow-lg shadow-rose-500/10">
+                <AlertCircle className="size-8 stroke-[2.5]" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-xl font-bold text-slate-900 tracking-tight">
+                  Chưa thể kết nối cổng thanh toán
+                </h4>
+                <p className="text-xs text-slate-500 max-w-sm">
+                  {errorMessage}
+                </p>
+              </div>
+              <div className="flex gap-2 w-full max-w-xs pt-2">
+                {onRetry && (
+                  <Button
+                    onClick={onRetry}
+                    className="flex-1 h-10 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl"
+                  >
+                    <RefreshCw className="size-3.5 mr-1.5" />
+                    Thử lại
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  className="flex-1 h-10 border-slate-200 text-slate-700 rounded-xl"
+                >
+                  Đóng
+                </Button>
+              </div>
+            </div>
+          ) : isLoading ? (
+            /* Màn hình Khởi tạo kết nối Ngân hàng & Sinh mã VietQR (Fintech Standard) */
+            <div className="py-4 space-y-5 animate-in fade-in duration-300">
+              {/* Banner tiền thanh toán */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-primary/5 to-transparent border border-indigo-200/80">
+                <div className="space-y-0.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                    Số tiền cần thanh toán
+                  </span>
+                  <span className="text-2xl font-black text-primary tracking-tight">
+                    {formatVND(amount)}
+                  </span>
+                </div>
+
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-indigo-200 text-indigo-900 text-xs font-bold shadow-2xs self-start sm:self-auto">
+                  <Clock className="size-4 text-indigo-600" />
+                  <span>Thời hạn 5 phút</span>
+                </div>
+              </div>
+
+              {/* QR Skeleton Card với hiệu ứng quét ánh sáng */}
+              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-b from-slate-50/90 to-white rounded-3xl border border-slate-200 shadow-xs relative overflow-hidden">
+                <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/40 flex flex-col items-center justify-center p-6 text-center space-y-3.5">
+                  <div className="size-14 rounded-2xl bg-white shadow-md border border-indigo-100 flex items-center justify-center text-primary relative">
+                    <Loader2 className="size-7 animate-spin text-primary" />
+                  </div>
+
+                  <div className="space-y-1 z-10">
+                    <p className="text-xs font-bold text-slate-800">
+                      Đang kết nối cổng ngân hàng...
+                    </p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed max-w-[200px]">
+                      Hệ thống đang cấp mã VietQR và tài khoản thanh toán riêng
+                    </p>
+                  </div>
+                </div>
+
+                {/* Badge bảo mật liên ngân hàng */}
+                <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold">
+                  <span className="relative flex size-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
+                  </span>
+                  <span>Kết nối Napas 24/7 & Cổng PayOS bảo mật</span>
+                </div>
+
+                <p className="text-[11px] text-slate-400 mt-2 text-center flex items-center gap-1">
+                  <Smartphone className="size-3 text-slate-400" />
+                  Sẵn sàng quét trên mọi ứng dụng Ngân hàng, MoMo, ZaloPay
+                </p>
+              </div>
+            </div>
+          ) : isSuccess ? (
             /* 1. Màn hình thanh toán thành công */
             <div className="py-8 flex flex-col items-center justify-center text-center space-y-4">
               <div className="size-20 rounded-full bg-emerald-50 text-emerald-600 border-4 border-emerald-100 flex items-center justify-center shadow-xl shadow-emerald-500/10 animate-in zoom-in-50 duration-300">
