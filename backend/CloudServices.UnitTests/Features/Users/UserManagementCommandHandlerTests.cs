@@ -345,4 +345,94 @@ public class UserManagementCommandHandlerTests
     }
 
     #endregion
+
+    #region DeleteUserCommandHandler Tests
+
+    [Fact]
+    public async Task DeleteUser_UserNotFound_ThrowsNotFoundException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var handler = new CloudServices.Application.Features.Users.Commands.DeleteUser.DeleteUserCommandHandler(
+            _userRepositoryMock.Object,
+            _currentUserServiceMock.Object,
+            _unitOfWorkMock.Object
+        );
+
+        _userRepositoryMock.Setup(r => r.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AppUser?)null);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(new CloudServices.Application.Features.Users.Commands.DeleteUser.DeleteUserCommand(userId), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task DeleteUser_SelfDelete_ThrowsBadRequestException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new AppUser { Id = userId, Username = "self_user" };
+
+        var handler = new CloudServices.Application.Features.Users.Commands.DeleteUser.DeleteUserCommandHandler(
+            _userRepositoryMock.Object,
+            _currentUserServiceMock.Object,
+            _unitOfWorkMock.Object
+        );
+
+        _currentUserServiceMock.Setup(c => c.UserId).Returns(userId);
+        _userRepositoryMock.Setup(r => r.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<BadRequestException>(() => handler.Handle(new CloudServices.Application.Features.Users.Commands.DeleteUser.DeleteUserCommand(userId), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task DeleteUser_SystemAdmin_ThrowsBadRequestException()
+    {
+        // Arrange
+        var adminId = Guid.NewGuid();
+        var user = new AppUser { Id = adminId, Username = "admin" };
+
+        var handler = new CloudServices.Application.Features.Users.Commands.DeleteUser.DeleteUserCommandHandler(
+            _userRepositoryMock.Object,
+            _currentUserServiceMock.Object,
+            _unitOfWorkMock.Object
+        );
+
+        _currentUserServiceMock.Setup(c => c.UserId).Returns(Guid.NewGuid());
+        _userRepositoryMock.Setup(r => r.GetByIdAsync(adminId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<BadRequestException>(() => handler.Handle(new CloudServices.Application.Features.Users.Commands.DeleteUser.DeleteUserCommand(adminId), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task DeleteUser_ValidTargetUser_DeletesAndSaves()
+    {
+        // Arrange
+        var targetId = Guid.NewGuid();
+        var user = new AppUser { Id = targetId, Username = "regular_user" };
+
+        var handler = new CloudServices.Application.Features.Users.Commands.DeleteUser.DeleteUserCommandHandler(
+            _userRepositoryMock.Object,
+            _currentUserServiceMock.Object,
+            _unitOfWorkMock.Object
+        );
+
+        _currentUserServiceMock.Setup(c => c.UserId).Returns(Guid.NewGuid());
+        _userRepositoryMock.Setup(r => r.GetByIdAsync(targetId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        // Act
+        var result = await handler.Handle(new CloudServices.Application.Features.Users.Commands.DeleteUser.DeleteUserCommand(targetId), CancellationToken.None);
+
+        // Assert
+        Assert.Equal(Unit.Value, result);
+        _userRepositoryMock.Verify(r => r.Delete(user), Times.Once);
+        _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    #endregion
 }
