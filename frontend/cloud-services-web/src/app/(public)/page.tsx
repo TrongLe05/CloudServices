@@ -20,7 +20,7 @@ import { SupportContact } from "@/components/landing/SupportContact";
 async function PromotionsSection() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
   try {
-    const res = await fetch(`${apiUrl}/api/promotions?pageSize=10`, { cache: "no-store" }).catch(() => null);
+    const res = await fetch(`${apiUrl}/api/promotions?pageSize=10`, { next: { revalidate: 60 } }).catch(() => null);
     let promotions: PromotionItem[] = [];
     if (res && res.ok) {
       const data = await res.json();
@@ -38,8 +38,8 @@ async function FeaturedPlansSection() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
   try {
     const [plansRes, categoriesRes] = await Promise.all([
-      fetch(`${apiUrl}/api/service-plans?pageSize=6`, { cache: "no-store" }).catch(() => null),
-      fetch(`${apiUrl}/api/service-categories`, { cache: "no-store" }).catch(() => null),
+      fetch(`${apiUrl}/api/service-plans?pageSize=6`, { next: { revalidate: 60 } }).catch(() => null),
+      fetch(`${apiUrl}/api/service-categories`, { next: { revalidate: 60 } }).catch(() => null),
     ]);
 
     let categories: any[] = [];
@@ -71,7 +71,7 @@ async function FeaturedPlansSection() {
 async function LatestNewsSection() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7067";
   try {
-    const res = await fetch(`${apiUrl}/api/news?pageSize=3`, { cache: "no-store" }).catch(() => null);
+    const res = await fetch(`${apiUrl}/api/news?pageSize=3`, { next: { revalidate: 60 } }).catch(() => null);
     let news: BlogPostItem[] = [];
     if (res && res.ok) {
       const data = await res.json();

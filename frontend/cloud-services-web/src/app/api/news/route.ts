@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     params.append("pageSize", pageSize);
 
     const res = await fetch(`${getBackendApiUrl()}/api/news?${params.toString()}`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) {
@@ -31,7 +31,11 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        "Cache-Control": "public, max-age=60, stale-while-revalidate=120",
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ message: error.message || "An error occurred" }, { status: 500 });
   }

@@ -15,7 +15,7 @@ export const getTestimonials = async (params?: { isApproved?: boolean }) => {
 
   const queryString = query.toString() ? `?${query.toString()}` : "";
   const res = await fetch(`/api/testimonials${queryString}`, {
-    cache: "no-store",
+    next: { revalidate: 120 },
   });
   return res;
 };

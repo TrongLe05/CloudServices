@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     const apiUrl = getBackendApiUrl();
     const res = await fetch(`${apiUrl}/api/testimonials`, {
-      cache: "no-store",
+      next: { revalidate: 120 },
     });
 
     if (!res.ok) {
@@ -22,7 +22,11 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        "Cache-Control": "public, max-age=120, stale-while-revalidate=240",
+      },
+    });
   } catch (error: any) {
     console.error("Error in BFF GET testimonials:", error);
     return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });

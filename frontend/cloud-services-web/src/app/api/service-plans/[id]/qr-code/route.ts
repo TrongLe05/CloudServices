@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const apiUrl = getBackendApiUrl();
 
     const res = await fetch(`${apiUrl}/api/service-plans/${id}/qr-code`, {
-      cache: "no-store",
+      next: { revalidate: 30 },
     });
 
     if (!res.ok) {
@@ -19,7 +19,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        "Cache-Control": "public, max-age=30, stale-while-revalidate=60",
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ message: error.message || "An error occurred" }, { status: 500 });
   }

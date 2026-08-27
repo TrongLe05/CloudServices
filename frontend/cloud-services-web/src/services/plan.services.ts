@@ -27,7 +27,7 @@ export interface ServicePlan {
 
 export const getServiceCategories = async () => {
   const res = await fetch("/api/service-categories", {
-    cache: "no-store",
+    next: { revalidate: 60 },
   });
   return res;
 };
@@ -39,14 +39,14 @@ export const getServicePlans = async (params?: { categoryId?: string; pageSize?:
 
   const queryString = query.toString() ? `?${query.toString()}` : "";
   const res = await fetch(`/api/service-plans${queryString}`, {
-    cache: "no-store",
+    next: { revalidate: 60 },
   });
   return res;
 };
 
 export const getPlanQrCode = async (planId: string) => {
   const res = await fetch(`/api/service-plans/${planId}/qr-code`, {
-    cache: "no-store",
+    next: { revalidate: 30 },
   });
   return res;
 };
