@@ -7,13 +7,18 @@ namespace CloudServices.Domain.Entities;
 public class AppUser : BaseEntity
 {
     public string Username { get; set; } = string.Empty;
+    [SensitiveAuditData]
     public string PasswordHash { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string AvatarUrl { get; set; } = string.Empty;
     public Guid RoleId { get; set; }
+    [SensitiveAuditData]
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiryTime { get; set; }
+    [SensitiveAuditData]
+    public string? PreviousRefreshToken { get; set; }
+    public DateTime? PreviousRefreshTokenExpiryTime { get; set; }
 
     // Navigation properties
     public virtual Role Role { get; set; } = null!;

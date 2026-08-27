@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces;
 using CloudServices.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -29,12 +29,14 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 
         var claims = new[]
         {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role?.Name ?? "User"),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(ClaimTypes.Role, user.Role?.Name ?? "User"),
+            new Claim("role", user.Role?.Name ?? "User"),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
 
         var token = new JwtSecurityToken(
             issuer: issuer,

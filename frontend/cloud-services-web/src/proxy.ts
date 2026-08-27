@@ -1,22 +1,71 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { auth } from "@/auth";
 
-export function proxy(request: NextRequest) {
-  // Đọc cookie 'accessToken' lưu phiên đăng nhập
-  const token = request.cookies.get("accessToken")?.value;
-  const { pathname } = request.nextUrl;
+const proxyHandler = auth((req) => {
+  const { nextUrl } = req;
+  const isTokenError = (req.auth as any)?.error === "RefreshAccessTokenError" || !(req.auth as any)?.accessToken;
+  const isLoggedIn = !!req.auth?.user && !isTokenError;
+  const userRole = (req.auth?.user as any)?.role || "";
+  const roleLower = String(userRole).toLowerCase();
 
-  // Nếu đã đăng nhập (có token) và cố gắng truy cập trang Đăng nhập / Đăng ký
-  if (token && (pathname === "/dang-nhap" || pathname === "/dang-ky")) {
-    // Chuyển hướng về trang chủ
-    return NextResponse.redirect(new URL("/", request.url));
+  const isAdminRoute = nextUrl.pathname.startsWith("/admin");
+  const isEditorRoute = nextUrl.pathname.startsWith("/editor");
+  const isProfileRoute = nextUrl.pathname.startsWith("/profile");
+  const isAuthRoute =
+    nextUrl.pathname.startsWith("/dang-nhap") ||
+    nextUrl.pathname.startsWith("/dang-ky") ||
+    nextUrl.pathname.startsWith("/quen-mat-khau");
+
+  // 1. Chưa đăng nhập mà truy cập khu vực cần xác thực -> Chuyển hướng sang /dang-nhap
+  if (!isLoggedIn && (isAdminRoute || isEditorRoute || isProfileRoute)) {
+    const callbackUrl = encodeURIComponent(nextUrl.pathname + nextUrl.search);
+    return NextResponse.redirect(
+      new URL(`/dang-nhap?callbackUrl=${callbackUrl}`, nextUrl)
+    );
   }
 
-  // Cho phép tiếp tục truy cập nếu không thỏa mãn điều kiện chặn
-  return NextResponse.next();
-}
+  // 2. Đã đăng nhập -> Phân quyền truy cập theo Role
+  if (isLoggedIn) {
+    // 2.1 Truy cập /admin/* -> Chỉ Admin mới có quyền
+    if (isAdminRoute && roleLower !== "admin") {
+      if (roleLower === "editor") {
+        return NextResponse.redirect(new URL("/editor/dashboard", nextUrl));
+      }
+      return NextResponse.redirect(new URL("/", nextUrl));
+    }
 
-// Cấu hình chỉ chạy middleware trên 2 trang này để tối ưu hiệu năng (không ảnh hưởng trang khác)
+    // 2.2 Truy cập /editor/* -> Admin hoặc Editor mới có quyền
+    if (isEditorRoute && roleLower !== "admin" && roleLower !== "editor") {
+      return NextResponse.redirect(new URL("/", nextUrl));
+    }
+
+    // 2.3 Đã đăng nhập mà vào lại các trang Auth (/dang-nhap, /dang-ky) -> Chuyển về Dashboard tương ứng
+    if (isAuthRoute) {
+      if (roleLower === "admin") {
+        return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
+      }
+      if (roleLower === "editor") {
+        return NextResponse.redirect(new URL("/editor/dashboard", nextUrl));
+      }
+      return NextResponse.redirect(new URL("/", nextUrl));
+    }
+  }
+
+  return NextResponse.next();
+});
+
+export const proxy = proxyHandler;
+export default proxyHandler;
+
 export const config = {
-  matcher: ["/dang-nhap", "/dang-ky"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+  ],
 };

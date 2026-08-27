@@ -33,6 +33,7 @@ export async function POST(request: Request) {
       success: true,
       message: "Đăng nhập thành công",
       username: data.username || data.Username || body.username,
+      accessToken,
     });
 
     // Lưu accessToken vào cookie HTTP-only

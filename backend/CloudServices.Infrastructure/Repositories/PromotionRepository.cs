@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Domain.Entities;
 using CloudServices.Infrastructure.Data;
@@ -16,12 +16,16 @@ public class PromotionRepository : IPromotionRepository
 
     public async Task<List<Promotion>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Promotions.ToListAsync(cancellationToken);
+        return await _context.Promotions
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<Promotion?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Promotions.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        return await _context.Promotions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
     public async Task AddAsync(Promotion promotion, CancellationToken cancellationToken = default)

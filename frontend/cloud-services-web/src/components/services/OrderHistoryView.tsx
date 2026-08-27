@@ -1,0 +1,710 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import {
+  Server,
+  Search,
+  Calendar,
+  Clock,
+  Building2,
+  RefreshCw,
+  Eye,
+  Filter,
+  CreditCard,
+  ShoppingBag,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { toast } from "@/components/ui/toast";
+import { PaymentQrModal } from "./PaymentQrModal";
+import { OrderStatusBadge } from "@/components/common/OrderStatusBadge";
+import { OrderHistoryStatsCards } from "./OrderHistoryStatsCards";
+import { OrderDetailSheet } from "./OrderDetailSheet";
+import { UserOrder, PaymentModalData } from "@/types/orders.types";
+import { createPayosPaymentLink } from "@/services/payment.services";
+import {
+  formatVND,
+  formatDateVN,
+  getRemainingPaymentSeconds,
+  formatTimer,
+} from "@/lib/formatUtils";
+import { useDebounce } from "@/hooks/useDebounce";
+
+interface OrderHistoryViewProps {
+  initialOrders: UserOrder[];
+  userEmail?: string | null;
+}
+
+function getPaginationRange(
+  currentPage: number,
+  totalPages: number,
+  siblingCount: number = 1
+): (number | "DOTS_LEFT" | "DOTS_RIGHT")[] {
+  const totalPageNumbers = siblingCount * 2 + 5;
+
+  if (totalPages <= totalPageNumbers) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
+  const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
+
+  const shouldShowLeftDots = leftSiblingIndex > 2;
+  const shouldShowRightDots = rightSiblingIndex < totalPages - 1;
+
+  if (!shouldShowLeftDots && shouldShowRightDots) {
+    const leftItemCount = 3 + 2 * siblingCount;
+    const leftRange = Array.from({ length: leftItemCount }, (_, i) => i + 1);
+    return [...leftRange, "DOTS_RIGHT", totalPages];
+  }
+
+  if (shouldShowLeftDots && !shouldShowRightDots) {
+    const rightItemCount = 3 + 2 * siblingCount;
+    const rightRange = Array.from(
+      { length: rightItemCount },
+      (_, i) => totalPages - rightItemCount + 1 + i
+    );
+    return [1, "DOTS_LEFT", ...rightRange];
+  }
+
+  if (shouldShowLeftDots && shouldShowRightDots) {
+    const middleRange = Array.from(
+      { length: rightSiblingIndex - leftSiblingIndex + 1 },
+      (_, i) => leftSiblingIndex + i
+    );
+    return [1, "DOTS_LEFT", ...middleRange, "DOTS_RIGHT", totalPages];
+  }
+
+  return Array.from({ length: totalPages }, (_, i) => i + 1);
+}
+
+export function OrderHistoryView({
+  initialOrders = [],
+  userEmail,
+}: OrderHistoryViewProps) {
+  const { data: session } = useSession();
+  const effectiveEmail = userEmail || session?.user?.email;
+
+  const [orders, setOrders] = React.useState<UserOrder[]>(initialOrders);
+  const [isLoadingInitial, setIsLoadingInitial] = React.useState(
+    initialOrders.length === 0,
+  );
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
+  const [selectedOrder, setSelectedOrder] = React.useState<UserOrder | null>(
+    null,
+  );
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [payingOrderId, setPayingOrderId] = React.useState<string | null>(null);
+  const [showPaymentQr, setShowPaymentQr] = React.useState(false);
+  const [paymentModalData, setPaymentModalData] =
+    React.useState<PaymentModalData | null>(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(5);
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // Sync initialOrders if server props change
+  React.useEffect(() => {
+    if (initialOrders && initialOrders.length > 0) {
+      setOrders(initialOrders);
+      setIsLoadingInitial(false);
+    }
+  }, [initialOrders]);
+
+  // Reset to page 1 whenever filter or search or page size changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, statusFilter, pageSize]);
+
+  // Core API Fetch Function
+  const fetchOrders = React.useCallback(
+    async (showToast = false) => {
+      try {
+        setIsRefreshing(true);
+        const emailParam = effectiveEmail
+          ? `&customerEmail=${encodeURIComponent(effectiveEmail)}`
+          : "";
+        const res = await fetch(
+          `/api/order-requests?pageSize=100${emailParam}`,
+        );
+        if (res.ok) {
+          const data = await res.json();
+          const items: UserOrder[] = data.items || data.Items || [];
+          setOrders(items);
+          if (showToast) {
+            toast.add({
+              title: "Đã làm mới danh sách",
+              description:
+                "Thông tin các đơn dịch vụ đã được cập nhật mới nhất.",
+              type: "success",
+            });
+          }
+        }
+      } catch {
+        if (showToast) {
+          toast.add({
+            title: "Lỗi kết nối",
+            description: "Không thể làm mới danh sách đơn hàng.",
+            type: "error",
+          });
+        }
+      } finally {
+        setIsRefreshing(false);
+        setIsLoadingInitial(false);
+      }
+    },
+    [effectiveEmail],
+  );
+
+  // Auto-fetch on client mount & when session resolves to ensure instant load
+  React.useEffect(() => {
+    fetchOrders(false);
+  }, [fetchOrders]);
+
+  const handleOpenPayOSQr = async (order: UserOrder) => {
+    const remaining = getRemainingPaymentSeconds(order.createdAt);
+    if (remaining <= 0) {
+      toast.add({
+        title: "Đơn hàng đã hết hạn",
+        description:
+          "Đơn hàng này đã quá hạn 5 phút. Vui lòng tạo đơn hàng mới.",
+        type: "error",
+      });
+      return;
+    }
+
+    try {
+      setPayingOrderId(order.id);
+      const res = await createPayosPaymentLink({
+        orderId: order.id,
+        returnUrl: `${window.location.origin}/don-hang?status=success`,
+        cancelUrl: `${window.location.origin}/don-hang?status=cancelled`,
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(
+          errJson.message || "Không thể lấy mã thanh toán cho đơn hàng này.",
+        );
+      }
+
+      const data = await res.json();
+      setPaymentModalData({
+        orderId: order.id,
+        planName: order.servicePlanName,
+        amount: data.amount,
+        orderCode: data.orderCode,
+        qrCodeString: data.qrCode,
+        vietQrUrl: data.vietQrUrl,
+        accountNumber: data.accountNumber,
+        accountName: data.accountName,
+        bin: data.bin,
+        checkoutUrl: data.checkoutUrl,
+        description: data.description,
+        createdAt: order.createdAt,
+      });
+      setShowPaymentQr(true);
+    } catch (err: unknown) {
+      toast.add({
+        title: "Lỗi thanh toán",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Đã xảy ra lỗi khi tạo mã QR VietQR.",
+        type: "error",
+      });
+    } finally {
+      setPayingOrderId(null);
+    }
+  };
+
+  const filteredOrders = React.useMemo(() => {
+    return orders.filter((o) => {
+      const matchSearch =
+        o.servicePlanName
+          .toLowerCase()
+          .includes(debouncedSearchTerm.toLowerCase()) ||
+        o.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        (o.companyName &&
+          o.companyName
+            .toLowerCase()
+            .includes(debouncedSearchTerm.toLowerCase()));
+
+      let matchStatus = true;
+      const s = String(o.status);
+      const remaining = getRemainingPaymentSeconds(o.createdAt);
+
+      if (statusFilter === "NEW") {
+        matchStatus = (s === "0" || s === "New") && remaining > 0;
+      } else if (statusFilter === "PROCESSING") {
+        matchStatus = s === "1" || s === "Processing";
+      } else if (statusFilter === "ACTIVE") {
+        matchStatus = s === "2" || s === "Completed";
+      } else if (statusFilter === "REJECTED") {
+        matchStatus =
+          s === "3" ||
+          s === "Rejected" ||
+          ((s === "0" || s === "New") && remaining <= 0);
+      }
+
+      return matchSearch && matchStatus;
+    });
+  }, [orders, debouncedSearchTerm, statusFilter]);
+
+  // Statistics counts
+  const totalCount = orders.length;
+  const activeCount = orders.filter(
+    (o) => String(o.status) === "2" || String(o.status) === "Completed",
+  ).length;
+  const pendingCount = orders.filter((o) => {
+    const s = String(o.status);
+    if (s === "1" || s === "Processing") return true;
+    if (s === "0" || s === "New") {
+      return getRemainingPaymentSeconds(o.createdAt) > 0;
+    }
+    return false;
+  }).length;
+
+  // Pagination calculation
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
+  const paginatedOrders = React.useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredOrders.slice(start, start + pageSize);
+  }, [filteredOrders, currentPage, pageSize]);
+
+  const startItem = filteredOrders.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, filteredOrders.length);
+  const paginationRange = getPaginationRange(currentPage, totalPages, 1);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      setCurrentPage(page);
+      const section = document.getElementById("order-list-section");
+      if (section && typeof section.scrollIntoView === "function") {
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
+
+
+  return (
+    <main className="min-h-screen bg-slate-50/50 pb-24 font-sans">
+      {/* 1. Breadcrumb Bar */}
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-3.5">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link href="/" />}>
+                  Trang chủ
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Lịch sử đơn hàng &amp; Dịch vụ</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </header>
+
+      {/* 2. Main Content Area */}
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 pt-8 space-y-8">
+        {/* Page Title & Refresh */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+              Cổng quản lý dịch vụ khách hàng
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 font-heading mt-0.5">
+              Lịch sử đơn dịch vụ đám mây
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">
+              Theo dõi tiến độ duyệt, đếm ngược thanh toán VietQR và trạng thái
+              bàn giao máy chủ.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchOrders(true)}
+              disabled={isRefreshing}
+              className="rounded-xl border-slate-200 bg-white shadow-2xs text-xs font-semibold gap-1.5"
+            >
+              <RefreshCw
+                className={`size-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+              <span>{isRefreshing ? "Đang tải..." : "Làm mới"}</span>
+            </Button>
+
+            <Button
+              render={<Link href="/dich-vu" />}
+              size="sm"
+              className="rounded-xl bg-primary text-white shadow-xs text-xs font-bold gap-1.5"
+            >
+              <ShoppingBag className="size-3.5" />
+              <span>Đăng ký thêm gói</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Thống kê 3 Card KPI */}
+        <OrderHistoryStatsCards
+          totalCount={totalCount}
+          activeCount={activeCount}
+          pendingCount={pendingCount}
+        />
+
+        {/* Search & Filter Toolbar */}
+        <section
+          aria-label="Bộ lọc đơn hàng"
+          className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4"
+        >
+          <div className="relative w-full sm:max-w-md">
+            <Search className="size-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Tìm theo tên gói, mã đơn #ID, doanh nghiệp..."
+              className="pl-10 h-10 rounded-xl bg-slate-50 text-xs border-slate-200"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+            <Filter className="size-3.5 text-slate-400 shrink-0 hidden sm:block mr-1" />
+            {[
+              { label: "Tất cả", value: "ALL" },
+              { label: "Chờ thanh toán", value: "NEW" },
+              { label: "Đang khởi tạo", value: "PROCESSING" },
+              { label: "Đang hoạt động", value: "ACTIVE" },
+              { label: "Từ chối / Hết hạn", value: "REJECTED" },
+            ].map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => setStatusFilter(tab.value)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                  statusFilter === tab.value
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/80"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* 3. Orders List */}
+        <section id="order-list-section" aria-label="Danh sách đơn hàng" className="space-y-6">
+          {isLoadingInitial ? (
+            <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
+              <Loader2 className="size-8 text-primary animate-spin mx-auto" />
+              <p className="text-xs text-slate-500 font-medium">
+                Đang tải dữ liệu đơn dịch vụ của bạn...
+              </p>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-300 space-y-4">
+              <div className="size-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <Server className="size-8" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-800">
+                  Không tìm thấy đơn dịch vụ nào
+                </h3>
+                <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                  Bạn chưa có yêu cầu dịch vụ nào hoặc không có đơn nào khớp với
+                  bộ lọc hiện tại.
+                </p>
+              </div>
+              <Button
+                render={<Link href="/dich-vu" />}
+                className="h-10 px-6 rounded-xl font-bold text-xs bg-primary text-white"
+              >
+                Xem danh mục dịch vụ
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-4">
+                {paginatedOrders.map((order) => {
+                  const isNew =
+                    String(order.status) === "0" ||
+                    String(order.status) === "New";
+                  const remaining = isNew
+                    ? getRemainingPaymentSeconds(order.createdAt)
+                    : 0;
+                  const isExpired = isNew && remaining <= 0;
+
+                  return (
+                    <Card
+                      key={order.id}
+                      className={`p-5 md:p-6 rounded-2xl bg-white border transition-all ${
+                        isNew && !isExpired
+                          ? "border-amber-200 bg-amber-50/20 hover:border-amber-300 hover:shadow-md"
+                          : "border-slate-200 hover:border-slate-300 hover:shadow-md"
+                      }`}
+                    >
+                      <CardContent className="p-0 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        {/* Left: Service & Specs info */}
+                        <div className="flex items-start gap-4">
+                          <div
+                            className={`size-12 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${
+                              isNew && !isExpired
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-primary/10 text-primary"
+                            }`}
+                          >
+                            <Server className="size-6" />
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="text-base font-bold text-slate-900 font-heading">
+                                {order.servicePlanName}
+                              </h4>
+                              <OrderStatusBadge
+                                status={order.status}
+                                createdAt={order.createdAt}
+                              />
+                              {order.estimatedPrice && order.estimatedPrice > 0 && (
+                                <span className="text-xs font-extrabold text-primary ml-1">
+                                  {formatVND(order.estimatedPrice)}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                              <span className="flex items-center gap-1 font-mono text-slate-400">
+                                Mã: #{order.id.substring(0, 8).toUpperCase()}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <CreditCard className="size-3.5 text-slate-400" />
+                                Chu kỳ:{" "}
+                                <strong className="text-slate-700">
+                                  {order.billingCycle}
+                                </strong>
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="size-3.5 text-slate-400" />
+                                Ngày tạo: {formatDateVN(order.createdAt)}
+                              </span>
+                            </div>
+
+                            {order.companyName && (
+                              <p className="text-xs text-slate-500 flex items-center gap-1">
+                                <Building2 className="size-3.5 text-slate-400" />
+                                <span>
+                                  Doanh nghiệp: <strong>{order.companyName}</strong>
+                                </span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 self-end md:self-center shrink-0">
+                          {isNew && !isExpired && (
+                            <Button
+                              onClick={() => handleOpenPayOSQr(order)}
+                              disabled={payingOrderId === order.id}
+                              className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-xs shadow-xs gap-1.5"
+                            >
+                              <CreditCard className="size-3.5" />
+                              <span>
+                                {payingOrderId === order.id
+                                  ? "Đang mở VietQR..."
+                                  : "Thanh toán ngay"}
+                              </span>
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="outline"
+                            onClick={() => setSelectedOrder(order)}
+                            className="h-10 px-4 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs gap-1.5 shadow-2xs"
+                          >
+                            <Eye className="size-3.5 text-slate-400" />
+                            <span>Chi tiết</span>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Phân trang (Pagination Toolbar) */}
+              <div className="p-4 md:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                {/* Information counter */}
+                <div className="flex items-center gap-3 text-xs text-slate-500">
+                  <span>
+                    Hiển thị <strong className="text-slate-900">{startItem}</strong> -{" "}
+                    <strong className="text-slate-900">{endItem}</strong> trong tổng số{" "}
+                    <strong className="text-slate-900">{filteredOrders.length}</strong> đơn dịch vụ
+                  </span>
+
+                  {/* Page Size Selector */}
+                  <div className="hidden sm:flex items-center gap-1.5 border-l border-slate-200 pl-3">
+                    <span className="text-slate-400 text-[11px]">Mỗi trang:</span>
+                    {[5, 10, 20].map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => setPageSize(size)}
+                        className={`px-2 py-0.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                          pageSize === size
+                            ? "bg-primary text-white shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-100"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <Pagination className="w-auto mx-0">
+                    <PaginationContent className="flex-wrap justify-center gap-1">
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(currentPage - 1);
+                          }}
+                          aria-disabled={currentPage === 1}
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-40 rounded-xl"
+                              : "cursor-pointer rounded-xl hover:bg-slate-100"
+                          }
+                        />
+                      </PaginationItem>
+
+                      {paginationRange.map((item, index) => {
+                        if (item === "DOTS_LEFT" || item === "DOTS_RIGHT") {
+                          return (
+                            <PaginationItem key={`${item}-${index}`}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+
+                        const page = item as number;
+                        const isActive = page === currentPage;
+
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              href="#"
+                              isActive={isActive}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handlePageChange(page);
+                              }}
+                              className={`cursor-pointer rounded-xl font-medium transition-colors ${
+                                isActive
+                                  ? "bg-slate-900 text-white hover:bg-slate-800 font-bold"
+                                  : "hover:bg-slate-100 text-slate-700"
+                              }`}
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(currentPage + 1);
+                          }}
+                          aria-disabled={currentPage === totalPages}
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-40 rounded-xl"
+                              : "cursor-pointer rounded-xl hover:bg-slate-100"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+      </div>
+
+      {/* 4. Order Details Sheet (Modal chi tiết) */}
+      <OrderDetailSheet
+        order={selectedOrder}
+        isOpen={Boolean(selectedOrder)}
+        onClose={() => setSelectedOrder(null)}
+        onPayOrder={(order) => handleOpenPayOSQr(order)}
+      />
+
+      {/* 5. Payment QR Modal */}
+      {paymentModalData && (
+        <PaymentQrModal
+          isOpen={showPaymentQr}
+          onClose={() => setShowPaymentQr(false)}
+          orderId={paymentModalData.orderId}
+          planName={paymentModalData.planName}
+          amount={paymentModalData.amount}
+          orderCode={paymentModalData.orderCode}
+          qrCodeString={paymentModalData.qrCodeString}
+          vietQrUrl={paymentModalData.vietQrUrl}
+          accountNumber={paymentModalData.accountNumber}
+          accountName={paymentModalData.accountName}
+          bin={paymentModalData.bin}
+          checkoutUrl={paymentModalData.checkoutUrl}
+          description={paymentModalData.description}
+          createdAt={paymentModalData.createdAt}
+          onPaymentSuccess={() => {
+            setShowPaymentQr(false);
+            fetchOrders(false);
+          }}
+          onPaymentExpired={() => {
+            fetchOrders(false);
+          }}
+        />
+      )}
+    </main>
+  );
+}
+

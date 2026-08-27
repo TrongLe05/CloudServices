@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Domain.Entities;
 using CloudServices.Infrastructure.Data;
@@ -17,6 +17,7 @@ public class TestimonialRepository : ITestimonialRepository
     public async Task<List<Testimonial>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Testimonials
+            .AsNoTracking()
             .OrderBy(x => x.DisplayOrder)
             .ThenByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -24,7 +25,9 @@ public class TestimonialRepository : ITestimonialRepository
 
     public async Task<Testimonial?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Testimonials.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        return await _context.Testimonials
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task AddAsync(Testimonial testimonial, CancellationToken cancellationToken = default)

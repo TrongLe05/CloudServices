@@ -3,6 +3,17 @@
 import Link from "next/link";
 import { Activity, CheckCircle2, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  SLA_FEATURES,
+  SLA_DATACENTER_STATUSES,
+} from "@/data/landingSla.data";
 
 export const UptimeSla = () => {
   return (
@@ -24,25 +35,17 @@ export const UptimeSla = () => {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
-            <div className="flex gap-3">
-              <CheckCircle2 className="size-5 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Cơ cấu dự phòng kép N+1</h4>
-                <p className="text-[11px] text-slate-450 mt-1 leading-normal">
-                  Mọi cấu phần vật lý từ nguồn điện máy phát dự phòng đến đường truyền cáp quang trục đều có hạ tầng backup hoạt động song song.
-                </p>
+            {SLA_FEATURES.map((item, idx) => (
+              <div key={idx} className="flex gap-3">
+                <CheckCircle2 className="size-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">{item.title}</h4>
+                  <p className="text-[11px] text-slate-450 mt-1 leading-normal">
+                    {item.desc}
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <div className="flex gap-3">
-              <CheckCircle2 className="size-5 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Tự động chuyển mạch dự phòng</h4>
-                <p className="text-[11px] text-slate-450 mt-1 leading-normal">
-                  Khi xảy ra sự cố phần cứng vật lý, máy chủ ảo của bạn sẽ tự động được di trú và khởi chạy trên node dự trữ chỉ trong vài giây.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
 
           <div className="pt-6">
@@ -57,42 +60,38 @@ export const UptimeSla = () => {
           </div>
         </div>
 
-        {/* SLA statistics visual - Premium Rounded Card */}
-        <div className="lg:col-span-5 bg-white border border-slate-100 rounded-2xl p-6 md:p-8 space-y-6 text-left relative overflow-hidden shadow-xl shadow-slate-100/50">
+        {/* SLA statistics visual - Premium Card */}
+        <Card className="lg:col-span-5 bg-white border border-slate-100 rounded-2xl p-6 md:p-8 space-y-6 text-left relative overflow-hidden shadow-xl shadow-slate-100/50">
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl"></div>
 
-          <span className="text-slate-400 text-[10px] font-bold block tracking-wider uppercase">Chỉ số ổn định thực tế</span>
+          <CardHeader className="p-0 space-y-2">
+            <span className="text-slate-400 text-[10px] font-bold block tracking-wider uppercase">
+              Chỉ số ổn định thực tế
+            </span>
 
-          <div>
-            <span className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight">99.998%</span>
-            <span className="text-xs text-slate-400 block mt-1">Trung bình đo đạc kiểm thử liên tục trong 365 ngày</span>
-          </div>
+            <div>
+              <CardTitle className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight">
+                99.998%
+              </CardTitle>
+              <CardDescription className="text-xs text-slate-400 block mt-1">
+                Trung bình đo đạc kiểm thử liên tục trong 365 ngày
+              </CardDescription>
+            </div>
+          </CardHeader>
 
           {/* Simulated Live System Status */}
-          <div className="space-y-3 pt-4 border-t border-slate-100">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-600">Singapore Datacenter</span>
-              <div className="flex items-center gap-1.5">
-                <span className="size-2 bg-emerald-500 rounded-full animate-ping"></span>
-                <span className="text-emerald-600 font-bold">99.999% Operational</span>
+          <CardContent className="p-0 space-y-3 pt-4 border-t border-slate-100">
+            {SLA_DATACENTER_STATUSES.map((status, idx) => (
+              <div key={idx} className="flex items-center justify-between text-xs">
+                <span className="text-slate-600">{status.location}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className={`size-2 bg-emerald-500 rounded-full ${status.isPingActive ? "animate-ping" : ""}`}></span>
+                  <span className="text-emerald-600 font-bold">{status.uptime}</span>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-600">Hanoi Datacenter</span>
-              <div className="flex items-center gap-1.5">
-                <span className="size-2 bg-emerald-500 rounded-full"></span>
-                <span className="text-emerald-600 font-bold">99.997% Operational</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-600">Ho Chi Minh Datacenter</span>
-              <div className="flex items-center gap-1.5">
-                <span className="size-2 bg-emerald-500 rounded-full"></span>
-                <span className="text-emerald-600 font-bold">99.998% Operational</span>
-              </div>
-            </div>
-          </div>
-        </div>
+            ))}
+          </CardContent>
+        </Card>
       </div>
     </section>
   );

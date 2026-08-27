@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 
@@ -10,11 +10,13 @@ public class UpdatePlanPriceCommandHandler : IRequestHandler<UpdatePlanPriceComm
 {
     private readonly IPlanPriceRepository _planPriceRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cache;
 
-    public UpdatePlanPriceCommandHandler(IPlanPriceRepository planPriceRepository, IUnitOfWork unitOfWork)
+    public UpdatePlanPriceCommandHandler(IPlanPriceRepository planPriceRepository, IUnitOfWork unitOfWork, ICacheService cache)
     {
         _planPriceRepository = planPriceRepository;
         _unitOfWork = unitOfWork;
+        _cache = cache;
     }
 
     public async Task<bool> Handle(UpdatePlanPriceCommand request, CancellationToken cancellationToken)
@@ -29,6 +31,8 @@ public class UpdatePlanPriceCommandHandler : IRequestHandler<UpdatePlanPriceComm
 
         _planPriceRepository.Update(planPrice);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _cache.RemoveByPrefix("plans");
 
         return true;
     }

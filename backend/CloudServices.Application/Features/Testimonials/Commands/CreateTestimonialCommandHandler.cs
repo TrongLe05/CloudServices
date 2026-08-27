@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Application.Features.Testimonials.DTOs;
 using CloudServices.Domain.Entities;
@@ -10,11 +10,13 @@ public class CreateTestimonialCommandHandler : IRequestHandler<CreateTestimonial
 {
     private readonly ITestimonialRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cache;
 
-    public CreateTestimonialCommandHandler(ITestimonialRepository repository, IUnitOfWork unitOfWork)
+    public CreateTestimonialCommandHandler(ITestimonialRepository repository, IUnitOfWork unitOfWork, ICacheService cache)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
+        _cache = cache;
     }
 
     public async Task<TestimonialDto> Handle(CreateTestimonialCommand request, CancellationToken cancellationToken)
@@ -34,6 +36,8 @@ public class CreateTestimonialCommandHandler : IRequestHandler<CreateTestimonial
 
         await _repository.AddAsync(testimonial, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _cache.RemoveByPrefix("testimonials");
 
         return new TestimonialDto
         {

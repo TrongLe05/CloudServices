@@ -1,4 +1,5 @@
 import type { LoginFormValues } from "@/schema/auth.schema";
+import { getBackendApiUrl } from "@/lib/api-url";
 
 export interface LoginResponse {
   accessToken: string;
@@ -6,8 +7,9 @@ export interface LoginResponse {
 }
 
 export const register = async (data: LoginFormValues) => {
+  const apiUrl = getBackendApiUrl();
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
+    `${apiUrl}/api/auth/register`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -18,7 +20,8 @@ export const register = async (data: LoginFormValues) => {
 };
 
 export const login = async (data: LoginFormValues) => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+  const apiUrl = getBackendApiUrl();
+  const res = await fetch(`${apiUrl}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -27,8 +30,9 @@ export const login = async (data: LoginFormValues) => {
 };
 
 export const logout = async (accessToken: string) => {
+  const apiUrl = getBackendApiUrl();
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`,
+    `${apiUrl}/api/auth/logout`,
     {
       method: "POST",
       headers: {
@@ -41,8 +45,9 @@ export const logout = async (accessToken: string) => {
 };
 
 export const forgotPassword = async (data: { Email: string }) => {
+  const apiUrl = getBackendApiUrl();
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
+    `${apiUrl}/api/auth/forgot-password`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -53,8 +58,9 @@ export const forgotPassword = async (data: { Email: string }) => {
 };
 
 export const verifyOtp = async (data: { Email: string; Otp: string }) => {
+  const apiUrl = getBackendApiUrl();
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-otp`,
+    `${apiUrl}/api/auth/verify-otp`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -65,8 +71,9 @@ export const verifyOtp = async (data: { Email: string; Otp: string }) => {
 };
 
 export const resetPassword = async (data: { ResetToken: string; NewPassword: string }) => {
+  const apiUrl = getBackendApiUrl();
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password`,
+    `${apiUrl}/api/auth/reset-password`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

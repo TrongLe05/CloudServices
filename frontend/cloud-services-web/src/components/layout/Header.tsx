@@ -1,20 +1,19 @@
 "use client";
 
 import { NavBar } from "./NavBar";
+import { MobileNav } from "./MobileNav";
 import { AvatarDropdown } from "@/components/layout/Avatar";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/store/auth.store";
+import { useSession } from "next-auth/react";
 
 export const Header = () => {
-  const { user, initialize } = useAuthStore();
+  const { data: session, status } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    initialize();
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
@@ -24,7 +23,9 @@ export const Header = () => {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [initialize]);
+  }, []);
+
+  const isLoggedIn = status === "authenticated";
 
   return (
     <header
@@ -34,9 +35,9 @@ export const Header = () => {
           : "bg-white/60 backdrop-blur-xs border-zinc-200/30"
       }`}
     >
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Logo Brand */}
-        <div className="flex items-center gap-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        {/* Logo Brand & Desktop Navigation */}
+        <div className="flex items-center gap-6 lg:gap-8">
           <Link href="/" className="flex items-center gap-2 group">
             <Image
               src="/Logo.png"
@@ -51,22 +52,22 @@ export const Header = () => {
             </span>
           </Link>
 
-          {/* Navigation */}
+          {/* Desktop Navigation */}
           <div className="hidden md:block">
             <NavBar />
           </div>
         </div>
 
-        {/* Authentication actions */}
-        <div className="flex items-center gap-3">
-          {user ? (
-            <AvatarDropdown />
+        {/* Right side: Auth actions & Mobile Hamburger */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {isLoggedIn ? (
+            <AvatarDropdown user={session?.user} />
           ) : (
-            <>
+            <div className="hidden sm:flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-zinc-600 hover:text-zinc-900 font-medium text-xs px-4"
+                className="text-zinc-600 hover:text-zinc-900 font-medium text-xs px-3 lg:px-4"
                 render={<Link href="/dang-nhap" />}
               >
                 Đăng nhập
@@ -75,13 +76,16 @@ export const Header = () => {
               <Button
                 variant="default"
                 size="sm"
-                className="bg-primary hover:bg-primary/95 text-white font-semibold text-xs px-4 shadow-sm"
+                className="bg-primary hover:bg-primary/95 text-white font-semibold text-xs px-3 lg:px-4 shadow-sm"
                 render={<Link href="/dang-ky" />}
               >
                 Đăng ký
               </Button>
-            </>
+            </div>
           )}
+
+          {/* Mobile Navigation Drawer Trigger */}
+          <MobileNav isLoggedIn={isLoggedIn} />
         </div>
       </div>
     </header>

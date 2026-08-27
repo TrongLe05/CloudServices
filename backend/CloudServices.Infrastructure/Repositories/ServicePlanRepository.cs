@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Common.Interfaces.Repositories;
+using CloudServices.Application.Common.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using CloudServices.Domain.Entities;
 using CloudServices.Infrastructure.Data;
@@ -17,7 +17,10 @@ public class ServicePlanRepository : IServicePlanRepository
     public async Task<ServicePlan?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.ServicePlans
+            .AsNoTracking()
             .Include(p => p.Category)
+            .Include(p => p.PlanPrices)
+                .ThenInclude(pr => pr.Promotion)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
@@ -25,7 +28,12 @@ public class ServicePlanRepository : IServicePlanRepository
         Guid? categoryId, string? search, string? sort, int page, int pageSize,
         CancellationToken cancellationToken = default)
     {
-        var query = _context.ServicePlans.Include(p => p.Category).AsQueryable();
+        var query = _context.ServicePlans
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .Include(p => p.PlanPrices)
+                .ThenInclude(pr => pr.Promotion)
+            .AsQueryable();
         if (categoryId.HasValue) query = query.Where(p => p.CategoryId == categoryId.Value);
         if (!string.IsNullOrWhiteSpace(search))
         {

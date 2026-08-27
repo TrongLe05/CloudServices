@@ -4,7 +4,7 @@ using CloudServices.Domain.Entities;
 using MediatR;
 namespace CloudServices.Application.Features.News.Commands.CreateNews;
 
-public sealed class CreateNewsCommandHandler(INewsRepository repository, IUnitOfWork unitOfWork) : IRequestHandler<CreateNewsCommand, Guid>
+public sealed class CreateNewsCommandHandler(INewsRepository repository, IUnitOfWork unitOfWork, ICacheService cache) : IRequestHandler<CreateNewsCommand, Guid>
 {
     public async Task<Guid> Handle(CreateNewsCommand request, CancellationToken cancellationToken)
     {
@@ -19,6 +19,9 @@ public sealed class CreateNewsCommandHandler(INewsRepository repository, IUnitOf
         };
         await repository.AddAsync(article, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        cache.RemoveByPrefix("news");
+
         return article.Id;
     }
 }

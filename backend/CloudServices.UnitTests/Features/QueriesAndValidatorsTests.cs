@@ -1,5 +1,7 @@
 using CloudServices.Application.Common.Exceptions;
+using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
+using CloudServices.Application.Features.News;
 using CloudServices.Application.Features.News.Queries.GetNews;
 using CloudServices.Application.Features.News.Queries.GetNewsById;
 using CloudServices.Application.Features.News.Commands.CreateNews;
@@ -18,18 +20,34 @@ public class QueriesAndValidatorsTests
 {
     private readonly Mock<INewsRepository> _newsRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<ICacheService> _cacheMock;
 
     public QueriesAndValidatorsTests()
     {
         _newsRepositoryMock = new Mock<INewsRepository>();
         _userRepositoryMock = new Mock<IUserRepository>();
+        _cacheMock = new Mock<ICacheService>();
+
+        _cacheMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, Task<NewsPage>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<CancellationToken>()))
+            .Returns<string, Func<CancellationToken, Task<NewsPage>>, TimeSpan?, CancellationToken>((k, f, e, ct) => f(ct));
+
+        _cacheMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, Task<NewsDto>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<CancellationToken>()))
+            .Returns<string, Func<CancellationToken, Task<NewsDto>>, TimeSpan?, CancellationToken>((k, f, e, ct) => f(ct));
     }
 
     [Fact]
     public async Task GetNewsQueryHandler_ReturnsPagedResult()
     {
         // Arrange
-        var handler = new GetNewsQueryHandler(_newsRepositoryMock.Object);
+        var handler = new GetNewsQueryHandler(_newsRepositoryMock.Object, _cacheMock.Object);
         var query = new GetNewsQuery("test", "category", "sort", 1, 10);
         var fakeArticles = new List<NewsArticle>
         {
@@ -53,7 +71,7 @@ public class QueriesAndValidatorsTests
     public async Task GetNewsByIdQueryHandler_NotFound_ThrowsNotFoundException()
     {
         // Arrange
-        var handler = new GetNewsByIdQueryHandler(_newsRepositoryMock.Object);
+        var handler = new GetNewsByIdQueryHandler(_newsRepositoryMock.Object, _cacheMock.Object);
         var query = new GetNewsByIdQuery(Guid.NewGuid());
 
         _newsRepositoryMock.Setup(repo => repo.GetByIdAsync(query.Id, It.IsAny<CancellationToken>()))
@@ -67,7 +85,7 @@ public class QueriesAndValidatorsTests
     public async Task GetNewsByIdQueryHandler_Found_ReturnsDto()
     {
         // Arrange
-        var handler = new GetNewsByIdQueryHandler(_newsRepositoryMock.Object);
+        var handler = new GetNewsByIdQueryHandler(_newsRepositoryMock.Object, _cacheMock.Object);
         var articleId = Guid.NewGuid();
         var query = new GetNewsByIdQuery(articleId);
         var article = new NewsArticle { Id = articleId, Title = "Article Title", Slug = "slug", Category = "cat", PublishedAt = DateTime.UtcNow };

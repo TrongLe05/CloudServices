@@ -63,9 +63,6 @@ namespace CloudServices.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
                     b.ToTable("AffiliateApplications", (string)null);
                 });
 
@@ -100,6 +97,12 @@ namespace CloudServices.Infrastructure.Data.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
+
+                    b.Property<string>("PreviousRefreshToken")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime?>("PreviousRefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("RefreshToken")
                         .HasColumnType("varchar(255)");
@@ -138,31 +141,103 @@ namespace CloudServices.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Hệ Thống");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("EntityId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EntityName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ExecutionDurationMs")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("HttpMethod")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSuccess")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastModifiedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("NewValues")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Payload")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("UserRole")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Action");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("EntityId");
+
+                    b.HasIndex("EntityName");
+
+                    b.HasIndex("Path");
+
+                    b.HasIndex("Timestamp");
+
                     b.HasIndex("UserId");
+
+                    b.HasIndex("Username");
 
                     b.ToTable("AuditLogs", (string)null);
                 });
@@ -202,7 +277,7 @@ namespace CloudServices.Infrastructure.Data.Migrations
                         .HasColumnType("varchar(250)");
 
                     b.Property<string>("ThumbnailUrl")
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()

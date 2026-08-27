@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Features.Testimonials.Commands;
+using CloudServices.Application.Features.Testimonials.Commands;
 using CloudServices.Application.Features.Testimonials.DTOs;
 using CloudServices.Application.Features.Testimonials.Queries;
 using MediatR;
@@ -35,7 +35,7 @@ public class TestimonialsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [AllowAnonymous]
     public async Task<ActionResult<TestimonialDto>> Create([FromBody] CreateTestimonialRequest request, CancellationToken cancellationToken)
     {
         var command = new CreateTestimonialCommand(
@@ -77,10 +77,10 @@ public class TestimonialsController : ControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await _mediator.Send(new DeleteTestimonialCommand(id), cancellationToken);
-        return Ok(new { message = "Testimonial deleted successfully." });
+        return NoContent();
     }
 }
 

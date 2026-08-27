@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace CloudServices.Application.Common.Exceptions;
 
@@ -8,8 +8,8 @@ public class NotFoundException : Exception
     {
     }
 
-    //public NotFoundException(string name, object key)
-    //    : base($"Không tìm thấy thực thể \"{name}\" với khóa ({key}).")
-    //{
-    //}
+    public NotFoundException(string name, object key)
+        : base($"Không tìm thấy {name} với mã '{key}'.")
+    {
+    }
 }

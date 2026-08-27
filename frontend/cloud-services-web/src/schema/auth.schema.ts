@@ -30,6 +30,7 @@ export const registerSchema = z
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmPassword"],
   });
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;

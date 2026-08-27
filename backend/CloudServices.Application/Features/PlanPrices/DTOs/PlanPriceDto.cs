@@ -1,4 +1,6 @@
-﻿namespace CloudServices.Application.Features.PlanPrices.DTOs;
+using System;
+
+namespace CloudServices.Application.Features.PlanPrices.DTOs;
 
 public class PlanPriceDto
 {
@@ -7,4 +9,7 @@ public class PlanPriceDto
     public string BillingCycle { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public Guid? PromotionId { get; set; }
+    public string? PromotionName { get; set; }
+    public int? PromotionDiscountPercentage { get; set; }
+    public decimal FinalPrice { get; set; }
 }

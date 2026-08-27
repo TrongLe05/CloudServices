@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CloudServices.Application.Features.PlanPrices.Commands;
@@ -29,7 +29,7 @@ public class PlanPricesController : ControllerBase
 
     // Admin: POST /api/service-plans/{id}/prices
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<ActionResult<Guid>> CreatePrice(Guid id, [FromBody] CreatePlanPriceRequest request)
     {
         var command = new CreatePlanPriceCommand(id, request.BillingCycle, request.Price, request.PromotionId);
@@ -39,7 +39,7 @@ public class PlanPricesController : ControllerBase
 
     // Admin: PUT /api/service-plans/{id}/prices/{priceId}
     [HttpPut("{priceId:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> UpdatePrice(Guid id, Guid priceId, [FromBody] UpdatePlanPriceRequest request)
     {
         var command = new UpdatePlanPriceCommand(id, priceId, request.BillingCycle, request.Price, request.PromotionId);
@@ -51,7 +51,7 @@ public class PlanPricesController : ControllerBase
 
     // Admin: DELETE /api/service-plans/{id}/prices/{priceId}
     [HttpDelete("{priceId:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> DeletePrice(Guid id, Guid priceId)
     {
         var command = new DeletePlanPriceCommand(id, priceId);

@@ -10,40 +10,92 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuthStore } from "@/store/auth.store";
-import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-export function AvatarDropdown() {
-  const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
-  const router = useRouter();
+export function AvatarDropdown({
+  user: initialUser,
+}: {
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    role?: string;
+  };
+}) {
+  const { data: session } = useSession();
+  const { user: profileUser, isAdmin, isEditor } = useCurrentUser();
 
-  // Lấy 2 chữ cái đầu của Username làm fallback avatar
-  const initials = user?.username
-    ? user.username.substring(0, 2).toUpperCase()
+  const user = session?.user || initialUser;
+  const avatarUrl = profileUser?.avatarUrl || user?.image || initialUser?.image || "";
+  const displayName = profileUser?.fullName || user?.name || initialUser?.name || "Tài khoản";
+
+  // Lấy 2 chữ cái đầu của Username / FullName làm fallback avatar
+  const initials = displayName
+    ? displayName
+        .trim()
+        .split(" ")
+        .map((p) => p[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
     : "US";
 
   const handleLogout = async () => {
-    await logout();
-    router.push("/");
-    router.refresh(); // Refresh lại trang để cập nhật trạng thái đăng nhập
+    await signOut({ callbackUrl: "/dang-nhap" });
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="shadcn" />
-              <AvatarFallback>{initials}</AvatarFallback>
+          <Button variant="ghost" size="icon" className="rounded-full size-9 p-0 hover:opacity-90">
+            <Avatar className="size-9 border border-border/80 shadow-2xs">
+              {avatarUrl ? (
+                <AvatarImage src={avatarUrl} alt={displayName} />
+              ) : null}
+              <AvatarFallback className="bg-primary text-white font-bold text-xs">
+                {initials}
+              </AvatarFallback>
             </Avatar>
           </Button>
         }
       />
-      <DropdownMenuContent className="w-32">
+      <DropdownMenuContent className="w-52" align="end">
+        <div className="flex items-center gap-2.5 p-2.5 border-b border-border/50">
+          <Avatar className="size-8 border border-border/60">
+            {avatarUrl ? (
+              <AvatarImage src={avatarUrl} alt={displayName} />
+            ) : null}
+            <AvatarFallback className="bg-primary text-white font-bold text-[10px]">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col space-y-0.5 leading-none overflow-hidden">
+            <p className="font-semibold text-xs text-slate-900 truncate">{displayName}</p>
+            {user?.email && (
+              <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+            )}
+          </div>
+        </div>
         <DropdownMenuGroup>
-          <DropdownMenuItem>Hồ sơ</DropdownMenuItem>
+          {isAdmin && (
+            <DropdownMenuItem render={<Link href="/admin/dashboard" />}>
+              Trang Quản trị
+            </DropdownMenuItem>
+          )}
+          {isEditor && !isAdmin && (
+            <DropdownMenuItem render={<Link href="/editor/dashboard" />}>
+              Trang Biên tập
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem render={<Link href="/don-hang" />}>
+            Dịch vụ đã đặt
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/profile" />}>
+            Hồ sơ cá nhân
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

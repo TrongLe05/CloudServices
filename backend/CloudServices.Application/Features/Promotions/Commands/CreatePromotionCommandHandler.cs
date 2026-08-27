@@ -1,4 +1,4 @@
-﻿using CloudServices.Application.Common.Interfaces;
+using CloudServices.Application.Common.Interfaces;
 using CloudServices.Application.Common.Interfaces.Repositories;
 using CloudServices.Application.Features.Promotions.DTOs;
 using CloudServices.Domain.Entities;
@@ -10,13 +10,16 @@ public class CreatePromotionCommandHandler : IRequestHandler<CreatePromotionComm
 {
     private readonly IPromotionRepository _promotionRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cache;
 
     public CreatePromotionCommandHandler(
         IPromotionRepository promotionRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICacheService cache)
     {
         _promotionRepository = promotionRepository;
         _unitOfWork = unitOfWork;
+        _cache = cache;
     }
 
     public async Task<PromotionDto> Handle(CreatePromotionCommand request, CancellationToken cancellationToken)
@@ -32,6 +35,9 @@ public class CreatePromotionCommandHandler : IRequestHandler<CreatePromotionComm
 
         await _promotionRepository.AddAsync(promotion, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _cache.RemoveByPrefix("promotions");
+        _cache.RemoveByPrefix("plans");
 
         return new PromotionDto
         {
