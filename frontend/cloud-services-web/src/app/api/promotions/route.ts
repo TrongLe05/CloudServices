@@ -10,7 +10,7 @@ export async function GET() {
   try {
     const apiUrl = getBackendApiUrl();
     const res = await fetch(`${apiUrl}/api/promotions`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) {
@@ -18,7 +18,11 @@ export async function GET() {
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        "Cache-Control": "public, max-age=60, stale-while-revalidate=120",
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ message: error.message || "An error occurred" }, { status: 500 });
   }
