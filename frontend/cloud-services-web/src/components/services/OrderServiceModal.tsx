@@ -22,6 +22,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PaymentQrModal } from "./PaymentQrModal";
 import { formatVND } from "@/lib/formatUtils";
+import { PaymentModalData } from "@/types/orders.types";
 
 export interface OrderModalPlan {
   id: string;
@@ -44,14 +45,22 @@ interface OrderServiceModalProps {
   plan: OrderModalPlan | null;
   isOpen: boolean;
   onClose: () => void;
+  defaultBillingCycle?: string;
 }
 
-export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalProps) {
-  const { data: session, status } = useSession();
+export function OrderServiceModal({
+  plan,
+  isOpen,
+  onClose,
+  defaultBillingCycle = "monthly",
+}: OrderServiceModalProps) {
+  const { data: session } = useSession();
   const router = useRouter();
-  const isLoggedIn = status === "authenticated";
+  const isLoggedIn = Boolean(session?.user);
 
-  const [billingCycle, setBillingCycle] = React.useState<string>("monthly");
+  const [billingCycle, setBillingCycle] = React.useState<string>(
+    defaultBillingCycle
+  );
   const [customerName, setCustomerName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
@@ -59,20 +68,7 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
   const [showPaymentQr, setShowPaymentQr] = React.useState(false);
-  const [paymentModalData, setPaymentModalData] = React.useState<{
-    orderId: string;
-    planName: string;
-    amount: number;
-    orderCode: number;
-    qrCodeString: string;
-    vietQrUrl?: string | null;
-    accountNumber?: string | null;
-    accountName?: string | null;
-    bin?: string | null;
-    checkoutUrl?: string;
-    description: string;
-    createdAt?: string;
-  } | null>(null);
+  const [paymentModalData, setPaymentModalData] = React.useState<PaymentModalData | null>(null);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -126,8 +122,29 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
 
       const resData = await res.json().catch(() => ({}));
       const orderId = resData?.id || resData?.Id || `order-${Date.now()}`;
+      const nowIso = new Date().toISOString();
 
-      // 💳 Gọi API tạo PayOS Payment Link & QR Code
+      // 💳 1. Fintech Standard: Mở ngay lập tức PaymentQrModal với trạng thái chờ kết nối Ngân hàng
+      setPaymentModalData({
+        orderId: orderId,
+        planName: plan.name,
+        amount: finalPrice,
+        orderCode: 0,
+        qrCodeString: "",
+        vietQrUrl: null,
+        accountNumber: null,
+        accountName: null,
+        bin: null,
+        checkoutUrl: undefined,
+        description: "",
+        createdAt: nowIso,
+        isLoading: true,
+        errorMessage: null,
+      });
+      setShowPaymentQr(true);
+      setIsSubmitting(false);
+
+      // 💳 2. Gọi API tạo PayOS Payment Link & QR Code dưới nền
       try {
         const payRes = await fetch("/api/payments/create-payos-link", {
           method: "POST",
@@ -141,40 +158,57 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
 
         if (payRes.ok) {
           const payData = await payRes.json();
-          setPaymentModalData({
-            orderId: orderId,
-            planName: plan.name,
-            amount: finalPrice,
-            orderCode: payData.orderCode,
-            qrCodeString: payData.qrCode,
-            vietQrUrl: payData.vietQrUrl,
-            accountNumber: payData.accountNumber,
-            accountName: payData.accountName,
-            bin: payData.bin,
-            checkoutUrl: payData.checkoutUrl,
-            description: `DH${payData.orderCode % 1000000}`,
-            createdAt: new Date().toISOString(),
-          });
-          setShowPaymentQr(true);
-          return;
+          setPaymentModalData((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  amount: payData.amount || finalPrice,
+                  orderCode: payData.orderCode,
+                  qrCodeString: payData.qrCode,
+                  vietQrUrl: payData.vietQrUrl,
+                  accountNumber: payData.accountNumber,
+                  accountName: payData.accountName,
+                  bin: payData.bin,
+                  checkoutUrl: payData.checkoutUrl,
+                  description: payData.description || `DH${payData.orderCode % 1000000}`,
+                  isLoading: false,
+                  errorMessage: null,
+                }
+              : null
+          );
+        } else {
+          const errData = await payRes.json().catch(() => ({}));
+          setPaymentModalData((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  isLoading: false,
+                  errorMessage:
+                    errData.message ||
+                    "Không thể kết nối cổng thanh toán PayOS. Quý khách vui lòng thử lại.",
+                }
+              : null
+          );
         }
-      } catch (payErr) {
+      } catch (payErr: any) {
         console.error("Không thể tạo QR PayOS:", payErr);
+        setPaymentModalData((prev) =>
+          prev
+            ? {
+                ...prev,
+                isLoading: false,
+                errorMessage:
+                  payErr?.message || "Lỗi kết nối tới hệ thống ngân hàng PayOS.",
+              }
+            : null
+        );
       }
-
-      setIsSuccess(true);
-      toast.add({
-        title: "Gửi yêu cầu thành công!",
-        description: "Chuyên viên tư vấn của CloudServices sẽ liên hệ với bạn trong thời gian sớm nhất.",
-        type: "success",
-      });
     } catch (error: any) {
       toast.add({
         title: "Lỗi gửi yêu cầu",
         description: error.message || "Không thể kết nối đến máy chủ.",
         type: "error",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -428,6 +462,8 @@ export function OrderServiceModal({ plan, isOpen, onClose }: OrderServiceModalPr
           checkoutUrl={paymentModalData.checkoutUrl}
           description={paymentModalData.description}
           createdAt={paymentModalData.createdAt}
+          isLoading={paymentModalData.isLoading}
+          errorMessage={paymentModalData.errorMessage}
           onPaymentSuccess={() => {
             toast.add({
               title: "Thanh toán thành công!",

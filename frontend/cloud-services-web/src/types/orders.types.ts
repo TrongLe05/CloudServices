@@ -41,6 +41,8 @@ export interface PaymentModalData {
   checkoutUrl?: string;
   description: string;
   createdAt: string;
+  isLoading?: boolean;
+  errorMessage?: string | null;
 }
 
 export interface OrderStatistics {
