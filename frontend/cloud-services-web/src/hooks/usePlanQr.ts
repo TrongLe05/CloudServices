@@ -20,7 +20,7 @@ export function usePlanQr(planId?: string) {
       const res = await getPlanQrCode(planId);
       if (res.ok) {
         const data = await res.json();
-        setQrCodeUrl(data.qrCodeUrl || data.qrCode || null);
+        setQrCodeUrl(data.qrCodeBase64 || data.qrCodeUrl || data.qrCode || null);
       } else {
         setQrCodeUrl(null);
       }
