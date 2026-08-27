@@ -28,6 +28,7 @@ public class PaymentsController : ApiControllerBase
         [FromServices] IEmailSender emailSender,
         [FromServices] IEmailTemplateService emailTemplateService,
         [FromServices] IConfiguration configuration,
+        [FromServices] ICacheService cache,
         [FromServices] ILogger<PaymentsController> logger,
         CancellationToken cancellationToken)
     {
@@ -45,6 +46,9 @@ public class PaymentsController : ApiControllerBase
                     matchedOrder.Status = Domain.Enums.OrderStatus.Processing;
                     orderRepository.Update(matchedOrder);
                     await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    // Xóa cache link thanh toán cũ
+                    cache.Remove($"payos_link_{matchedOrder.Id}");
 
                     // Gửi email xác nhận thanh toán & triển khai dịch vụ
                     try
