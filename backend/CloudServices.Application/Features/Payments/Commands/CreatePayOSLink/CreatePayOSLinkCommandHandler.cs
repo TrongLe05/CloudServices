@@ -14,14 +14,29 @@ public sealed class CreatePayOSLinkCommandHandler(
     IOrderRequestRepository orderRepository,
     IPaymentGateway paymentGateway,
     IUnitOfWork unitOfWork,
-    IConfiguration configuration
+    IConfiguration configuration,
+    ICacheService cache
     ) : IRequestHandler<CreatePayOSLinkCommand, CreatePayOSLinkResponse>
 {
     public async Task<CreatePayOSLinkResponse> Handle(CreatePayOSLinkCommand request, CancellationToken cancellationToken)
     {
-        // 1. Kiểm tra đơn hàng trong DB
+        var cacheKey = $"payos_link_{request.OrderId}";
+
+        // 1. Tận dụng mã thanh toán cũ đã tạo nếu còn hiệu lực (< 4 phút)
+        var cachedResponse = await cache.GetAsync<CreatePayOSLinkResponse>(cacheKey, cancellationToken);
+        if (cachedResponse != null)
+        {
+            return cachedResponse;
+        }
+
+        // 2. Kiểm tra đơn hàng trong DB
         var order = await orderRepository.GetByIdAsync(request.OrderId, cancellationToken)
             ?? throw new NotFoundException("Đơn hàng không tồn tại.");
+
+        if (order.Status != Domain.Enums.OrderStatus.New)
+        {
+            throw new BadRequestException("Đơn hàng này không ở trạng thái chờ thanh toán.");
+        }
 
         // 2. Tạo mã orderCode số nguyên duy nhất (VD: Timestamp)
         long orderCode = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -49,13 +64,7 @@ public sealed class CreatePayOSLinkCommandHandler(
         var returnUrl = string.IsNullOrWhiteSpace(request.ReturnUrl) ? $"{frontendBase}/don-hang?status=success" : request.ReturnUrl;
         var cancelUrl = string.IsNullOrWhiteSpace(request.CancelUrl) ? $"{frontendBase}/don-hang?status=cancelled" : request.CancelUrl;
 
-        // Lưu orderCode và thời gian bắt đầu thanh toán vào đơn hàng
-        order.Notes = $"PayOS:{orderCode}";
-        order.LastModifiedAt = DateTime.UtcNow;
-        orderRepository.Update(order);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-
-        // 4. Gọi Gateway tạo link
+        // 4. Gọi Gateway tạo link trước khi ghi DB
         var paymentResult = await paymentGateway.CreatePaymentLinkAsync(
             orderCode,
             amount,
@@ -66,6 +75,12 @@ public sealed class CreatePayOSLinkCommandHandler(
             cancellationToken
         );
 
+        // 5. Sau khi tạo link PayOS thành công, cập nhật orderCode và thời gian bắt đầu thanh toán vào đơn hàng
+        order.Notes = $"PayOS:{orderCode}";
+        order.LastModifiedAt = DateTime.UtcNow;
+        orderRepository.Update(order);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         // Tạo VietQR template compact2 (có logo VietQR, NAPAS247 và ngân hàng)
         string? vietQrUrl = null;
         if (!string.IsNullOrEmpty(paymentResult.Bin) && !string.IsNullOrEmpty(paymentResult.AccountNumber))
@@ -73,7 +88,7 @@ public sealed class CreatePayOSLinkCommandHandler(
             vietQrUrl = $"https://img.vietqr.io/image/{paymentResult.Bin}-{paymentResult.AccountNumber}-compact2.png?amount={amount}&addInfo={Uri.EscapeDataString(description)}&accountName={Uri.EscapeDataString(paymentResult.AccountName ?? "")}";
         }
 
-        return new CreatePayOSLinkResponse(
+        var response = new CreatePayOSLinkResponse(
             paymentResult.CheckoutUrl,
             paymentResult.OrderCode,
             amount,
@@ -84,5 +99,10 @@ public sealed class CreatePayOSLinkCommandHandler(
             paymentResult.Bin,
             vietQrUrl
         );
+
+        // Lưu vào Cache 4 phút để phục vụ tức thì nếu người dùng mở lại modal
+        await cache.GetOrCreateAsync(cacheKey, _ => Task.FromResult(response), TimeSpan.FromMinutes(4), cancellationToken);
+
+        return response;
     }
 }

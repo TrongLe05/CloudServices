@@ -15,6 +15,7 @@ public class ProcessPayOSWebhookCommandHandler : IRequestHandler<ProcessPayOSWeb
     private readonly IEmailSender _emailSender;
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IConfiguration _configuration;
+    private readonly ICacheService _cache;
     private readonly ILogger<ProcessPayOSWebhookCommandHandler> _logger;
 
     public ProcessPayOSWebhookCommandHandler(
@@ -24,6 +25,7 @@ public class ProcessPayOSWebhookCommandHandler : IRequestHandler<ProcessPayOSWeb
         IEmailSender emailSender,
         IEmailTemplateService emailTemplateService,
         IConfiguration configuration,
+        ICacheService cache,
         ILogger<ProcessPayOSWebhookCommandHandler> logger)
     {
         _paymentGateway = paymentGateway;
@@ -32,6 +34,7 @@ public class ProcessPayOSWebhookCommandHandler : IRequestHandler<ProcessPayOSWeb
         _emailSender = emailSender;
         _emailTemplateService = emailTemplateService;
         _configuration = configuration;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -55,6 +58,9 @@ public class ProcessPayOSWebhookCommandHandler : IRequestHandler<ProcessPayOSWeb
                 matchedOrder.Status = OrderStatus.Processing;
                 _orderRepository.Update(matchedOrder);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                // Xóa cache link thanh toán cũ
+                _cache.Remove($"payos_link_{matchedOrder.Id}");
 
                 // 3. Gửi email xác nhận thanh toán & triển khai dịch vụ
                 try
