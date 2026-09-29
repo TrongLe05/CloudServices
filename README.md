@@ -7,6 +7,8 @@
   <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/SQL_Server-2022-CC292B?logo=microsoft-sql-server&logoColor=white" alt="SQL Server" />
+  <img src="https://img.shields.io/badge/Azure-Backend_Deployed-0078D4?logo=microsoft-azure&logoColor=white" alt="Azure" />
+  <img src="https://img.shields.io/badge/Vercel-Frontend_Deployed-000000?logo=vercel&logoColor=white" alt="Vercel" />
   <img src="https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/PayOS-Integrated-0052FF" alt="PayOS" />
 </p>
@@ -18,8 +20,8 @@
 **CloudServices** là hệ thống website thương mại điện tử chuyên cung cấp các giải pháp và hạ tầng đám mây (Cloud Infrastructure) như **Cloud VPS, Web Hosting, Dedicated Server, Storage Cloud,...**
 
 Hệ thống được thiết kế theo chuẩn doanh nghiệp hiện đại:
-- **Backend**: Xây dựng theo mô hình **Clean Architecture** kết hợp mẫu thiết kế **CQRS (Command Query Responsibility Segregation)** trên nền tảng **ASP.NET Core 10**.
-- **Frontend**: Ứng dụng **Next.js 16 (App Router)** với **React 19**, giao diện hiện đại tối ưu bằng **Tailwind CSS v4** và bộ component **shadcn/ui**.
+- **Backend**: Xây dựng theo mô hình **Clean Architecture** kết hợp mẫu thiết kế **CQRS (Command Query Responsibility Segregation)** trên nền tảng **ASP.NET Core 10**, triển khai máy chủ trên nền tảng đám mây **Microsoft Azure**.
+- **Frontend**: Ứng dụng **Next.js 16 (App Router)** với **React 19**, giao diện hiện đại tối ưu bằng **Tailwind CSS v4** và bộ component **shadcn/ui**, triển khai và tối ưu phân phối toàn cầu qua **Vercel**.
 - **Tích hợp thanh toán & Dịch vụ**: Cổng thanh toán trực tuyến **PayOS** (tạo mã VietQR tự động), dịch vụ gửi email tự động qua **Resend API**, xuất báo cáo Excel qua **ClosedXML**, quản lý phiên với **NextAuth v5 & JWT**.
 
 ---
@@ -100,7 +102,7 @@ backend/
 | **Trình soạn thảo** | TinyMCE React |
 | **Biểu đồ thống kê** | Recharts |
 | **Testing** | Vitest, React Testing Library, xUnit, FluentAssertions, Moq |
-| **DevOps & Deploy** | Docker, Docker Compose, GitHub Actions (CI/CD), Render |
+| **DevOps & Triển khai** | Docker, Docker Compose, GitHub Actions (CI/CD), **Microsoft Azure** (Backend & Database), **Vercel** (Frontend) |
 
 ---
 
@@ -221,6 +223,31 @@ Hệ thống tự động kích hoạt tài khoản quản trị khi khởi ch�
 | Vai trò | Tài khoản | Mật khẩu | Quyền hạn |
 | :--- | :--- | :--- | :--- |
 | **Admin** | `admin` | `123123` | Toàn quyền quản trị hệ thống, duyệt đơn hàng, quản lý người dùng, xem audit logs |
+
+---
+
+## ☁️ Triển Khai Đám Mây (Production Deployment)
+
+Hệ thống được thiết kế để phân tách độc lập và tối ưu hóa hạ tầng triển khai trên 2 nền tảng đám mây:
+
+### 1. Frontend (Next.js 16) – Triển khai trên **Vercel**
+- **Đặc điểm**: Tự động build & deploy liên tục (CI/CD) qua Git repo, tối ưu Server-Side Rendering (SSR), Server Components (RSC) và phân phối tĩnh tốc độ cao qua Vercel Global Edge Network.
+- **Biến môi trường cần cấu hình trên Vercel Dashboard**:
+  - `NEXT_PUBLIC_API_URL`: URL Backend chạy trên Azure (ví dụ: `https://api.yourdomain.com` hoặc `https://cloudservices-api.azurewebsites.net`).
+  - `AUTH_SECRET`: Khóa bí mật mã hóa JWT phiên làm việc.
+  - `AUTH_URL`: Domain website Frontend trên Vercel (ví dụ: `https://yourdomain.vercel.app`).
+  - `NEXT_PUBLIC_TINYMCE_API_KEY`: API Key cho trình soạn thảo TinyMCE.
+
+### 2. Backend (.NET 10 API & SQL Server) – Triển khai trên **Microsoft Azure**
+- **Đặc điểm**:
+  - **Dịch vụ chạy API**: Triển khai trên **Azure App Service (Linux)** hoặc **Azure Container Apps** (sử dụng `backend/Dockerfile` với tối ưu dung lượng nhỏ gọn).
+  - **Cơ sở dữ liệu**: Sử dụng **Azure SQL Database** (hoặc SQL Server container trên Azure VM/Container Instance).
+- **Cấu hình môi trường trên Azure App Service / Container Apps**:
+  - `ConnectionStrings__DefaultConnection`: Chuỗi kết nối tới Azure SQL Database.
+  - `JwtSettings__Secret`: Khóa bí mật ký Token JWT.
+  - `AppSettings__FrontendUrl`: Domain Frontend trên Vercel để cấu hình CORS chính xác (`https://yourdomain.vercel.app`).
+  - `PayOS__ClientId`, `PayOS__ApiKey`, `PayOS__ChecksumKey`: Thông tin tích hợp cổng thanh toán PayOS.
+  - `Resend__ApiKey`: API Key dịch vụ gửi email Resend.
 
 ---
 
